@@ -16,7 +16,7 @@ Complete reference for all dtiam commands and their options.
 - [user](#user) - User management
 - [bulk](#bulk) - Bulk operations
 - [template](#template) - Template system
-- [zones](#zones) - Management zones *(legacy)*
+- [zones](#zones) - Management zones _(legacy)_
 - [analyze](#analyze) - Permissions analysis
 - [export](#export) - Export resources
 - [group](#group) - Advanced group operations
@@ -35,15 +35,15 @@ These options apply to all commands:
 dtiam [OPTIONS] COMMAND [ARGS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--context TEXT` | `-c` | Override the current context |
-| `--output FORMAT` | `-o` | Output format: table, json, yaml, csv, wide |
-| `--verbose` | `-v` | Enable verbose/debug output |
-| `--plain` | | Plain output mode (no colors, no prompts) |
-| `--dry-run` | | Preview changes without applying them |
-| `--version` | `-V` | Show version and exit |
-| `--help` | | Show help message |
+| Option            | Short | Description                                 |
+| ----------------- | ----- | ------------------------------------------- |
+| `--context TEXT`  | `-c`  | Override the current context                |
+| `--output FORMAT` | `-o`  | Output format: table, json, yaml, csv, wide |
+| `--verbose`       | `-v`  | Enable verbose/debug output                 |
+| `--plain`         |       | Plain output mode (no colors, no prompts)   |
+| `--dry-run`       |       | Preview changes without applying them       |
+| `--version`       | `-V`  | Show version and exit                       |
+| `--help`          |       | Show help message                           |
 
 ---
 
@@ -53,20 +53,20 @@ dtiam supports authentication and configuration via environment variables:
 
 ### Authentication Variables
 
-| Variable | Description | Use Case |
-|----------|-------------|----------|
-| `DTIAM_BEARER_TOKEN` | Static bearer token | Quick testing, debugging |
-| `DTIAM_CLIENT_ID` | OAuth2 client ID | Automation (recommended) |
-| `DTIAM_CLIENT_SECRET` | OAuth2 client secret | Automation (recommended) |
-| `DTIAM_ACCOUNT_UUID` | Dynatrace account UUID | Required for all methods |
+| Variable              | Description            | Use Case                 |
+| --------------------- | ---------------------- | ------------------------ |
+| `DTIAM_BEARER_TOKEN`  | Static bearer token    | Quick testing, debugging |
+| `DTIAM_CLIENT_ID`     | OAuth2 client ID       | Automation (recommended) |
+| `DTIAM_CLIENT_SECRET` | OAuth2 client secret   | Automation (recommended) |
+| `DTIAM_ACCOUNT_UUID`  | Dynatrace account UUID | Required for all methods |
 
 ### Configuration Variables
 
-| Variable | Description |
-|----------|-------------|
+| Variable        | Description                   |
+| --------------- | ----------------------------- |
 | `DTIAM_CONTEXT` | Override current context name |
-| `DTIAM_OUTPUT` | Default output format |
-| `DTIAM_VERBOSE` | Enable verbose mode |
+| `DTIAM_OUTPUT`  | Default output format         |
+| `DTIAM_VERBOSE` | Enable verbose mode           |
 
 ### Authentication Priority
 
@@ -78,15 +78,16 @@ When multiple authentication methods are configured:
 
 ### OAuth2 vs Bearer Token
 
-| Feature | OAuth2 (Recommended) | Bearer Token |
-|---------|---------------------|--------------|
-| Auto-refresh | ✅ Yes | ❌ No |
-| Long-running | ✅ Suitable | ❌ Not recommended |
-| Automation | ✅ Recommended | ❌ Not recommended |
-| Quick testing | ✅ Works | ✅ Ideal |
-| Setup complexity | Medium | Low |
+| Feature          | OAuth2 (Recommended) | Bearer Token       |
+| ---------------- | -------------------- | ------------------ |
+| Auto-refresh     | ✅ Yes               | ❌ No              |
+| Long-running     | ✅ Suitable          | ❌ Not recommended |
+| Automation       | ✅ Recommended       | ❌ Not recommended |
+| Quick testing    | ✅ Works             | ✅ Ideal           |
+| Setup complexity | Medium               | Low                |
 
 **Example: OAuth2 Authentication**
+
 ```bash
 export DTIAM_CLIENT_ID="dt0s01.XXXXX"
 export DTIAM_CLIENT_SECRET="dt0s01.XXXXX.YYYYY"
@@ -95,6 +96,7 @@ dtiam get groups
 ```
 
 **Example: Bearer Token Authentication**
+
 ```bash
 # WARNING: Token will NOT auto-refresh!
 export DTIAM_BEARER_TOKEN="dt0c01.XXXXX.YYYYY..."
@@ -116,8 +118,8 @@ Display the current configuration.
 dtiam config view [--show-secrets]
 ```
 
-| Option | Description |
-|--------|-------------|
+| Option           | Description                                 |
+| ---------------- | ------------------------------------------- |
 | `--show-secrets` | Show full credential values (security risk) |
 
 ### config get-contexts
@@ -144,9 +146,9 @@ Switch to a different context.
 dtiam config use-context NAME
 ```
 
-| Argument | Description |
-|----------|-------------|
-| `NAME` | Context name to switch to |
+| Argument | Description               |
+| -------- | ------------------------- |
+| `NAME`   | Context name to switch to |
 
 ### config set-context
 
@@ -156,14 +158,15 @@ Create or update a context.
 dtiam config set-context NAME [OPTIONS]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `NAME` | | Context name |
-| `--account-uuid` | `-a` | Dynatrace account UUID |
-| `--credentials-ref` | `-c` | Reference to a named credential |
-| `--current` | | Set as current context |
+| Argument/Option     | Short | Description                     |
+| ------------------- | ----- | ------------------------------- |
+| `NAME`              |       | Context name                    |
+| `--account-uuid`    | `-a`  | Dynatrace account UUID          |
+| `--credentials-ref` | `-c`  | Reference to a named credential |
+| `--current`         |       | Set as current context          |
 
 **Example:**
+
 ```bash
 dtiam config set-context prod --account-uuid abc-123 --credentials-ref prod-creds --current
 ```
@@ -176,9 +179,9 @@ Delete a context.
 dtiam config delete-context NAME [--force]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--force` | `-f` | Skip confirmation |
+| Option    | Short | Description       |
+| --------- | ----- | ----------------- |
+| `--force` | `-f`  | Skip confirmation |
 
 ### config set-credentials
 
@@ -188,13 +191,14 @@ Store OAuth2 credentials.
 dtiam config set-credentials NAME [OPTIONS]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `NAME` | | Credential name |
-| `--client-id` | `-i` | OAuth2 client ID (prompts if not provided) |
-| `--client-secret` | `-s` | OAuth2 client secret (prompts if not provided) |
+| Argument/Option   | Short | Description                                    |
+| ----------------- | ----- | ---------------------------------------------- |
+| `NAME`            |       | Credential name                                |
+| `--client-id`     | `-i`  | OAuth2 client ID (prompts if not provided)     |
+| `--client-secret` | `-s`  | OAuth2 client secret (prompts if not provided) |
 
 **Example:**
+
 ```bash
 dtiam config set-credentials prod-creds --client-id dt0s01.XXX --client-secret dt0s01.XXX.YYY
 ```
@@ -237,11 +241,11 @@ List or get IAM groups.
 dtiam get groups [IDENTIFIER] [OPTIONS]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `IDENTIFIER` | | Group UUID or name (optional) |
-| `--name` | `-n` | Filter by name |
-| `--output` | `-o` | Output format |
+| Argument/Option | Short | Description                   |
+| --------------- | ----- | ----------------------------- |
+| `IDENTIFIER`    |       | Group UUID or name (optional) |
+| `--name`        | `-n`  | Filter by name                |
+| `--output`      | `-o`  | Output format                 |
 
 Aliases: `get group`
 
@@ -253,11 +257,11 @@ List or get IAM users.
 dtiam get users [IDENTIFIER] [OPTIONS]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `IDENTIFIER` | | User UID or email (optional) |
-| `--email` | `-e` | Filter by email |
-| `--output` | `-o` | Output format |
+| Argument/Option | Short | Description                  |
+| --------------- | ----- | ---------------------------- |
+| `IDENTIFIER`    |       | User UID or email (optional) |
+| `--email`       | `-e`  | Filter by email              |
+| `--output`      | `-o`  | Output format                |
 
 Aliases: `get user`
 
@@ -269,12 +273,12 @@ List or get IAM policies.
 dtiam get policies [IDENTIFIER] [OPTIONS]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `IDENTIFIER` | | Policy UUID or name (optional) |
-| `--name` | `-n` | Filter by name |
-| `--level` | `-l` | Policy level: account (default), global |
-| `--output` | `-o` | Output format |
+| Argument/Option | Short | Description                             |
+| --------------- | ----- | --------------------------------------- |
+| `IDENTIFIER`    |       | Policy UUID or name (optional)          |
+| `--name`        | `-n`  | Filter by name                          |
+| `--level`       | `-l`  | Policy level: account (default), global |
+| `--output`      | `-o`  | Output format                           |
 
 Aliases: `get policy`
 
@@ -286,10 +290,10 @@ List IAM policy bindings.
 dtiam get bindings [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--group` | `-g` | Filter by group UUID |
-| `--output` | `-o` | Output format |
+| Option     | Short | Description          |
+| ---------- | ----- | -------------------- |
+| `--group`  | `-g`  | Filter by group UUID |
+| `--output` | `-o`  | Output format        |
 
 Aliases: `get binding`
 
@@ -301,10 +305,10 @@ List or get Dynatrace environments.
 dtiam get environments [IDENTIFIER] [OPTIONS]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `IDENTIFIER` | | Environment ID or name (optional) |
-| `--output` | `-o` | Output format |
+| Argument/Option | Short | Description                       |
+| --------------- | ----- | --------------------------------- |
+| `IDENTIFIER`    |       | Environment ID or name (optional) |
+| `--output`      | `-o`  | Output format                     |
 
 Aliases: `get envs`, `get env`
 
@@ -316,11 +320,11 @@ List or get IAM policy boundaries.
 dtiam get boundaries [IDENTIFIER] [OPTIONS]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `IDENTIFIER` | | Boundary UUID or name (optional) |
-| `--name` | `-n` | Filter by name |
-| `--output` | `-o` | Output format |
+| Argument/Option | Short | Description                      |
+| --------------- | ----- | -------------------------------- |
+| `IDENTIFIER`    |       | Boundary UUID or name (optional) |
+| `--name`        | `-n`  | Filter by name                   |
+| `--output`      | `-o`  | Output format                    |
 
 Aliases: `get boundary`
 
@@ -358,10 +362,10 @@ Show detailed information about an IAM policy.
 dtiam describe policy IDENTIFIER [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--level` | `-l` | Policy level: account (default), global |
-| `--output` | `-o` | Output format |
+| Option     | Short | Description                             |
+| ---------- | ----- | --------------------------------------- |
+| `--level`  | `-l`  | Policy level: account (default), global |
+| `--output` | `-o`  | Output format                           |
 
 Displays: UUID, name, description, statement query, parsed permissions.
 
@@ -399,13 +403,14 @@ Create a new IAM group.
 dtiam create group [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--name` | `-n` | Group name (required) |
-| `--description` | `-d` | Group description |
-| `--output` | `-o` | Output format |
+| Option          | Short | Description           |
+| --------------- | ----- | --------------------- |
+| `--name`        | `-n`  | Group name (required) |
+| `--description` | `-d`  | Group description     |
+| `--output`      | `-o`  | Output format         |
 
 **Example:**
+
 ```bash
 dtiam create group --name "DevOps Team" --description "Platform engineering"
 ```
@@ -418,15 +423,16 @@ Create a new IAM policy.
 dtiam create policy [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--name` | `-n` | Policy name (required) |
-| `--statement` | `-s` | Policy statement query (required) |
-| `--description` | `-d` | Policy description |
-| `--level` | `-l` | Policy level (account only for creation) |
-| `--output` | `-o` | Output format |
+| Option          | Short | Description                              |
+| --------------- | ----- | ---------------------------------------- |
+| `--name`        | `-n`  | Policy name (required)                   |
+| `--statement`   | `-s`  | Policy statement query (required)        |
+| `--description` | `-d`  | Policy description                       |
+| `--level`       | `-l`  | Policy level (account only for creation) |
+| `--output`      | `-o`  | Output format                            |
 
 **Example:**
+
 ```bash
 dtiam create policy --name "viewer" --statement "ALLOW settings:objects:read;"
 ```
@@ -439,14 +445,15 @@ Create a policy binding (bind a policy to a group).
 dtiam create binding [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--group` | `-g` | Group UUID or name (required) |
-| `--policy` | `-p` | Policy UUID or name (required) |
-| `--boundary` | `-b` | Boundary UUID or name (optional) |
-| `--output` | `-o` | Output format |
+| Option       | Short | Description                      |
+| ------------ | ----- | -------------------------------- |
+| `--group`    | `-g`  | Group UUID or name (required)    |
+| `--policy`   | `-p`  | Policy UUID or name (required)   |
+| `--boundary` | `-b`  | Boundary UUID or name (optional) |
+| `--output`   | `-o`  | Output format                    |
 
 **Example:**
+
 ```bash
 dtiam create binding --group "DevOps Team" --policy "admin-policy"
 ```
@@ -459,17 +466,18 @@ Create a new IAM policy boundary.
 dtiam create boundary [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--name` | `-n` | Boundary name (required) |
-| `--zones` | `-z` | Management zones (comma-separated) |
-| `--query` | `-q` | Custom boundary query |
-| `--description` | `-d` | Boundary description |
-| `--output` | `-o` | Output format |
+| Option          | Short | Description                        |
+| --------------- | ----- | ---------------------------------- |
+| `--name`        | `-n`  | Boundary name (required)           |
+| `--zones`       | `-z`  | Management zones (comma-separated) |
+| `--query`       | `-q`  | Custom boundary query              |
+| `--description` | `-d`  | Boundary description               |
+| `--output`      | `-o`  | Output format                      |
 
 Either `--zones` or `--query` must be provided.
 
 **Example:**
+
 ```bash
 dtiam create boundary --name "prod-only" --zones "Production,Staging"
 ```
@@ -488,9 +496,9 @@ Delete an IAM group.
 dtiam delete group IDENTIFIER [--force]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--force` | `-f` | Skip confirmation |
+| Option    | Short | Description       |
+| --------- | ----- | ----------------- |
+| `--force` | `-f`  | Skip confirmation |
 
 ### delete policy
 
@@ -500,10 +508,10 @@ Delete an IAM policy.
 dtiam delete policy IDENTIFIER [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--level` | `-l` | Policy level (account) |
-| `--force` | `-f` | Skip confirmation |
+| Option    | Short | Description            |
+| --------- | ----- | ---------------------- |
+| `--level` | `-l`  | Policy level (account) |
+| `--force` | `-f`  | Skip confirmation      |
 
 ### delete binding
 
@@ -513,11 +521,11 @@ Delete a policy binding.
 dtiam delete binding [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--group` | `-g` | Group UUID (required) |
-| `--policy` | `-p` | Policy UUID (required) |
-| `--force` | `-f` | Skip confirmation |
+| Option     | Short | Description            |
+| ---------- | ----- | ---------------------- |
+| `--group`  | `-g`  | Group UUID (required)  |
+| `--policy` | `-p`  | Policy UUID (required) |
+| `--force`  | `-f`  | Skip confirmation      |
 
 ### delete boundary
 
@@ -541,15 +549,16 @@ Create a new user in the account.
 dtiam user create [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--email` | `-e` | User email address (required) |
-| `--first-name` | `-f` | User's first name |
-| `--last-name` | `-l` | User's last name |
-| `--groups` | `-g` | Comma-separated group UUIDs or names |
-| `--output` | `-o` | Output format |
+| Option         | Short | Description                          |
+| -------------- | ----- | ------------------------------------ |
+| `--email`      | `-e`  | User email address (required)        |
+| `--first-name` | `-f`  | User's first name                    |
+| `--last-name`  | `-l`  | User's last name                     |
+| `--groups`     | `-g`  | Comma-separated group UUIDs or names |
+| `--output`     | `-o`  | Output format                        |
 
 **Examples:**
+
 ```bash
 dtiam user create --email user@example.com
 dtiam user create --email user@example.com --first-name John --last-name Doe
@@ -564,12 +573,13 @@ Delete a user from the account.
 dtiam user delete USER [--force]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `USER` | | User email or UID |
-| `--force` | `-f` | Skip confirmation |
+| Argument/Option | Short | Description       |
+| --------------- | ----- | ----------------- |
+| `USER`          |       | User email or UID |
+| `--force`       | `-f`  | Skip confirmation |
 
 **Example:**
+
 ```bash
 dtiam user delete user@example.com --force
 ```
@@ -582,12 +592,13 @@ Add a user to an IAM group.
 dtiam user add-to-group [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--user` | `-u` | User email address (required) |
-| `--group` | `-g` | Group UUID or name (required) |
+| Option    | Short | Description                   |
+| --------- | ----- | ----------------------------- |
+| `--user`  | `-u`  | User email address (required) |
+| `--group` | `-g`  | Group UUID or name (required) |
 
 **Example:**
+
 ```bash
 dtiam user add-to-group --user admin@example.com --group "DevOps Team"
 ```
@@ -600,11 +611,11 @@ Remove a user from an IAM group.
 dtiam user remove-from-group [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--user` | `-u` | User email or UID (required) |
-| `--group` | `-g` | Group UUID or name (required) |
-| `--force` | `-f` | Skip confirmation |
+| Option    | Short | Description                   |
+| --------- | ----- | ----------------------------- |
+| `--user`  | `-u`  | User email or UID (required)  |
+| `--group` | `-g`  | Group UUID or name (required) |
+| `--force` | `-f`  | Skip confirmation             |
 
 ### user list-groups
 
@@ -622,6 +633,67 @@ Show detailed information about a user.
 dtiam user info USER [--output FORMAT]
 ```
 
+### user replace-groups
+
+Replace all group memberships for a user.
+
+This removes the user from all current groups and adds them to the specified groups.
+
+```bash
+dtiam user replace-groups [OPTIONS]
+```
+
+| Option     | Short | Description                                     |
+| ---------- | ----- | ----------------------------------------------- |
+| `--user`   | `-u`  | User email address (required)                   |
+| `--groups` | `-g`  | Comma-separated group UUIDs or names (required) |
+| `--force`  | `-f`  | Skip confirmation                               |
+
+**Example:**
+
+```bash
+dtiam user replace-groups --user user@example.com --groups "DevOps,Platform"
+```
+
+### user bulk-remove-groups
+
+Remove a user from multiple groups at once.
+
+```bash
+dtiam user bulk-remove-groups [OPTIONS]
+```
+
+| Option     | Short | Description                                     |
+| ---------- | ----- | ----------------------------------------------- |
+| `--user`   | `-u`  | User email address (required)                   |
+| `--groups` | `-g`  | Comma-separated group UUIDs or names (required) |
+| `--force`  | `-f`  | Skip confirmation                               |
+
+**Example:**
+
+```bash
+dtiam user bulk-remove-groups --user user@example.com --groups "DevOps,Platform"
+```
+
+### user bulk-add-groups
+
+Add a user to multiple groups at once.
+
+```bash
+dtiam user bulk-add-groups [OPTIONS]
+```
+
+| Option     | Short | Description                                     |
+| ---------- | ----- | ----------------------------------------------- |
+| `--user`   | `-u`  | User email address (required)                   |
+| `--groups` | `-g`  | Comma-separated group UUIDs or names (required) |
+
+**Example:**
+
+```bash
+dtiam user bulk-add-groups --user user@example.com --groups "DevOps,Platform"
+```
+
 ---
 
 ## bulk
@@ -636,14 +708,15 @@ Add multiple users to a group from a file.
 dtiam bulk add-users-to-group [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--file` | `-f` | File with user emails (JSON, YAML, or CSV) (required) |
-| `--group` | `-g` | Group UUID or name (required) |
-| `--email-field` | `-e` | Field name containing email addresses (default: email) |
-| `--continue-on-error` | | Continue processing on errors |
+| Option                | Short | Description                                            |
+| --------------------- | ----- | ------------------------------------------------------ |
+| `--file`              | `-f`  | File with user emails (JSON, YAML, or CSV) (required)  |
+| `--group`             | `-g`  | Group UUID or name (required)                          |
+| `--email-field`       | `-e`  | Field name containing email addresses (default: email) |
+| `--continue-on-error` |       | Continue processing on errors                          |
 
 **CSV Example:**
+
 ```csv
 email
 user1@example.com
@@ -658,13 +731,13 @@ Remove multiple users from a group from a file.
 dtiam bulk remove-users-from-group [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--file` | `-f` | File with user emails/UIDs (required) |
-| `--group` | `-g` | Group UUID or name (required) |
-| `--user-field` | `-u` | Field name containing email or UID (default: email) |
-| `--continue-on-error` | | Continue processing on errors |
-| `--force` | `-F` | Skip confirmation |
+| Option                | Short | Description                                         |
+| --------------------- | ----- | --------------------------------------------------- |
+| `--file`              | `-f`  | File with user emails/UIDs (required)               |
+| `--group`             | `-g`  | Group UUID or name (required)                       |
+| `--user-field`        | `-u`  | Field name containing email or UID (default: email) |
+| `--continue-on-error` |       | Continue processing on errors                       |
+| `--force`             | `-F`  | Skip confirmation                                   |
 
 ### bulk create-groups
 
@@ -674,12 +747,13 @@ Create multiple groups from a file.
 dtiam bulk create-groups [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--file` | `-f` | File with group definitions (JSON or YAML) (required) |
-| `--continue-on-error` | | Continue processing on errors |
+| Option                | Short | Description                                           |
+| --------------------- | ----- | ----------------------------------------------------- |
+| `--file`              | `-f`  | File with group definitions (JSON or YAML) (required) |
+| `--continue-on-error` |       | Continue processing on errors                         |
 
 **YAML Example:**
+
 ```yaml
 - name: "Group A"
   description: "Description for Group A"
@@ -695,12 +769,13 @@ Create multiple policy bindings from a file.
 dtiam bulk create-bindings [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--file` | `-f` | File with binding definitions (JSON or YAML) (required) |
-| `--continue-on-error` | | Continue processing on errors |
+| Option                | Short | Description                                             |
+| --------------------- | ----- | ------------------------------------------------------- |
+| `--file`              | `-f`  | File with binding definitions (JSON or YAML) (required) |
+| `--continue-on-error` |       | Continue processing on errors                           |
 
 **YAML Example:**
+
 ```yaml
 - group: "group-name"
   policy: "policy-name"
@@ -715,11 +790,11 @@ Export group members to a file.
 dtiam bulk export-group-members [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--group` | `-g` | Group UUID or name (required) |
-| `--output` | `-o` | Output file path |
-| `--format` | `-f` | Output format: csv, json, yaml (default: csv) |
+| Option     | Short | Description                                   |
+| ---------- | ----- | --------------------------------------------- |
+| `--group`  | `-g`  | Group UUID or name (required)                 |
+| `--output` | `-o`  | Output file path                              |
+| `--format` | `-f`  | Output format: csv, json, yaml (default: csv) |
 
 ---
 
@@ -751,13 +826,14 @@ Render a template with the given variables.
 dtiam template render NAME [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--var` | `-v` | Variable in key=value format (repeatable) |
-| `--var-file` | `-f` | YAML/JSON file with variables |
-| `--output` | `-o` | Output format |
+| Option       | Short | Description                               |
+| ------------ | ----- | ----------------------------------------- |
+| `--var`      | `-v`  | Variable in key=value format (repeatable) |
+| `--var-file` | `-f`  | YAML/JSON file with variables             |
+| `--output`   | `-o`  | Output format                             |
 
 **Example:**
+
 ```bash
 dtiam template render group-team --var team_name=platform --var description="Platform Team"
 ```
@@ -770,12 +846,13 @@ Render a template and create the resource.
 dtiam template apply NAME [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--var` | `-v` | Variable in key=value format (repeatable) |
-| `--var-file` | `-f` | YAML/JSON file with variables |
+| Option       | Short | Description                               |
+| ------------ | ----- | ----------------------------------------- |
+| `--var`      | `-v`  | Variable in key=value format (repeatable) |
+| `--var-file` | `-f`  | YAML/JSON file with variables             |
 
 **Example:**
+
 ```bash
 dtiam template apply group-team --var team_name=platform
 ```
@@ -788,11 +865,11 @@ Save a custom template.
 dtiam template save NAME [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--kind` | `-k` | Resource kind: Group, Policy, Boundary, Binding (required) |
-| `--file` | `-f` | YAML/JSON file with template definition (required) |
-| `--description` | `-d` | Template description |
+| Option          | Short | Description                                                |
+| --------------- | ----- | ---------------------------------------------------------- |
+| `--kind`        | `-k`  | Resource kind: Group, Policy, Boundary, Binding (required) |
+| `--file`        | `-f`  | YAML/JSON file with template definition (required)         |
+| `--description` | `-d`  | Template description                                       |
 
 ### template delete
 
@@ -826,10 +903,10 @@ List management zones.
 dtiam zones list [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--name` | `-n` | Filter by name |
-| `--output` | `-o` | Output format |
+| Option     | Short | Description    |
+| ---------- | ----- | -------------- |
+| `--name`   | `-n`  | Filter by name |
+| `--output` | `-o`  | Output format  |
 
 ### zones get
 
@@ -847,10 +924,10 @@ Export management zones to a file.
 dtiam zones export [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--output` | `-o` | Output file path |
-| `--format` | `-f` | Output format: yaml, json, csv (default: yaml) |
+| Option     | Short | Description                                    |
+| ---------- | ----- | ---------------------------------------------- |
+| `--output` | `-o`  | Output file path                               |
+| `--format` | `-f`  | Output format: yaml, json, csv (default: yaml) |
 
 ### zones compare-groups
 
@@ -860,10 +937,10 @@ Compare zone names with group names to find matches.
 dtiam zones compare-groups [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--case-sensitive` | `-c` | Use case-sensitive matching |
-| `--output` | `-o` | Output format |
+| Option             | Short | Description                 |
+| ------------------ | ----- | --------------------------- |
+| `--case-sensitive` | `-c`  | Use case-sensitive matching |
+| `--output`         | `-o`  | Output format               |
 
 ---
 
@@ -879,12 +956,13 @@ Calculate effective permissions for a user.
 dtiam analyze user-permissions USER [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--output` | `-o` | Output format |
-| `--export` | `-e` | Export to file |
+| Option     | Short | Description    |
+| ---------- | ----- | -------------- |
+| `--output` | `-o`  | Output format  |
+| `--export` | `-e`  | Export to file |
 
 **Example:**
+
 ```bash
 dtiam analyze user-permissions admin@example.com -o json
 ```
@@ -897,10 +975,10 @@ Calculate effective permissions for a group.
 dtiam analyze group-permissions GROUP [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--output` | `-o` | Output format |
-| `--export` | `-e` | Export to file |
+| Option     | Short | Description    |
+| ---------- | ----- | -------------- |
+| `--output` | `-o`  | Output format  |
+| `--export` | `-e`  | Export to file |
 
 ### analyze permissions-matrix
 
@@ -910,11 +988,11 @@ Generate a permissions matrix.
 dtiam analyze permissions-matrix [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--scope` | `-s` | Scope: policies or groups (default: policies) |
-| `--output` | `-o` | Output format |
-| `--export` | `-e` | Export to CSV file |
+| Option     | Short | Description                                   |
+| ---------- | ----- | --------------------------------------------- |
+| `--scope`  | `-s`  | Scope: policies or groups (default: policies) |
+| `--output` | `-o`  | Output format                                 |
+| `--export` | `-e`  | Export to CSV file                            |
 
 ### analyze policy
 
@@ -934,12 +1012,13 @@ Analyze policies for least-privilege compliance.
 dtiam analyze least-privilege [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--output` | `-o` | Output format |
-| `--export` | `-e` | Export findings to file |
+| Option     | Short | Description             |
+| ---------- | ----- | ----------------------- |
+| `--output` | `-o`  | Output format           |
+| `--export` | `-e`  | Export findings to file |
 
 Identifies policies with:
+
 - Wildcard permissions
 - Resource wildcards
 - Write/manage/delete/admin access
@@ -955,15 +1034,16 @@ This calls the Dynatrace resolution API directly to get permissions as computed 
 dtiam analyze effective-user USER [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--level` | `-l` | Level type: account, environment, global (default: account) |
-| `--level-id` | | Level ID (uses account UUID if not specified) |
-| `--services` | `-s` | Comma-separated service filter |
-| `--output` | `-o` | Output format |
-| `--export` | `-e` | Export to file |
+| Option       | Short | Description                                                 |
+| ------------ | ----- | ----------------------------------------------------------- |
+| `--level`    | `-l`  | Level type: account, environment, global (default: account) |
+| `--level-id` |       | Level ID (uses account UUID if not specified)               |
+| `--services` | `-s`  | Comma-separated service filter                              |
+| `--output`   | `-o`  | Output format                                               |
+| `--export`   | `-e`  | Export to file                                              |
 
 **Examples:**
+
 ```bash
 dtiam analyze effective-user admin@example.com
 dtiam analyze effective-user admin@example.com --level environment --level-id env123
@@ -980,15 +1060,16 @@ This calls the Dynatrace resolution API directly to get permissions as computed 
 dtiam analyze effective-group GROUP [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--level` | `-l` | Level type: account, environment, global (default: account) |
-| `--level-id` | | Level ID (uses account UUID if not specified) |
-| `--services` | `-s` | Comma-separated service filter |
-| `--output` | `-o` | Output format |
-| `--export` | `-e` | Export to file |
+| Option       | Short | Description                                                 |
+| ------------ | ----- | ----------------------------------------------------------- |
+| `--level`    | `-l`  | Level type: account, environment, global (default: account) |
+| `--level-id` |       | Level ID (uses account UUID if not specified)               |
+| `--services` | `-s`  | Comma-separated service filter                              |
+| `--output`   | `-o`  | Output format                                               |
+| `--export`   | `-e`  | Export to file                                              |
 
 **Examples:**
+
 ```bash
 dtiam analyze effective-group "DevOps Team"
 dtiam analyze effective-group "DevOps Team" -o json --export perms.json
@@ -1008,18 +1089,19 @@ Export all IAM resources to files.
 dtiam export all [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--output` | `-o` | Output directory (default: .) |
-| `--format` | `-f` | Output format: csv, json, yaml (default: csv) |
-| `--prefix` | `-p` | File name prefix (default: dtiam) |
-| `--include` | `-i` | Comma-separated list of exports to include |
-| `--detailed` | `-d` | Include detailed/enriched data |
-| `--timestamp-dir/--no-timestamp-dir` | | Create timestamped subdirectory (default: yes) |
+| Option                               | Short | Description                                    |
+| ------------------------------------ | ----- | ---------------------------------------------- |
+| `--output`                           | `-o`  | Output directory (default: .)                  |
+| `--format`                           | `-f`  | Output format: csv, json, yaml (default: csv)  |
+| `--prefix`                           | `-p`  | File name prefix (default: dtiam)              |
+| `--include`                          | `-i`  | Comma-separated list of exports to include     |
+| `--detailed`                         | `-d`  | Include detailed/enriched data                 |
+| `--timestamp-dir/--no-timestamp-dir` |       | Create timestamped subdirectory (default: yes) |
 
 Available exports: environments, groups, users, policies, bindings, boundaries
 
 **Example:**
+
 ```bash
 dtiam export all -o ./backup -f json --detailed
 dtiam export all --include groups,policies
@@ -1033,12 +1115,12 @@ Export a single group with its details.
 dtiam export group IDENTIFIER [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--output` | `-o` | Output file |
-| `--format` | `-f` | Output format: yaml, json (default: yaml) |
-| `--include-members/--no-members` | | Include member list (default: yes) |
-| `--include-policies/--no-policies` | | Include policy bindings (default: yes) |
+| Option                             | Short | Description                               |
+| ---------------------------------- | ----- | ----------------------------------------- |
+| `--output`                         | `-o`  | Output file                               |
+| `--format`                         | `-f`  | Output format: yaml, json (default: yaml) |
+| `--include-members/--no-members`   |       | Include member list (default: yes)        |
+| `--include-policies/--no-policies` |       | Include policy bindings (default: yes)    |
 
 ### export policy
 
@@ -1048,11 +1130,11 @@ Export a single policy with its details.
 dtiam export policy IDENTIFIER [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--output` | `-o` | Output file |
-| `--format` | `-f` | Output format: yaml, json (default: yaml) |
-| `--as-template` | `-t` | Export as reusable template |
+| Option          | Short | Description                               |
+| --------------- | ----- | ----------------------------------------- |
+| `--output`      | `-o`  | Output file                               |
+| `--format`      | `-f`  | Output format: yaml, json (default: yaml) |
+| `--as-template` | `-t`  | Export as reusable template               |
 
 ---
 
@@ -1068,16 +1150,17 @@ Clone an existing group with its configuration.
 dtiam group clone SOURCE [OPTIONS]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `SOURCE` | | Source group UUID or name |
-| `--name` | `-n` | Name for the cloned group (required) |
-| `--description` | `-d` | Description (uses source if not provided) |
-| `--include-members` | `-m` | Copy members to new group |
-| `--include-policies/--no-policies` | | Copy policy bindings (default: yes) |
-| `--output` | `-o` | Output format |
+| Argument/Option                    | Short | Description                               |
+| ---------------------------------- | ----- | ----------------------------------------- |
+| `SOURCE`                           |       | Source group UUID or name                 |
+| `--name`                           | `-n`  | Name for the cloned group (required)      |
+| `--description`                    | `-d`  | Description (uses source if not provided) |
+| `--include-members`                | `-m`  | Copy members to new group                 |
+| `--include-policies/--no-policies` |       | Copy policy bindings (default: yes)       |
+| `--output`                         | `-o`  | Output format                             |
 
 **Example:**
+
 ```bash
 dtiam group clone "Source Group" --name "New Group" --include-members
 ```
@@ -1090,15 +1173,16 @@ Create a group with policy binding in one command.
 dtiam group setup [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--name` | `-n` | Group name (required) |
-| `--policy` | `-p` | Policy UUID or name to bind (required) |
-| `--boundary` | `-b` | Boundary UUID or name (optional) |
-| `--description` | `-d` | Group description |
-| `--output` | `-o` | Output format |
+| Option          | Short | Description                            |
+| --------------- | ----- | -------------------------------------- |
+| `--name`        | `-n`  | Group name (required)                  |
+| `--policy`      | `-p`  | Policy UUID or name to bind (required) |
+| `--boundary`    | `-b`  | Boundary UUID or name (optional)       |
+| `--description` | `-d`  | Group description                      |
+| `--output`      | `-o`  | Output format                          |
 
 **Example:**
+
 ```bash
 dtiam group setup --name "DevOps Team" --policy "devops-policy" --boundary "prod-boundary"
 ```
@@ -1133,13 +1217,14 @@ Attach a boundary to an existing binding.
 dtiam boundary attach [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--group` | `-g` | Group UUID or name (required) |
-| `--policy` | `-p` | Policy UUID or name (required) |
-| `--boundary` | `-b` | Boundary UUID or name (required) |
+| Option       | Short | Description                      |
+| ------------ | ----- | -------------------------------- |
+| `--group`    | `-g`  | Group UUID or name (required)    |
+| `--policy`   | `-p`  | Policy UUID or name (required)   |
+| `--boundary` | `-b`  | Boundary UUID or name (required) |
 
 **Example:**
+
 ```bash
 dtiam boundary attach --group "DevOps" --policy "admin-policy" --boundary "prod-boundary"
 ```
@@ -1152,12 +1237,12 @@ Detach a boundary from a binding.
 dtiam boundary detach [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--group` | `-g` | Group UUID or name (required) |
-| `--policy` | `-p` | Policy UUID or name (required) |
-| `--boundary` | `-b` | Boundary UUID or name (required) |
-| `--force` | `-f` | Skip confirmation |
+| Option       | Short | Description                      |
+| ------------ | ----- | -------------------------------- |
+| `--group`    | `-g`  | Group UUID or name (required)    |
+| `--policy`   | `-p`  | Policy UUID or name (required)   |
+| `--boundary` | `-b`  | Boundary UUID or name (required) |
+| `--force`    | `-f`  | Skip confirmation                |
 
 ### boundary list-attached
 
@@ -1191,13 +1276,14 @@ Clear cache entries.
 dtiam cache clear [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--force` | `-f` | Skip confirmation |
-| `--expired-only` | `-e` | Only clear expired entries |
-| `--prefix` | `-p` | Only clear entries with this prefix |
+| Option           | Short | Description                         |
+| ---------------- | ----- | ----------------------------------- |
+| `--force`        | `-f`  | Skip confirmation                   |
+| `--expired-only` | `-e`  | Only clear expired entries          |
+| `--prefix`       | `-p`  | Only clear entries with this prefix |
 
 **Examples:**
+
 ```bash
 dtiam cache clear                    # Clear all entries
 dtiam cache clear --expired-only     # Clear only expired entries
@@ -1212,10 +1298,10 @@ List cache keys.
 dtiam cache keys [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--prefix` | `-p` | Filter by prefix |
-| `--limit` | `-n` | Maximum keys to show (default: 50) |
+| Option     | Short | Description                        |
+| ---------- | ----- | ---------------------------------- |
+| `--prefix` | `-p`  | Filter by prefix                   |
+| `--limit`  | `-n`  | Maximum keys to show (default: 50) |
 
 ### cache reset-stats
 
@@ -1233,8 +1319,8 @@ Set the default cache TTL.
 dtiam cache set-ttl SECONDS
 ```
 
-| Argument | Description |
-|----------|-------------|
+| Argument  | Description            |
+| --------- | ---------------------- |
 | `SECONDS` | Default TTL in seconds |
 
 ---
@@ -1261,9 +1347,9 @@ Get details of a service user.
 dtiam service-user get USER [--output FORMAT]
 ```
 
-| Argument | Description |
-|----------|-------------|
-| `USER` | Service user UUID or name |
+| Argument | Description               |
+| -------- | ------------------------- |
+| `USER`   | Service user UUID or name |
 
 ### service-user create
 
@@ -1275,15 +1361,16 @@ Create a new service user (OAuth client).
 dtiam service-user create [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--name` | `-n` | Service user name (required) |
-| `--description` | `-d` | Description |
-| `--groups` | `-g` | Comma-separated group UUIDs or names |
-| `--save-credentials` | `-s` | Save credentials to JSON file |
-| `--output` | `-o` | Output format |
+| Option               | Short | Description                          |
+| -------------------- | ----- | ------------------------------------ |
+| `--name`             | `-n`  | Service user name (required)         |
+| `--description`      | `-d`  | Description                          |
+| `--groups`           | `-g`  | Comma-separated group UUIDs or names |
+| `--save-credentials` | `-s`  | Save credentials to JSON file        |
+| `--output`           | `-o`  | Output format                        |
 
 **Examples:**
+
 ```bash
 dtiam service-user create --name "CI Pipeline"
 dtiam service-user create --name "CI Pipeline" --groups "DevOps,Automation"
@@ -1298,14 +1385,15 @@ Update a service user.
 dtiam service-user update USER [OPTIONS]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `USER` | | Service user UUID or name |
-| `--name` | `-n` | New name |
-| `--description` | `-d` | New description |
-| `--output` | `-o` | Output format |
+| Argument/Option | Short | Description               |
+| --------------- | ----- | ------------------------- |
+| `USER`          |       | Service user UUID or name |
+| `--name`        | `-n`  | New name                  |
+| `--description` | `-d`  | New description           |
+| `--output`      | `-o`  | Output format             |
 
 **Example:**
+
 ```bash
 dtiam service-user update my-service-user --name "New Name"
 ```
@@ -1318,10 +1406,10 @@ Delete a service user.
 dtiam service-user delete USER [--force]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `USER` | | Service user UUID or name |
-| `--force` | `-f` | Skip confirmation |
+| Argument/Option | Short | Description               |
+| --------------- | ----- | ------------------------- |
+| `USER`          |       | Service user UUID or name |
+| `--force`       | `-f`  | Skip confirmation         |
 
 **Warning:** Deleting a service user will invalidate any OAuth tokens issued to it.
 
@@ -1333,12 +1421,13 @@ Add a service user to a group.
 dtiam service-user add-to-group [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--user` | `-u` | Service user UUID or name (required) |
-| `--group` | `-g` | Group UUID or name (required) |
+| Option    | Short | Description                          |
+| --------- | ----- | ------------------------------------ |
+| `--user`  | `-u`  | Service user UUID or name (required) |
+| `--group` | `-g`  | Group UUID or name (required)        |
 
 **Example:**
+
 ```bash
 dtiam service-user add-to-group --user my-service-user --group DevOps
 ```
@@ -1351,11 +1440,11 @@ Remove a service user from a group.
 dtiam service-user remove-from-group [OPTIONS]
 ```
 
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--user` | `-u` | Service user UUID or name (required) |
-| `--group` | `-g` | Group UUID or name (required) |
-| `--force` | `-f` | Skip confirmation |
+| Option    | Short | Description                          |
+| --------- | ----- | ------------------------------------ |
+| `--user`  | `-u`  | Service user UUID or name (required) |
+| `--group` | `-g`  | Group UUID or name (required)        |
+| `--force` | `-f`  | Skip confirmation                    |
 
 ### service-user list-groups
 
@@ -1365,9 +1454,9 @@ List all groups a service user belongs to.
 dtiam service-user list-groups USER [--output FORMAT]
 ```
 
-| Argument | Description |
-|----------|-------------|
-| `USER` | Service user UUID or name |
+| Argument | Description               |
+| -------- | ------------------------- |
+| `USER`   | Service user UUID or name |
 
 ---
 
@@ -1386,6 +1475,7 @@ dtiam account limits [--output FORMAT]
 Shows current usage and maximum allowed values for account resources like users, groups, and environments. Includes status indicators for limits approaching or at capacity.
 
 **Example:**
+
 ```bash
 dtiam account limits
 dtiam account limits -o json
@@ -1399,13 +1489,14 @@ Check if there's capacity for additional resources.
 dtiam account check-capacity LIMIT [OPTIONS]
 ```
 
-| Argument/Option | Short | Description |
-|-----------------|-------|-------------|
-| `LIMIT` | | Limit name (e.g., maxUsers, maxGroups) |
-| `--count` | `-n` | Number of resources to add (default: 1) |
-| `--output` | `-o` | Output format |
+| Argument/Option | Short | Description                             |
+| --------------- | ----- | --------------------------------------- |
+| `LIMIT`         |       | Limit name (e.g., maxUsers, maxGroups)  |
+| `--count`       | `-n`  | Number of resources to add (default: 1) |
+| `--output`      | `-o`  | Output format                           |
 
 **Examples:**
+
 ```bash
 dtiam account check-capacity maxUsers
 dtiam account check-capacity maxGroups --count 5
@@ -1429,8 +1520,8 @@ Get details of a specific subscription.
 dtiam account subscription SUBSCRIPTION [--output FORMAT]
 ```
 
-| Argument | Description |
-|----------|-------------|
+| Argument       | Description               |
+| -------------- | ------------------------- |
 | `SUBSCRIPTION` | Subscription UUID or name |
 
 ### account forecast
@@ -1441,8 +1532,8 @@ Get usage forecast for subscriptions.
 dtiam account forecast [SUBSCRIPTION] [--output FORMAT]
 ```
 
-| Argument | Description |
-|----------|-------------|
+| Argument       | Description                |
+| -------------- | -------------------------- |
 | `SUBSCRIPTION` | Optional subscription UUID |
 
 ### account capabilities
@@ -1453,18 +1544,18 @@ List subscription capabilities.
 dtiam account capabilities [SUBSCRIPTION] [--output FORMAT]
 ```
 
-| Argument | Description |
-|----------|-------------|
+| Argument       | Description                |
+| -------------- | -------------------------- |
 | `SUBSCRIPTION` | Optional subscription UUID |
 
 ---
 
 ## Exit Codes
 
-| Code | Description |
-|------|-------------|
-| 0 | Success |
-| 1 | Error (resource not found, permission denied, etc.) |
+| Code | Description                                         |
+| ---- | --------------------------------------------------- |
+| 0    | Success                                             |
+| 1    | Error (resource not found, permission denied, etc.) |
 
 ## See Also
 
