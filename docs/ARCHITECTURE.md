@@ -35,6 +35,8 @@ src/dtiam/
 │   ├── create.py            # create group, policy, binding
 │   ├── delete.py            # delete group, policy, binding
 │   ├── user.py              # User management operations
+│   ├── service_user.py      # Service user (OAuth client) management
+│   ├── account.py           # Account limits and subscriptions
 │   ├── bulk.py              # Bulk operations from files
 │   ├── template.py          # Template-based resource creation
 │   ├── zones.py             # Management zone operations
@@ -50,11 +52,14 @@ src/dtiam/
 │   ├── base.py              # ResourceHandler ABC, CRUDHandler
 │   ├── groups.py            # GroupHandler
 │   ├── policies.py          # PolicyHandler
-│   ├── users.py             # UserHandler (read-only)
+│   ├── users.py             # UserHandler
+│   ├── service_users.py     # ServiceUserHandler
 │   ├── bindings.py          # BindingHandler
 │   ├── boundaries.py        # BoundaryHandler
 │   ├── environments.py      # EnvironmentHandler
-│   └── zones.py             # ZoneHandler
+│   ├── zones.py             # ZoneHandler
+│   ├── limits.py            # AccountLimitsHandler
+│   └── subscriptions.py     # SubscriptionHandler
 │
 └── utils/
     ├── __init__.py

@@ -96,6 +96,8 @@ dtiam create binding --group "New Team" --policy "viewer-policy"
 | `create` | Create resources |
 | `delete` | Delete resources |
 | `user` | User management operations |
+| `service-user` | Service user (OAuth client) management |
+| `account` | Account limits and subscriptions |
 | `bulk` | Bulk operations for multiple resources |
 | `template` | Template-based resource creation |
 | `zones` | Management zone operations |
@@ -112,10 +114,13 @@ dtiam create binding --group "New Team" --policy "viewer-policy"
 |----------|-------------|
 | `groups` | IAM groups for organizing users |
 | `policies` | Permission policies with statements |
-| `users` | User accounts (read-only) |
+| `users` | User accounts |
+| `service-users` | Service users (OAuth clients) for automation |
 | `bindings` | Policy-to-group assignments |
 | `environments` | Dynatrace environments |
 | `boundaries` | Scope restrictions for bindings |
+| `limits` | Account limits and quotas |
+| `subscriptions` | Account subscriptions |
 
 ## Global Options
 
