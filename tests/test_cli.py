@@ -282,11 +282,4 @@ class TestBoundaryCommands:
         assert result.exit_code == 0
 
 
-class TestRaciCommands:
-    """Tests for raci subcommands."""
-
-    def test_raci_help(self):
-        """Test raci command help."""
-        result = runner.invoke(app, ["raci", "--help"])
-        assert result.exit_code == 0
 

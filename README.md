@@ -1,5 +1,7 @@
 # dtiam - Dynatrace IAM CLI
 
+> **DISCLAIMER:** This tool is provided "as-is" without warranty. Use at your own risk. This is an independent, community-developed tool and is **NOT produced, endorsed, or supported by Dynatrace**. For official Dynatrace tools and support, please visit [dynatrace.com](https://www.dynatrace.com).
+
 A kubectl-inspired command-line interface for managing Dynatrace Identity and Access Management resources.
 
 ## Features
@@ -11,8 +13,7 @@ A kubectl-inspired command-line interface for managing Dynatrace Identity and Ac
 - **Bulk operations** - Process multiple resources from CSV/YAML files
 - **Template system** - Jinja2-style variable substitution for manifests
 - **Permissions analysis** - Calculate effective permissions for users and groups
-- **RACI matrix generation** - Generate governance matrices from IAM data
-- **Management zones** - Zone operations and group comparison
+- **Management zones** - Zone operations and group comparison *(legacy - see deprecation notice)*
 - **Caching** - In-memory cache with TTL for reduced API calls
 
 ## Installation
@@ -100,9 +101,8 @@ dtiam create binding --group "New Team" --policy "viewer-policy"
 | `account` | Account limits and subscriptions |
 | `bulk` | Bulk operations for multiple resources |
 | `template` | Template-based resource creation |
-| `zones` | Management zone operations |
+| `zones` | Management zone operations *(legacy)* |
 | `analyze` | Analyze permissions and policies |
-| `raci` | RACI matrix generation |
 | `export` | Export resources and data |
 | `group` | Advanced group operations |
 | `boundary` | Boundary attach/detach operations |
@@ -208,16 +208,6 @@ dtiam analyze group-permissions "DevOps Team"
 dtiam analyze permissions-matrix -o json > matrix.json
 ```
 
-### RACI Matrix
-
-```bash
-# Generate basic RACI matrix
-dtiam raci generate
-
-# Generate enterprise RACI with custom mapping
-dtiam raci generate --template enterprise -o yaml
-```
-
 ### Export
 
 ```bash
@@ -228,7 +218,9 @@ dtiam export all --output-dir ./backup
 dtiam export group "DevOps Team" --include-policies --include-members
 ```
 
-### Management Zones
+### Management Zones (Legacy)
+
+> **DEPRECATION NOTICE:** Management Zone features are provided for legacy purposes only and will be removed in a future release. Dynatrace is transitioning away from management zones in favor of other access control mechanisms.
 
 ```bash
 # List all zones
@@ -332,6 +324,14 @@ iam:effective-permissions:read
 - Python 3.10+
 - Dynatrace Account with API access
 - OAuth2 client credentials with appropriate scopes (see above)
+
+## Disclaimer
+
+**USE AT YOUR OWN RISK.** This tool is provided "as-is" without any warranty of any kind, express or implied. The authors and contributors are not responsible for any damages or data loss that may result from using this tool.
+
+**NOT PRODUCED BY DYNATRACE.** This is an independent, community-developed tool. It is not produced, endorsed, maintained, or supported by Dynatrace. For official Dynatrace products and support, visit [dynatrace.com](https://www.dynatrace.com).
+
+**NO SUPPORT PROVIDED.** This tool is provided without support. Issues may be reported via GitHub, but there is no guarantee of response or resolution.
 
 ## License
 

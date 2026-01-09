@@ -186,3 +186,69 @@ class PolicyHandler(ResourceHandler[Any]):
             pass  # Global policies might not be accessible
 
         return all_policies
+
+    def list_aggregate(self) -> list[dict[str, Any]]:
+        """List all policies including inherited ones via the aggregate endpoint.
+
+        This uses the /policies/aggregate endpoint which returns all policies
+        at the current level plus inherited policies from parent levels.
+
+        Returns:
+            List of policy dictionaries including inherited policies
+        """
+        try:
+            response = self.client.get(f"{self.api_path}/aggregate")
+            data = response.json()
+
+            if isinstance(data, dict):
+                return data.get("policies", data.get("items", []))
+            return data if isinstance(data, list) else []
+
+        except APIError as e:
+            self._handle_error("list aggregate", e)
+            return []
+
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Validate a policy definition before creation.
+
+        Args:
+            data: Policy data to validate with required fields:
+                - name: Policy name
+                - statementQuery: Policy statement query
+
+        Returns:
+            Validation result dictionary with 'valid' boolean and 'errors' list
+        """
+        try:
+            response = self.client.post(f"{self.api_path}/validation", json=data)
+            return response.json()
+        except APIError as e:
+            # Return validation failure info
+            return {
+                "valid": False,
+                "errors": [str(e)],
+                "status_code": e.status_code,
+            }
+
+    def validate_update(self, policy_id: str, data: dict[str, Any]) -> dict[str, Any]:
+        """Validate a policy update before applying.
+
+        Args:
+            policy_id: Policy UUID to update
+            data: Updated policy data to validate
+
+        Returns:
+            Validation result dictionary with 'valid' boolean and 'errors' list
+        """
+        try:
+            response = self.client.post(
+                f"{self.api_path}/validation/{policy_id}",
+                json=data,
+            )
+            return response.json()
+        except APIError as e:
+            return {
+                "valid": False,
+                "errors": [str(e)],
+                "status_code": e.status_code,
+            }

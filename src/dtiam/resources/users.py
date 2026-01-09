@@ -182,3 +182,65 @@ class UserHandler(ResourceHandler[Any]):
 
         user["group_count"] = len(user.get("groups", []))
         return user
+
+    def replace_groups(self, email: str, group_uuids: list[str]) -> bool:
+        """Replace all group memberships for a user.
+
+        This replaces the user's entire group membership with the provided list.
+
+        Args:
+            email: User email address
+            group_uuids: List of group UUIDs (replaces all existing memberships)
+
+        Returns:
+            True if successful
+        """
+        try:
+            self.client.put(
+                f"{self.api_path}/{email}/groups",
+                json=group_uuids,
+            )
+            return True
+        except APIError as e:
+            self._handle_error("replace groups", e)
+            return False
+
+    def remove_from_groups(self, email: str, group_uuids: list[str]) -> bool:
+        """Remove a user from specific groups.
+
+        Args:
+            email: User email address
+            group_uuids: List of group UUIDs to remove user from
+
+        Returns:
+            True if successful
+        """
+        try:
+            self.client.delete(
+                f"{self.api_path}/{email}/groups",
+                json=group_uuids,
+            )
+            return True
+        except APIError as e:
+            self._handle_error("remove from groups", e)
+            return False
+
+    def add_to_groups(self, email: str, group_uuids: list[str]) -> bool:
+        """Add a user to multiple groups.
+
+        Args:
+            email: User email address
+            group_uuids: List of group UUIDs to add user to
+
+        Returns:
+            True if successful
+        """
+        try:
+            self.client.post(
+                f"{self.api_path}/{email}",
+                json=group_uuids,
+            )
+            return True
+        except APIError as e:
+            self._handle_error("add to groups", e)
+            return False

@@ -1,5 +1,7 @@
 # API Reference
 
+> **DISCLAIMER:** This tool is provided "as-is" without warranty. Use at your own risk. This is an independent, community-developed tool and is **NOT produced, endorsed, or supported by Dynatrace**.
+
 Programmatic usage guide for dtiam modules.
 
 ## Overview
@@ -491,7 +493,9 @@ capabilities = handler.get_capabilities()
 capabilities = handler.get_capabilities("subscription-uuid")
 ```
 
-### Management Zones
+### Management Zones (Legacy)
+
+> **DEPRECATION NOTICE:** Management Zone features are provided for legacy purposes only and will be removed in a future release.
 
 ```python
 from dtiam.resources.zones import ZoneHandler

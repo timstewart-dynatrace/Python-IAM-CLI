@@ -346,3 +346,200 @@ def user_info(
 
     finally:
         client.close()
+
+
+@app.command("replace-groups")
+def replace_user_groups(
+    user: str = typer.Option(..., "--user", "-u", help="User email address"),
+    groups: str = typer.Option(..., "--groups", "-g", help="Comma-separated group UUIDs or names"),
+    force: bool = typer.Option(False, "--force", "-f", help="Skip confirmation"),
+) -> None:
+    """Replace all group memberships for a user.
+
+    This will remove the user from all current groups and add them to the specified groups.
+
+    Example:
+        dtiam user replace-groups --user user@example.com --groups "DevOps,Platform"
+    """
+    from dtiam.resources.users import UserHandler
+    from dtiam.resources.groups import GroupHandler
+
+    config = load_config()
+    client = create_client_from_config(config, get_context(), is_verbose())
+    user_handler = UserHandler(client)
+    group_handler = GroupHandler(client)
+
+    try:
+        # Resolve groups
+        group_uuids: list[str] = []
+        group_names: list[str] = []
+        for group_ref in groups.split(","):
+            group_ref = group_ref.strip()
+            if not group_ref:
+                continue
+
+            group_obj = group_handler.get(group_ref)
+            if not group_obj:
+                group_obj = group_handler.get_by_name(group_ref)
+
+            if group_obj:
+                group_uuids.append(group_obj.get("uuid", ""))
+                group_names.append(group_obj.get("name", group_ref))
+            else:
+                console.print(f"[yellow]Warning:[/yellow] Group '{group_ref}' not found, skipping.")
+
+        if not group_uuids:
+            console.print("[red]Error:[/red] No valid groups specified.")
+            raise typer.Exit(1)
+
+        if is_dry_run():
+            console.print(f"[yellow]Dry-run mode:[/yellow] Would replace groups for user '{user}'")
+            console.print(f"  New groups: {', '.join(group_names)}")
+            return
+
+        if not force:
+            confirm = typer.confirm(
+                f"Replace all group memberships for '{user}' with: {', '.join(group_names)}?"
+            )
+            if not confirm:
+                console.print("Aborted.")
+                raise typer.Exit(0)
+
+        success = user_handler.replace_groups(user, group_uuids)
+
+        if success:
+            console.print(f"[green]Replaced groups for user:[/green] {user}")
+            console.print(f"  New groups: {', '.join(group_names)}")
+        else:
+            console.print(f"[red]Error:[/red] Failed to replace groups for user '{user}'")
+            raise typer.Exit(1)
+
+    finally:
+        client.close()
+
+
+@app.command("bulk-remove-groups")
+def bulk_remove_user_from_groups(
+    user: str = typer.Option(..., "--user", "-u", help="User email address"),
+    groups: str = typer.Option(..., "--groups", "-g", help="Comma-separated group UUIDs or names"),
+    force: bool = typer.Option(False, "--force", "-f", help="Skip confirmation"),
+) -> None:
+    """Remove a user from multiple groups at once.
+
+    Example:
+        dtiam user bulk-remove-groups --user user@example.com --groups "DevOps,Platform"
+    """
+    from dtiam.resources.users import UserHandler
+    from dtiam.resources.groups import GroupHandler
+
+    config = load_config()
+    client = create_client_from_config(config, get_context(), is_verbose())
+    user_handler = UserHandler(client)
+    group_handler = GroupHandler(client)
+
+    try:
+        # Resolve groups
+        group_uuids: list[str] = []
+        group_names: list[str] = []
+        for group_ref in groups.split(","):
+            group_ref = group_ref.strip()
+            if not group_ref:
+                continue
+
+            group_obj = group_handler.get(group_ref)
+            if not group_obj:
+                group_obj = group_handler.get_by_name(group_ref)
+
+            if group_obj:
+                group_uuids.append(group_obj.get("uuid", ""))
+                group_names.append(group_obj.get("name", group_ref))
+            else:
+                console.print(f"[yellow]Warning:[/yellow] Group '{group_ref}' not found, skipping.")
+
+        if not group_uuids:
+            console.print("[red]Error:[/red] No valid groups specified.")
+            raise typer.Exit(1)
+
+        if is_dry_run():
+            console.print(f"[yellow]Dry-run mode:[/yellow] Would remove user '{user}' from groups")
+            console.print(f"  Groups: {', '.join(group_names)}")
+            return
+
+        if not force:
+            confirm = typer.confirm(
+                f"Remove '{user}' from groups: {', '.join(group_names)}?"
+            )
+            if not confirm:
+                console.print("Aborted.")
+                raise typer.Exit(0)
+
+        success = user_handler.remove_from_groups(user, group_uuids)
+
+        if success:
+            console.print(f"[green]Removed user from groups:[/green] {user}")
+            console.print(f"  Removed from: {', '.join(group_names)}")
+        else:
+            console.print(f"[red]Error:[/red] Failed to remove user from groups")
+            raise typer.Exit(1)
+
+    finally:
+        client.close()
+
+
+@app.command("bulk-add-groups")
+def bulk_add_user_to_groups(
+    user: str = typer.Option(..., "--user", "-u", help="User email address"),
+    groups: str = typer.Option(..., "--groups", "-g", help="Comma-separated group UUIDs or names"),
+) -> None:
+    """Add a user to multiple groups at once.
+
+    Example:
+        dtiam user bulk-add-groups --user user@example.com --groups "DevOps,Platform"
+    """
+    from dtiam.resources.users import UserHandler
+    from dtiam.resources.groups import GroupHandler
+
+    config = load_config()
+    client = create_client_from_config(config, get_context(), is_verbose())
+    user_handler = UserHandler(client)
+    group_handler = GroupHandler(client)
+
+    try:
+        # Resolve groups
+        group_uuids: list[str] = []
+        group_names: list[str] = []
+        for group_ref in groups.split(","):
+            group_ref = group_ref.strip()
+            if not group_ref:
+                continue
+
+            group_obj = group_handler.get(group_ref)
+            if not group_obj:
+                group_obj = group_handler.get_by_name(group_ref)
+
+            if group_obj:
+                group_uuids.append(group_obj.get("uuid", ""))
+                group_names.append(group_obj.get("name", group_ref))
+            else:
+                console.print(f"[yellow]Warning:[/yellow] Group '{group_ref}' not found, skipping.")
+
+        if not group_uuids:
+            console.print("[red]Error:[/red] No valid groups specified.")
+            raise typer.Exit(1)
+
+        if is_dry_run():
+            console.print(f"[yellow]Dry-run mode:[/yellow] Would add user '{user}' to groups")
+            console.print(f"  Groups: {', '.join(group_names)}")
+            return
+
+        success = user_handler.add_to_groups(user, group_uuids)
+
+        if success:
+            console.print(f"[green]Added user to groups:[/green] {user}")
+            console.print(f"  Added to: {', '.join(group_names)}")
+        else:
+            console.print(f"[red]Error:[/red] Failed to add user to groups")
+            raise typer.Exit(1)
+
+    finally:
+        client.close()

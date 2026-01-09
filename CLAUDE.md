@@ -2,9 +2,13 @@
 
 This file provides guidance for AI agents working with the dtiam codebase.
 
+> **DISCLAIMER:** This tool is provided "as-is" without warranty. Use at your own risk. This is an independent, community-developed tool and is **NOT produced, endorsed, or supported by Dynatrace**.
+
 ## Project Overview
 
 **dtiam** is a kubectl-inspired CLI for managing Dynatrace Identity and Access Management (IAM) resources. It provides a consistent interface for managing groups, users, policies, bindings, boundaries, environments, and management zones.
+
+> **Note:** Management Zone features are legacy-only and will be removed in a future release.
 
 ## Quick Reference
 
@@ -49,9 +53,8 @@ src/dtiam/
 │   ├── account.py           # Account limits and subscriptions
 │   ├── bulk.py              # Bulk operations
 │   ├── template.py          # Template system
-│   ├── zones.py             # Management zones
+│   ├── zones.py             # Management zones (legacy - will be removed)
 │   ├── analyze.py           # Permissions analysis
-│   ├── raci.py              # RACI matrix generation
 │   ├── export.py            # Export operations
 │   ├── group.py             # Advanced group ops
 │   ├── boundary.py          # Boundary attach/detach
@@ -64,7 +67,7 @@ src/dtiam/
 │   ├── bindings.py          # Bindings API
 │   ├── boundaries.py        # Boundaries API
 │   ├── environments.py      # Environments API
-│   ├── zones.py             # Management zones API
+│   ├── zones.py             # Management zones API (legacy - will be removed)
 │   ├── service_users.py     # Service users (OAuth clients) API
 │   ├── limits.py            # Account limits API
 │   └── subscriptions.py     # Subscriptions API
@@ -237,16 +240,24 @@ Level types: `account`, `environment`, `global`
 
 ## API Coverage & Missing Operations
 
-The following API endpoints are available but not yet implemented:
+**Implemented (newly added):**
+| Endpoint | Operation | Handler Method |
+|----------|-----------|----------------|
+| `PUT /users/{email}/groups` | Replace user's groups | `UserHandler.replace_groups()` |
+| `DELETE /users/{email}/groups` | Remove from groups | `UserHandler.remove_from_groups()` |
+| `POST /users/{email}` | Add to multiple groups | `UserHandler.add_to_groups()` |
+| `GET /policies/aggregate` | List all policies | `PolicyHandler.list_aggregate()` |
+| `POST /policies/validation` | Validate policy | `PolicyHandler.validate()` |
+| `POST /policies/validation/{id}` | Validate update | `PolicyHandler.validate_update()` |
+| `GET /bindings/{policyUuid}` | Get policy bindings | `BindingHandler.get_for_policy()` |
+| `GET /bindings/{policyUuid}/{groupUuid}` | Get specific binding | `BindingHandler.get_policy_group_binding()` |
+| `GET /bindings/descendants/{policyUuid}` | Descendant bindings | `BindingHandler.get_descendants()` |
+| `PUT /bindings/groups/{groupUuid}` | Update group bindings | `BindingHandler.update_group_bindings()` |
 
+**Not yet implemented:**
 | Endpoint | Operation | Notes |
 |----------|-----------|-------|
-| `PUT /users/{email}/groups` | Replace user's groups | Bulk group replacement |
-| `DELETE /users/{email}/groups` | Remove from groups | Batch removal with body |
-| `GET /policies/aggregate` | List all policies | Includes inherited policies |
-| `POST /policies/validation` | Validate policy | Pre-creation validation |
 | `DELETE /bindings` | Delete all bindings | Level-wide deletion (dangerous) |
-| `GET /bindings/descendants/{policyUuid}` | Descendant bindings | Multi-level binding view |
 | **Platform Tokens** | | Entire resource |
 | `GET /platform-tokens` | List tokens | `platform-token:tokens:manage` |
 | `POST /platform-tokens` | Generate token | `platform-token:tokens:manage` |

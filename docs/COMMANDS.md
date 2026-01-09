@@ -1,5 +1,7 @@
 # Command Reference
 
+> **DISCLAIMER:** This tool is provided "as-is" without warranty. Use at your own risk. This is an independent, community-developed tool and is **NOT produced, endorsed, or supported by Dynatrace**.
+
 Complete reference for all dtiam commands and their options.
 
 ## Table of Contents
@@ -13,9 +15,8 @@ Complete reference for all dtiam commands and their options.
 - [user](#user) - User management
 - [bulk](#bulk) - Bulk operations
 - [template](#template) - Template system
-- [zones](#zones) - Management zones
+- [zones](#zones) - Management zones *(legacy)*
 - [analyze](#analyze) - Permissions analysis
-- [raci](#raci) - RACI matrix
 - [export](#export) - Export resources
 - [group](#group) - Advanced group operations
 - [boundary](#boundary) - Boundary management
@@ -755,6 +756,8 @@ dtiam template path
 
 ## zones
 
+> **DEPRECATION NOTICE:** Management Zone features are provided for legacy purposes only and will be removed in a future release.
+
 Management zone operations.
 
 ### zones list
@@ -931,39 +934,6 @@ dtiam analyze effective-group GROUP [OPTIONS]
 ```bash
 dtiam analyze effective-group "DevOps Team"
 dtiam analyze effective-group "DevOps Team" -o json --export perms.json
-```
-
----
-
-## raci
-
-RACI matrix generation.
-
-### raci generate
-
-Generate a RACI matrix for IAM governance.
-
-```bash
-dtiam raci generate [OPTIONS]
-```
-
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--template` | `-t` | RACI template: basic, enterprise (default: basic) |
-| `--output` | `-o` | Output format |
-| `--export` | `-e` | Export to CSV file |
-
-**Example:**
-```bash
-dtiam raci generate --template enterprise --export raci.csv
-```
-
-### raci templates
-
-List available RACI templates.
-
-```bash
-dtiam raci templates
 ```
 
 ---

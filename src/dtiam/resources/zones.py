@@ -1,6 +1,10 @@
 """Management Zone resource handler for Dynatrace API.
 
 Handles management zone operations via the Dynatrace Environment API.
+
+DEPRECATION NOTICE: Management Zone features are provided for legacy purposes only
+and will be removed in a future release. Dynatrace is transitioning away from
+management zones in favor of other access control mechanisms.
 """
 
 from __future__ import annotations

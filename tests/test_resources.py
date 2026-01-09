@@ -152,6 +152,41 @@ class TestUserHandler:
 
             assert result is True
 
+    def test_replace_groups(self, mock_client, mock_response):
+        """Test replacing user's groups."""
+        with patch.object(mock_client, "put") as mock_put:
+            mock_put.return_value = mock_response(None, status_code=204)
+
+            handler = UserHandler(mock_client)
+            result = handler.replace_groups("user@example.com", ["group-1", "group-2"])
+
+            assert result is True
+            mock_put.assert_called_once()
+            call_args = mock_put.call_args
+            assert "/users/user@example.com/groups" in call_args[0][0]
+
+    def test_remove_from_groups(self, mock_client, mock_response):
+        """Test removing user from multiple groups."""
+        with patch.object(mock_client, "delete") as mock_delete:
+            mock_delete.return_value = mock_response(None, status_code=204)
+
+            handler = UserHandler(mock_client)
+            result = handler.remove_from_groups("user@example.com", ["group-1", "group-2"])
+
+            assert result is True
+            mock_delete.assert_called_once()
+
+    def test_add_to_groups(self, mock_client, mock_response):
+        """Test adding user to multiple groups."""
+        with patch.object(mock_client, "post") as mock_post:
+            mock_post.return_value = mock_response(None, status_code=204)
+
+            handler = UserHandler(mock_client)
+            result = handler.add_to_groups("user@example.com", ["group-1", "group-2"])
+
+            assert result is True
+            mock_post.assert_called_once()
+
 
 class TestPolicyHandler:
     """Tests for PolicyHandler."""
@@ -178,6 +213,48 @@ class TestPolicyHandler:
             assert policy is not None
             assert policy["name"] == "viewer-policy"
 
+    def test_list_aggregate(self, mock_client, sample_policies, mock_response):
+        """Test listing aggregate policies."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"policies": sample_policies})
+
+            handler = PolicyHandler(mock_client, "account", "abc-123")
+            policies = handler.list_aggregate()
+
+            assert len(policies) == 2
+            call_args = mock_get.call_args
+            assert "/aggregate" in call_args[0][0]
+
+    def test_validate_policy(self, mock_client, mock_response):
+        """Test validating a policy."""
+        validation_result = {"valid": True, "errors": []}
+        with patch.object(mock_client, "post") as mock_post:
+            mock_post.return_value = mock_response(validation_result)
+
+            handler = PolicyHandler(mock_client, "account", "abc-123")
+            result = handler.validate({
+                "name": "test-policy",
+                "statementQuery": "ALLOW settings:objects:read;"
+            })
+
+            assert result["valid"] is True
+            mock_post.assert_called_once()
+
+    def test_validate_update(self, mock_client, mock_response):
+        """Test validating a policy update."""
+        validation_result = {"valid": True, "errors": []}
+        with patch.object(mock_client, "post") as mock_post:
+            mock_post.return_value = mock_response(validation_result)
+
+            handler = PolicyHandler(mock_client, "account", "abc-123")
+            result = handler.validate_update("policy-uuid", {
+                "statementQuery": "ALLOW settings:objects:write;"
+            })
+
+            assert result["valid"] is True
+            call_args = mock_post.call_args
+            assert "/validation/policy-uuid" in call_args[0][0]
+
 
 class TestBindingHandler:
     """Tests for BindingHandler."""
@@ -202,6 +279,59 @@ class TestBindingHandler:
             bindings = handler.get_for_group("group-uuid-1")
 
             assert len(bindings) == 1
+
+    def test_get_for_policy(self, mock_client, mock_response):
+        """Test getting bindings for a policy."""
+        policy_binding = {"groups": ["group-1", "group-2"], "boundaries": ["boundary-1"]}
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response(policy_binding)
+
+            handler = BindingHandler(mock_client, "account", "abc-123")
+            bindings = handler.get_for_policy("policy-uuid-1")
+
+            assert len(bindings) == 1
+            assert bindings[0]["groups"] == ["group-1", "group-2"]
+
+    def test_get_policy_group_binding(self, mock_client, mock_response):
+        """Test getting specific policy-group binding."""
+        binding = {"boundaries": ["boundary-1"]}
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response(binding)
+
+            handler = BindingHandler(mock_client, "account", "abc-123")
+            result = handler.get_policy_group_binding("policy-uuid", "group-uuid")
+
+            assert result["policyUuid"] == "policy-uuid"
+            assert result["groupUuid"] == "group-uuid"
+            assert result["boundaries"] == ["boundary-1"]
+
+    def test_get_descendants(self, mock_client, mock_response):
+        """Test getting descendant bindings."""
+        descendant_bindings = [
+            {"groups": ["group-1"], "boundaries": [], "levelType": "environment", "levelId": "env-1"}
+        ]
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"policyBindings": descendant_bindings})
+
+            handler = BindingHandler(mock_client, "account", "abc-123")
+            bindings = handler.get_descendants("policy-uuid")
+
+            assert len(bindings) == 1
+            assert bindings[0]["levelType"] == "environment"
+
+    def test_update_group_bindings(self, mock_client, mock_response):
+        """Test updating group bindings."""
+        with patch.object(mock_client, "put") as mock_put:
+            mock_put.return_value = mock_response(None, status_code=204)
+
+            handler = BindingHandler(mock_client, "account", "abc-123")
+            result = handler.update_group_bindings(
+                "group-uuid",
+                [{"policyUuid": "policy-1"}, {"policyUuid": "policy-2"}]
+            )
+
+            assert result is True
+            mock_put.assert_called_once()
 
 
 class TestBoundaryHandler:

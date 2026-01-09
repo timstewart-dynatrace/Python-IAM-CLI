@@ -22,7 +22,11 @@ console = Console()
 # Create the main Typer app
 app = typer.Typer(
     name="dtiam",
-    help="A kubectl-inspired CLI for managing Dynatrace Identity and Access Management.",
+    help=(
+        "A kubectl-inspired CLI for managing Dynatrace Identity and Access Management.\n\n"
+        "[dim]DISCLAIMER: This tool is provided as-is without warranty. Use at your own risk. "
+        "NOT produced, endorsed, or supported by Dynatrace.[/dim]"
+    ),
     add_completion=True,
     no_args_is_help=True,
     rich_markup_mode="rich",
@@ -133,7 +137,6 @@ from dtiam.commands import bulk as bulk_cmd
 from dtiam.commands import template as template_cmd
 from dtiam.commands import zones as zones_cmd
 from dtiam.commands import analyze as analyze_cmd
-from dtiam.commands import raci as raci_cmd
 from dtiam.commands import export as export_cmd
 from dtiam.commands import group as group_cmd
 from dtiam.commands import boundary as boundary_cmd
@@ -148,9 +151,8 @@ app.add_typer(delete_cmd.app, name="delete", help="Delete resources")
 app.add_typer(user_cmd.app, name="user", help="User management operations")
 app.add_typer(bulk_cmd.app, name="bulk", help="Bulk operations for multiple resources")
 app.add_typer(template_cmd.app, name="template", help="Template-based resource creation")
-app.add_typer(zones_cmd.app, name="zones", help="Management zone operations")
+app.add_typer(zones_cmd.app, name="zones", help="Management zone operations [dim](LEGACY - will be removed)[/dim]")
 app.add_typer(analyze_cmd.app, name="analyze", help="Analyze permissions and policies")
-app.add_typer(raci_cmd.app, name="raci", help="RACI matrix generation")
 app.add_typer(export_cmd.app, name="export", help="Export resources and data")
 app.add_typer(group_cmd.app, name="group", help="Advanced group operations")
 app.add_typer(boundary_cmd.app, name="boundary", help="Boundary attach/detach operations")

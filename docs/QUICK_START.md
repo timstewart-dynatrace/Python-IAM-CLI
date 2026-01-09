@@ -1,5 +1,7 @@
 # Quick Start Guide
 
+> **DISCLAIMER:** This tool is provided "as-is" without warranty. Use at your own risk. This is an independent, community-developed tool and is **NOT produced, endorsed, or supported by Dynatrace**.
+
 This guide walks you through setting up dtiam and performing common IAM management tasks.
 
 ## Prerequisites
@@ -398,23 +400,9 @@ dtiam analyze permissions-matrix
 dtiam analyze permissions-matrix -o json > matrix.json
 ```
 
-### RACI Matrix Generation
+### Management Zones (Legacy)
 
-Generate governance matrices from IAM data:
-
-```bash
-# Basic RACI matrix
-dtiam raci generate
-
-# Enterprise template with detailed breakdown
-dtiam raci generate --template enterprise
-
-# Export formats
-dtiam raci generate -o yaml > raci.yaml
-dtiam raci generate -o json > raci.json
-```
-
-### Management Zones
+> **DEPRECATION NOTICE:** Management Zone features are provided for legacy purposes only and will be removed in a future release. Dynatrace is transitioning away from management zones in favor of other access control mechanisms.
 
 ```bash
 # List all management zones

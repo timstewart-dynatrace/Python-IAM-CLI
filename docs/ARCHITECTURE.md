@@ -1,5 +1,7 @@
 # Architecture
 
+> **DISCLAIMER:** This tool is provided "as-is" without warranty. Use at your own risk. This is an independent, community-developed tool and is **NOT produced, endorsed, or supported by Dynatrace**.
+
 Technical design and implementation details for dtiam.
 
 ## Overview
@@ -39,9 +41,8 @@ src/dtiam/
 │   ├── account.py           # Account limits and subscriptions
 │   ├── bulk.py              # Bulk operations from files
 │   ├── template.py          # Template-based resource creation
-│   ├── zones.py             # Management zone operations
+│   ├── zones.py             # Management zone operations (legacy - will be removed)
 │   ├── analyze.py           # Permissions analysis
-│   ├── raci.py              # RACI matrix generation
 │   ├── export.py            # Export operations
 │   ├── group.py             # Advanced group operations
 │   ├── boundary.py          # Boundary attach/detach
@@ -57,7 +58,7 @@ src/dtiam/
 │   ├── bindings.py          # BindingHandler
 │   ├── boundaries.py        # BoundaryHandler
 │   ├── environments.py      # EnvironmentHandler
-│   ├── zones.py             # ZoneHandler
+│   ├── zones.py             # ZoneHandler (legacy - will be removed)
 │   ├── limits.py            # AccountLimitsHandler
 │   └── subscriptions.py     # SubscriptionHandler
 │
