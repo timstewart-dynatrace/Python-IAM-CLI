@@ -215,7 +215,20 @@ def save_config(config: Config) -> None:
 
 
 def get_env_override(key: str) -> str | None:
-    """Get environment variable override for a config key."""
+    """Get environment variable override for a config key.
+
+    Supported environment variables:
+    - DTIAM_CONTEXT: Override current context name
+    - DTIAM_OUTPUT: Default output format
+    - DTIAM_VERBOSE: Enable verbose mode
+    - DTIAM_CLIENT_ID: OAuth2 client ID (use with DTIAM_CLIENT_SECRET)
+    - DTIAM_CLIENT_SECRET: OAuth2 client secret (use with DTIAM_CLIENT_ID)
+    - DTIAM_ACCOUNT_UUID: Dynatrace account UUID
+    - DTIAM_BEARER_TOKEN: Static bearer token (alternative to OAuth2)
+
+    Note: DTIAM_BEARER_TOKEN takes precedence over OAuth2 credentials.
+    Bearer tokens do NOT auto-refresh and will fail when expired.
+    """
     env_map = {
         "context": "DTIAM_CONTEXT",
         "output": "DTIAM_OUTPUT",
@@ -223,6 +236,7 @@ def get_env_override(key: str) -> str | None:
         "client_id": "DTIAM_CLIENT_ID",
         "client_secret": "DTIAM_CLIENT_SECRET",
         "account_uuid": "DTIAM_ACCOUNT_UUID",
+        "bearer_token": "DTIAM_BEARER_TOKEN",
     }
     env_var = env_map.get(key)
     if env_var:

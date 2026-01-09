@@ -8,19 +8,9 @@ This guide walks you through setting up dtiam and performing common IAM manageme
 
 - Python 3.10 or higher
 - Dynatrace account with Account Management API access
-- OAuth2 client credentials with appropriate IAM scopes
-
-### Required OAuth2 Scopes
-
-Your OAuth2 client needs the following scopes for full functionality:
-
-| Scope | Purpose |
-|-------|---------|
-| `account-idm-read` | List and describe groups, users, bindings |
-| `account-idm-write` | Create, update, delete groups, users, and bindings |
-| `iam-policies-management` | Manage policies |
-| `account-env-read` | List environments |
-| `iam:effective-permissions:read` | Query effective permissions via resolution API |
+- Authentication credentials (choose one):
+  - **OAuth2 client credentials** (recommended for automation)
+  - **Bearer token** (for quick testing/interactive use)
 
 ## Installation
 
@@ -44,17 +34,35 @@ dtiam --version
 pip install typer[all] httpx pydantic pyyaml rich platformdirs
 ```
 
-## Initial Configuration
+## Authentication
 
-### Step 1: Create OAuth2 Credentials
+dtiam supports two authentication methods:
 
-First, create an OAuth2 client in your Dynatrace account:
+### Option 1: OAuth2 Client Credentials (Recommended)
+
+**Best for:** Automation, scripts, CI/CD, long-running processes
+
+OAuth2 is the recommended authentication method because tokens automatically refresh when expired, making it reliable for unattended operation.
+
+#### Required OAuth2 Scopes
+
+Your OAuth2 client needs the following scopes for full functionality:
+
+| Scope | Purpose |
+|-------|---------|
+| `account-idm-read` | List and describe groups, users, bindings |
+| `account-idm-write` | Create, update, delete groups, users, and bindings |
+| `iam-policies-management` | Manage policies |
+| `account-env-read` | List environments |
+| `iam:effective-permissions:read` | Query effective permissions via resolution API |
+
+#### Step 1: Create OAuth2 Credentials
 
 1. Go to Account Management → Identity & access management → OAuth clients
 2. Create a new client with the required scopes
 3. Save the client ID and secret
 
-### Step 2: Configure dtiam
+#### Step 2: Configure dtiam (Config File Method)
 
 ```bash
 # Add your credentials
@@ -71,7 +79,43 @@ dtiam config set-context myaccount \
 dtiam config use-context myaccount
 ```
 
-### Step 3: Verify Configuration
+#### Alternative: Environment Variables (OAuth2)
+
+```bash
+export DTIAM_CLIENT_ID="dt0s01.YOUR_CLIENT_ID"
+export DTIAM_CLIENT_SECRET="dt0s01.YOUR_CLIENT_ID.YOUR_SECRET"
+export DTIAM_ACCOUNT_UUID="YOUR_ACCOUNT_UUID"
+```
+
+### Option 2: Bearer Token (Static)
+
+**Best for:** Quick testing, debugging, interactive sessions, one-off operations
+
+> ⚠️ **WARNING:** Bearer tokens do NOT auto-refresh. When the token expires, all requests will fail with 401 Unauthorized. This method is NOT recommended for automation or scripts.
+
+```bash
+# Set bearer token via environment variable
+export DTIAM_BEARER_TOKEN="dt0c01.YOUR_TOKEN_HERE..."
+export DTIAM_ACCOUNT_UUID="YOUR_ACCOUNT_UUID"
+
+# Run commands (token will be used until it expires)
+dtiam get groups
+```
+
+**Risks of Bearer Token Authentication:**
+- ❌ No automatic token refresh
+- ❌ Silent failures when token expires
+- ❌ Not suitable for automation
+- ❌ Requires manual token renewal
+
+### Authentication Priority
+
+When multiple methods are configured, dtiam uses this priority:
+1. `DTIAM_BEARER_TOKEN` + `DTIAM_ACCOUNT_UUID`
+2. `DTIAM_CLIENT_ID` + `DTIAM_CLIENT_SECRET` + `DTIAM_ACCOUNT_UUID`
+3. Config file context
+
+### Verify Configuration
 
 ```bash
 # View current configuration

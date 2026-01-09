@@ -804,19 +804,23 @@ result = renderer.render(template, {
 
 ## Authentication
 
-### Token Manager
+dtiam supports two authentication methods:
+
+### Option 1: OAuth2 Token Manager (Recommended)
+
+The `TokenManager` class handles OAuth2 client credentials flow with automatic token refresh. This is recommended for automation and long-running processes.
 
 ```python
 from dtiam.utils.auth import TokenManager
 
-# Create manager
+# Create manager with OAuth2 credentials
 token_manager = TokenManager(
     client_id="dt0s01.XXXX",
     client_secret="dt0s01.XXXX.YYYY",
     account_uuid="abc-123-def"
 )
 
-# Get authentication headers
+# Get authentication headers (auto-refreshes if expired)
 headers = token_manager.get_headers()
 # {"Authorization": "Bearer eyJ..."}
 
@@ -824,10 +828,79 @@ headers = token_manager.get_headers()
 is_valid = token_manager.is_token_valid()
 
 # Force token refresh
-token_manager.refresh_token()
+token_manager._refresh_token()
 
 # Clean up
 token_manager.close()
+```
+
+### Option 2: Static Bearer Token
+
+The `StaticTokenManager` class uses a pre-existing bearer token. **Warning:** Static tokens do NOT auto-refresh and will fail when expired.
+
+```python
+from dtiam.utils.auth import StaticTokenManager
+
+# Create manager with static bearer token
+# WARNING: Token will NOT auto-refresh!
+token_manager = StaticTokenManager(token="dt0c01.XXXX.YYYY...")
+
+# Get authentication headers
+headers = token_manager.get_headers()
+# {"Authorization": "Bearer dt0c01.XXXX.YYYY..."}
+
+# Check if token exists (cannot verify expiration)
+is_valid = token_manager.is_token_valid()
+```
+
+**When to use Static Bearer Token:**
+- Quick testing and debugging
+- Interactive sessions with short-lived tokens
+- Integration with external token providers
+- One-off operations
+
+**When NOT to use Static Bearer Token:**
+- Automation scripts (use OAuth2)
+- CI/CD pipelines (use OAuth2)
+- Long-running processes (use OAuth2)
+- Production environments (use OAuth2)
+
+### Using with Client
+
+```python
+from dtiam.client import Client
+from dtiam.utils.auth import TokenManager, StaticTokenManager
+
+# OAuth2 (recommended)
+oauth_manager = TokenManager(
+    client_id="dt0s01.XXXX",
+    client_secret="dt0s01.XXXX.YYYY",
+    account_uuid="abc-123-def"
+)
+client = Client(account_uuid="abc-123-def", token_manager=oauth_manager)
+
+# Static bearer token (for testing only)
+static_manager = StaticTokenManager(token="dt0c01.XXXX...")
+client = Client(account_uuid="abc-123-def", token_manager=static_manager)
+```
+
+### Environment Variable Authentication
+
+```python
+import os
+
+# OAuth2 via environment variables
+os.environ["DTIAM_CLIENT_ID"] = "dt0s01.XXXX"
+os.environ["DTIAM_CLIENT_SECRET"] = "dt0s01.XXXX.YYYY"
+os.environ["DTIAM_ACCOUNT_UUID"] = "abc-123-def"
+
+# OR bearer token via environment variables
+os.environ["DTIAM_BEARER_TOKEN"] = "dt0c01.XXXX..."
+os.environ["DTIAM_ACCOUNT_UUID"] = "abc-123-def"
+
+# Create client from environment
+from dtiam.client import create_client_from_config
+client = create_client_from_config()  # Auto-detects auth method
 ```
 
 ## Complete Example

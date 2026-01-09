@@ -49,6 +49,41 @@ class TestOAuthError:
         assert error.error_description == "The credentials are invalid"
 
 
+class TestStaticTokenManager:
+    """Tests for StaticTokenManager class."""
+
+    def test_create_static_token_manager(self):
+        """Test creating StaticTokenManager."""
+        from dtiam.utils.auth import StaticTokenManager
+        manager = StaticTokenManager(token="test-token-123")
+        assert manager._token == "test-token-123"
+
+    def test_static_token_get_token(self):
+        """Test getting token from StaticTokenManager."""
+        from dtiam.utils.auth import StaticTokenManager
+        manager = StaticTokenManager(token="test-token-456")
+        assert manager.get_token() == "test-token-456"
+        # force_refresh should return same token (can't refresh static)
+        assert manager.get_token(force_refresh=True) == "test-token-456"
+
+    def test_static_token_get_headers(self):
+        """Test getting headers from StaticTokenManager."""
+        from dtiam.utils.auth import StaticTokenManager
+        manager = StaticTokenManager(token="test-token-789")
+        headers = manager.get_headers()
+        assert headers["Authorization"] == "Bearer test-token-789"
+        assert headers["Accept"] == "application/json"
+
+    def test_static_token_is_valid(self):
+        """Test is_token_valid for StaticTokenManager."""
+        from dtiam.utils.auth import StaticTokenManager
+        manager = StaticTokenManager(token="test-token")
+        assert manager.is_token_valid() is True
+
+        empty_manager = StaticTokenManager(token="")
+        assert empty_manager.is_token_valid() is False
+
+
 class TestTokenManager:
     """Tests for TokenManager class."""
 

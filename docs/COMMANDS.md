@@ -7,6 +7,7 @@ Complete reference for all dtiam commands and their options.
 ## Table of Contents
 
 - [Global Options](#global-options)
+- [Environment Variables](#environment-variables)
 - [config](#config) - Configuration management
 - [get](#get) - List/retrieve resources
 - [describe](#describe) - Detailed resource information
@@ -43,6 +44,63 @@ dtiam [OPTIONS] COMMAND [ARGS]
 | `--dry-run` | | Preview changes without applying them |
 | `--version` | `-V` | Show version and exit |
 | `--help` | | Show help message |
+
+---
+
+## Environment Variables
+
+dtiam supports authentication and configuration via environment variables:
+
+### Authentication Variables
+
+| Variable | Description | Use Case |
+|----------|-------------|----------|
+| `DTIAM_BEARER_TOKEN` | Static bearer token | Quick testing, debugging |
+| `DTIAM_CLIENT_ID` | OAuth2 client ID | Automation (recommended) |
+| `DTIAM_CLIENT_SECRET` | OAuth2 client secret | Automation (recommended) |
+| `DTIAM_ACCOUNT_UUID` | Dynatrace account UUID | Required for all methods |
+
+### Configuration Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DTIAM_CONTEXT` | Override current context name |
+| `DTIAM_OUTPUT` | Default output format |
+| `DTIAM_VERBOSE` | Enable verbose mode |
+
+### Authentication Priority
+
+When multiple authentication methods are configured:
+
+1. **Bearer Token** - `DTIAM_BEARER_TOKEN` + `DTIAM_ACCOUNT_UUID`
+2. **OAuth2 (env)** - `DTIAM_CLIENT_ID` + `DTIAM_CLIENT_SECRET` + `DTIAM_ACCOUNT_UUID`
+3. **Config file** - Context with OAuth2 credentials
+
+### OAuth2 vs Bearer Token
+
+| Feature | OAuth2 (Recommended) | Bearer Token |
+|---------|---------------------|--------------|
+| Auto-refresh | ✅ Yes | ❌ No |
+| Long-running | ✅ Suitable | ❌ Not recommended |
+| Automation | ✅ Recommended | ❌ Not recommended |
+| Quick testing | ✅ Works | ✅ Ideal |
+| Setup complexity | Medium | Low |
+
+**Example: OAuth2 Authentication**
+```bash
+export DTIAM_CLIENT_ID="dt0s01.XXXXX"
+export DTIAM_CLIENT_SECRET="dt0s01.XXXXX.YYYYY"
+export DTIAM_ACCOUNT_UUID="abc-123-def"
+dtiam get groups
+```
+
+**Example: Bearer Token Authentication**
+```bash
+# WARNING: Token will NOT auto-refresh!
+export DTIAM_BEARER_TOKEN="dt0c01.XXXXX.YYYYY..."
+export DTIAM_ACCOUNT_UUID="abc-123-def"
+dtiam get groups
+```
 
 ---
 

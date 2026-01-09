@@ -50,8 +50,95 @@ class OAuthError(Exception):
         self.error_description = error_description
 
 
-class TokenManager:
-    """Manages OAuth2 token acquisition and caching."""
+class BaseTokenManager:
+    """Base class for token managers."""
+
+    def get_token(self, force_refresh: bool = False) -> str:
+        """Get a valid access token."""
+        raise NotImplementedError
+
+    def get_headers(self, force_refresh: bool = False) -> dict[str, str]:
+        """Get HTTP headers with valid Authorization token."""
+        raise NotImplementedError
+
+    def is_token_valid(self) -> bool:
+        """Check if the token is still valid."""
+        raise NotImplementedError
+
+    def close(self) -> None:
+        """Clean up resources."""
+        pass
+
+
+class StaticTokenManager(BaseTokenManager):
+    """Token manager that uses a pre-existing bearer token.
+
+    WARNING: Static tokens do not auto-refresh. When the token expires,
+    requests will fail with 401 Unauthorized. This is suitable for:
+    - Short-lived interactive sessions
+    - Testing and debugging
+    - Integration with systems that provide tokens externally
+
+    For long-running automation, use TokenManager with OAuth2 credentials instead.
+    """
+
+    def __init__(self, token: str):
+        """Initialize with a static bearer token.
+
+        Args:
+            token: Bearer token string (without "Bearer " prefix)
+        """
+        self._token = token
+        logger.warning(
+            "Using static bearer token. Token will NOT auto-refresh. "
+            "Requests will fail when token expires."
+        )
+
+    def get_token(self, force_refresh: bool = False) -> str:
+        """Get the static token.
+
+        Args:
+            force_refresh: Ignored for static tokens (cannot refresh)
+
+        Returns:
+            The static token string
+        """
+        if force_refresh:
+            logger.warning("Cannot refresh static bearer token. Use OAuth2 for auto-refresh.")
+        return self._token
+
+    def get_headers(self, force_refresh: bool = False) -> dict[str, str]:
+        """Get HTTP headers with the static token.
+
+        Args:
+            force_refresh: Ignored for static tokens
+
+        Returns:
+            Headers dict with Authorization Bearer token
+        """
+        return {
+            "Authorization": f"Bearer {self._token}",
+            "Accept": "application/json",
+        }
+
+    def is_token_valid(self) -> bool:
+        """Check if token exists (cannot verify expiration for static tokens)."""
+        return bool(self._token)
+
+    def clear_cache(self) -> None:
+        """No-op for static tokens."""
+        pass
+
+
+class TokenManager(BaseTokenManager):
+    """Manages OAuth2 token acquisition and caching.
+
+    This is the recommended authentication method for automation and long-running
+    processes. Tokens are automatically refreshed when they expire.
+
+    Requires OAuth2 client credentials (client_id and client_secret) which can be
+    created in Dynatrace Account Management -> OAuth clients.
+    """
 
     def __init__(
         self,

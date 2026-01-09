@@ -18,7 +18,7 @@ import httpx
 from pydantic import BaseModel
 
 from dtiam.config import Config, load_config, get_env_override
-from dtiam.utils.auth import TokenManager, OAuthError
+from dtiam.utils.auth import TokenManager, StaticTokenManager, BaseTokenManager, OAuthError
 
 logger = logging.getLogger(__name__)
 
@@ -51,12 +51,12 @@ class RetryConfig(BaseModel):
 
 
 class Client:
-    """HTTP client for Dynatrace IAM API with OAuth2 auth and retry handling."""
+    """HTTP client for Dynatrace IAM API with OAuth2 or bearer token auth and retry handling."""
 
     def __init__(
         self,
         account_uuid: str,
-        token_manager: TokenManager,
+        token_manager: BaseTokenManager,
         timeout: float = 30.0,
         retry_config: RetryConfig | None = None,
         verbose: bool = False,
@@ -230,6 +230,11 @@ def create_client_from_config(
 ) -> Client:
     """Create a client from configuration.
 
+    Authentication Priority (first match wins):
+    1. DTIAM_BEARER_TOKEN + DTIAM_ACCOUNT_UUID (static bearer token)
+    2. DTIAM_CLIENT_ID + DTIAM_CLIENT_SECRET + DTIAM_ACCOUNT_UUID (OAuth2 via env)
+    3. Config file context with OAuth2 credentials
+
     Args:
         config: Configuration object (loads from file if not provided)
         context_name: Override context name (uses current-context if not provided)
@@ -247,13 +252,25 @@ def create_client_from_config(
     # Check for environment variable overrides
     ctx_name = get_env_override("context") or context_name or config.current_context
 
-    # Allow complete override via environment variables
-    env_client_id = get_env_override("client_id")
-    env_client_secret = get_env_override("client_secret")
+    # Priority 1: Bearer token (static, no auto-refresh)
+    env_bearer_token = get_env_override("bearer_token")
     env_account_uuid = get_env_override("account_uuid")
 
+    if env_bearer_token and env_account_uuid:
+        logger.info("Using bearer token authentication (no auto-refresh)")
+        token_manager: BaseTokenManager = StaticTokenManager(token=env_bearer_token)
+        return Client(
+            account_uuid=env_account_uuid,
+            token_manager=token_manager,
+            verbose=verbose,
+        )
+
+    # Priority 2: OAuth2 via environment variables (auto-refresh)
+    env_client_id = get_env_override("client_id")
+    env_client_secret = get_env_override("client_secret")
+
     if env_client_id and env_client_secret and env_account_uuid:
-        # Use environment variables directly
+        logger.info("Using OAuth2 authentication via environment variables")
         token_manager = TokenManager(
             client_id=env_client_id,
             client_secret=env_client_secret,
@@ -265,11 +282,13 @@ def create_client_from_config(
             verbose=verbose,
         )
 
-    # Use config file
+    # Priority 3: Config file with OAuth2 credentials
     if not ctx_name:
         raise RuntimeError(
-            "No context configured. Use 'dtiam config set-context' to create one, "
-            "or set DTIAM_CLIENT_ID, DTIAM_CLIENT_SECRET, and DTIAM_ACCOUNT_UUID."
+            "No authentication configured. Options:\n"
+            "  1. Bearer token: Set DTIAM_BEARER_TOKEN and DTIAM_ACCOUNT_UUID\n"
+            "  2. OAuth2 env: Set DTIAM_CLIENT_ID, DTIAM_CLIENT_SECRET, DTIAM_ACCOUNT_UUID\n"
+            "  3. Config file: Run 'dtiam config set-context' and 'dtiam config set-credentials'"
         )
 
     context = config.get_context(ctx_name)
@@ -283,6 +302,7 @@ def create_client_from_config(
             "Use 'dtiam config set-credentials' to add it."
         )
 
+    logger.info(f"Using OAuth2 authentication via config context '{ctx_name}'")
     token_manager = TokenManager(
         client_id=credential.client_id,
         client_secret=credential.client_secret,

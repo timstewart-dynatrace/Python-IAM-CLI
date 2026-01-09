@@ -72,12 +72,36 @@ src/dtiam/
 │   ├── limits.py            # Account limits API
 │   └── subscriptions.py     # Subscriptions API
 └── utils/
-    ├── auth.py              # OAuth2 token management
+    ├── auth.py              # OAuth2 + bearer token management
     ├── resolver.py          # Name-to-UUID resolution
     ├── templates.py         # Template rendering
     ├── permissions.py       # Permissions calculation
     └── cache.py             # In-memory caching
 ```
+
+## Authentication
+
+dtiam supports two authentication methods:
+
+### OAuth2 (Recommended)
+- Auto-refreshes tokens when expired
+- Best for automation, CI/CD, long-running processes
+- Requires `DTIAM_CLIENT_ID`, `DTIAM_CLIENT_SECRET`, `DTIAM_ACCOUNT_UUID`
+
+### Bearer Token (Static)
+- Does NOT auto-refresh (fails when token expires)
+- Best for quick testing, debugging, one-off operations
+- Requires `DTIAM_BEARER_TOKEN`, `DTIAM_ACCOUNT_UUID`
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DTIAM_BEARER_TOKEN` | Static bearer token (alternative to OAuth2) |
+| `DTIAM_CLIENT_ID` | OAuth2 client ID |
+| `DTIAM_CLIENT_SECRET` | OAuth2 client secret |
+| `DTIAM_ACCOUNT_UUID` | Dynatrace account UUID |
+| `DTIAM_CONTEXT` | Override current context |
 
 ## Key Patterns
 

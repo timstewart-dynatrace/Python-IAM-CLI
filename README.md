@@ -9,7 +9,7 @@ A kubectl-inspired command-line interface for managing Dynatrace Identity and Ac
 - **kubectl-style commands** - Familiar syntax: `get`, `describe`, `create`, `delete`, `apply`
 - **Multi-context configuration** - Manage multiple Dynatrace accounts with named contexts
 - **Rich output formats** - Table (default), JSON, YAML, CSV, and wide mode
-- **OAuth2 authentication** - Automatic token management with refresh
+- **Flexible authentication** - OAuth2 (recommended) or bearer token support
 - **Bulk operations** - Process multiple resources from CSV/YAML files
 - **Template system** - Jinja2-style variable substitution for manifests
 - **Permissions analysis** - Calculate effective permissions for users and groups
@@ -26,9 +26,76 @@ pip install -e .
 pip install typer[all] httpx pydantic pyyaml rich platformdirs
 ```
 
+## Authentication
+
+dtiam supports two authentication methods. Choose based on your use case:
+
+### Option 1: OAuth2 Client Credentials (Recommended)
+
+**Best for:** Automation, scripts, long-running processes, CI/CD pipelines
+
+**Advantages:**
+- Tokens auto-refresh when expired
+- Secure credential storage in config file
+- Scoped permissions via OAuth2 client configuration
+
+**Risks:**
+- Client secret must be stored securely
+- Requires creating an OAuth2 client in Dynatrace
+
+```bash
+# Add OAuth2 credentials
+dtiam config set-credentials prod \
+  --client-id YOUR_CLIENT_ID \
+  --client-secret YOUR_CLIENT_SECRET
+
+# Create a context
+dtiam config set-context prod \
+  --account-uuid YOUR_ACCOUNT_UUID \
+  --credentials-ref prod
+
+# Switch to the context
+dtiam config use-context prod
+
+# Or use environment variables
+export DTIAM_CLIENT_ID="dt0s01.XXXXX"
+export DTIAM_CLIENT_SECRET="dt0s01.XXXXX.YYYYY"
+export DTIAM_ACCOUNT_UUID="abc-123-def"
+```
+
+### Option 2: Bearer Token (Static)
+
+**Best for:** Quick testing, interactive sessions, debugging, integration with external token providers
+
+**Advantages:**
+- No OAuth2 client setup required
+- Can use tokens from other systems
+- Quick for one-off operations
+
+**Risks:**
+- ⚠️ **Tokens do NOT auto-refresh** - requests fail when token expires
+- ⚠️ **Not suitable for automation** - requires manual token renewal
+- Token expiration causes immediate failures with no recovery
+
+```bash
+# Set bearer token via environment variable
+export DTIAM_BEARER_TOKEN="dt0c01.XXXXX.YYYYY..."
+export DTIAM_ACCOUNT_UUID="abc-123-def"
+
+# Run commands - token will be used until it expires
+dtiam get groups
+```
+
+### Authentication Priority
+
+When multiple authentication methods are configured, dtiam uses this priority:
+1. `DTIAM_BEARER_TOKEN` + `DTIAM_ACCOUNT_UUID` (bearer token)
+2. `DTIAM_CLIENT_ID` + `DTIAM_CLIENT_SECRET` + `DTIAM_ACCOUNT_UUID` (OAuth2 via env)
+3. Config file context with OAuth2 credentials
+
 ## Quick Start
 
-### 1. Set up credentials
+### 1. Set up credentials (OAuth2)
 
 ```bash
 # Add OAuth2 credentials
@@ -319,11 +386,23 @@ iam-policies-management
 iam:effective-permissions:read
 ```
 
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DTIAM_BEARER_TOKEN` | Static bearer token (alternative to OAuth2) |
+| `DTIAM_CLIENT_ID` | OAuth2 client ID |
+| `DTIAM_CLIENT_SECRET` | OAuth2 client secret |
+| `DTIAM_ACCOUNT_UUID` | Dynatrace account UUID |
+| `DTIAM_CONTEXT` | Override current context name |
+| `DTIAM_OUTPUT` | Default output format |
+| `DTIAM_VERBOSE` | Enable verbose mode |
+
 ## Requirements
 
 - Python 3.10+
 - Dynatrace Account with API access
-- OAuth2 client credentials with appropriate scopes (see above)
+- Authentication: OAuth2 client credentials (recommended) OR bearer token
 
 ## Disclaimer
 

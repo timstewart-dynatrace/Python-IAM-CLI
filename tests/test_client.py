@@ -302,7 +302,7 @@ class TestCreateClientFromConfig:
         with patch("dtiam.client.get_env_override") as mock_env:
             mock_env.return_value = None
 
-            with pytest.raises(RuntimeError, match="No context configured"):
+            with pytest.raises(RuntimeError, match="No authentication configured"):
                 create_client_from_config(config=config)
 
     def test_create_client_context_not_found(self):
