@@ -45,6 +45,8 @@ src/dtiam/
 │   ├── create.py            # Create resources
 │   ├── delete.py            # Delete resources
 │   ├── user.py              # User management
+│   ├── service_user.py      # Service user (OAuth client) management
+│   ├── account.py           # Account limits and subscriptions
 │   ├── bulk.py              # Bulk operations
 │   ├── template.py          # Template system
 │   ├── zones.py             # Management zones
@@ -62,7 +64,10 @@ src/dtiam/
 │   ├── bindings.py          # Bindings API
 │   ├── boundaries.py        # Boundaries API
 │   ├── environments.py      # Environments API
-│   └── zones.py             # Management zones API
+│   ├── zones.py             # Management zones API
+│   ├── service_users.py     # Service users (OAuth clients) API
+│   ├── limits.py            # Account limits API
+│   └── subscriptions.py     # Subscriptions API
 └── utils/
     ├── auth.py              # OAuth2 token management
     ├── resolver.py          # Name-to-UUID resolution
