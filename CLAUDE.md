@@ -235,6 +235,29 @@ Query parameters for effective permissions:
 
 Level types: `account`, `environment`, `global`
 
+## API Coverage & Missing Operations
+
+The following API endpoints are available but not yet implemented:
+
+| Endpoint | Operation | Notes |
+|----------|-----------|-------|
+| `PUT /users/{email}/groups` | Replace user's groups | Bulk group replacement |
+| `DELETE /users/{email}/groups` | Remove from groups | Batch removal with body |
+| `GET /policies/aggregate` | List all policies | Includes inherited policies |
+| `POST /policies/validation` | Validate policy | Pre-creation validation |
+| `DELETE /bindings` | Delete all bindings | Level-wide deletion (dangerous) |
+| `GET /bindings/descendants/{policyUuid}` | Descendant bindings | Multi-level binding view |
+| **Platform Tokens** | | Entire resource |
+| `GET /platform-tokens` | List tokens | `platform-token:tokens:manage` |
+| `POST /platform-tokens` | Generate token | `platform-token:tokens:manage` |
+| `DELETE /platform-tokens/{id}` | Delete token | `platform-token:tokens:manage` |
+| **Environment IP Allowlist** | | |
+| `GET /environments/{id}/ip-allowlist` | Get allowlist | Bearer token |
+| `PUT /environments/{id}/ip-allowlist` | Set allowlist | Bearer token |
+| **Subscription Details** | | |
+| `GET /subscriptions/{id}/cost` | Get costs | Bearer token |
+| `GET /subscriptions/{id}/environments/usage` | Env usage | v3 API |
+
 ## Configuration
 
 Config file: `~/.config/dtiam/config` (YAML)

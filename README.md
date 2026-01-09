@@ -258,11 +258,80 @@ dtiam cache clear --force
 - [Architecture](docs/ARCHITECTURE.md) - Technical design and implementation
 - [API Reference](docs/API_REFERENCE.md) - Programmatic usage
 
+## Required OAuth2 Scopes
+
+Your OAuth2 client needs specific scopes for each operation. Create your client at:
+**Account Management → Identity & access management → OAuth clients**
+
+### Scope Reference by Command
+
+| Command | Operation | Required Scopes |
+|---------|-----------|-----------------|
+| **Groups** | | |
+| `get groups` | List/get groups | `account-idm-read` |
+| `create group` | Create group | `account-idm-write` |
+| `delete group` | Delete group | `account-idm-write` |
+| `group clone` | Clone group | `account-idm-read`, `account-idm-write` |
+| **Users** | | |
+| `get users` | List/get users | `account-idm-read` |
+| `user create` | Create user | `account-idm-write` |
+| `user delete` | Delete user | `account-idm-write` |
+| `user add-to-group` | Add to group | `account-idm-write` |
+| `user remove-from-group` | Remove from group | `account-idm-write` |
+| **Service Users** | | |
+| `service-user list` | List service users | `account-idm-read` |
+| `service-user create` | Create service user | `account-idm-write` |
+| `service-user update` | Update service user | `account-idm-write` |
+| `service-user delete` | Delete service user | `account-idm-write` |
+| **Policies** | | |
+| `get policies` | List/get policies | `iam-policies-management` or `iam:policies:read` |
+| `create policy` | Create policy | `iam-policies-management` or `iam:policies:write` |
+| `delete policy` | Delete policy | `iam-policies-management` or `iam:policies:write` |
+| **Bindings** | | |
+| `get bindings` | List bindings | `iam-policies-management` or `iam:bindings:read` |
+| `create binding` | Create binding | `iam-policies-management` or `iam:bindings:write` |
+| `delete binding` | Delete binding | `iam-policies-management` or `iam:bindings:write` |
+| **Boundaries** | | |
+| `get boundaries` | List/get boundaries | `iam-policies-management` or `iam:boundaries:read` |
+| `create boundary` | Create boundary | `iam-policies-management` or `iam:boundaries:write` |
+| `delete boundary` | Delete boundary | `iam-policies-management` or `iam:boundaries:write` |
+| `boundary attach/detach` | Modify bindings | `iam-policies-management` or `iam:bindings:write` |
+| **Analysis** | | |
+| `analyze effective-user` | Effective permissions | `iam:effective-permissions:read` |
+| `analyze effective-group` | Effective permissions | `iam:effective-permissions:read` |
+| **Account** | | |
+| `account limits` | Account limits | `account-idm-read` |
+| `account subscriptions` | Subscriptions | Bearer token (auto) |
+| **Environments** | | |
+| `get environments` | List environments | `account-env-read` |
+| `zones list` | Management zones | `account-env-read` |
+
+### Recommended Scope Sets
+
+**Read-Only Access:**
+```
+account-idm-read
+account-env-read
+iam:policies:read
+iam:bindings:read
+iam:boundaries:read
+iam:effective-permissions:read
+```
+
+**Full IAM Management:**
+```
+account-idm-read
+account-idm-write
+account-env-read
+iam-policies-management
+iam:effective-permissions:read
+```
+
 ## Requirements
 
 - Python 3.10+
 - Dynatrace Account with API access
-- OAuth2 client credentials with IAM permissions
+- OAuth2 client credentials with appropriate scopes (see above)
 
 ## License
 
