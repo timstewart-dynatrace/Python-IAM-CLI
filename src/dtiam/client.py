@@ -1,0 +1,296 @@
+"""HTTP client for Dynatrace IAM API interactions.
+
+Provides a robust HTTP client with:
+- OAuth2 authentication with automatic token refresh
+- Automatic retry with exponential backoff
+- Rate limit handling (429)
+- Configurable timeout
+- Debug/verbose logging
+"""
+
+from __future__ import annotations
+
+import logging
+import time
+from typing import Any
+
+import httpx
+from pydantic import BaseModel
+
+from dtiam.config import Config, load_config, get_env_override
+from dtiam.utils.auth import TokenManager, OAuthError
+
+logger = logging.getLogger(__name__)
+
+# Dynatrace IAM API base URL
+IAM_API_BASE = "https://api.dynatrace.com/iam/v1"
+
+
+class APIError(Exception):
+    """Exception raised for API errors."""
+
+    def __init__(
+        self,
+        message: str,
+        status_code: int | None = None,
+        response_body: str | None = None,
+    ):
+        super().__init__(message)
+        self.status_code = status_code
+        self.response_body = response_body
+
+
+class RetryConfig(BaseModel):
+    """Configuration for retry behavior."""
+
+    max_retries: int = 3
+    retry_statuses: list[int] = [429, 500, 502, 503, 504]
+    initial_delay: float = 1.0
+    max_delay: float = 10.0
+    exponential_base: float = 2.0
+
+
+class Client:
+    """HTTP client for Dynatrace IAM API with OAuth2 auth and retry handling."""
+
+    def __init__(
+        self,
+        account_uuid: str,
+        token_manager: TokenManager,
+        timeout: float = 30.0,
+        retry_config: RetryConfig | None = None,
+        verbose: bool = False,
+    ):
+        self.account_uuid = account_uuid
+        self.token_manager = token_manager
+        self.timeout = timeout
+        self.retry_config = retry_config or RetryConfig()
+        self.verbose = verbose
+
+        self.base_url = f"{IAM_API_BASE}/accounts/{account_uuid}"
+
+        self._client = httpx.Client(
+            timeout=timeout,
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "dtiam/3.0.0",
+            },
+        )
+
+    def close(self) -> None:
+        """Close the HTTP client and token manager."""
+        self._client.close()
+        self.token_manager.close()
+
+    def __enter__(self) -> "Client":
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        self.close()
+
+    def _get_auth_headers(self) -> dict[str, str]:
+        """Get current authentication headers."""
+        return self.token_manager.get_headers()
+
+    def _should_retry(self, status_code: int) -> bool:
+        """Check if request should be retried based on status code."""
+        return status_code in self.retry_config.retry_statuses
+
+    def _get_retry_delay(self, attempt: int, response: httpx.Response | None = None) -> float:
+        """Calculate delay before next retry attempt."""
+        # Check for Retry-After header (rate limiting)
+        if response is not None and "Retry-After" in response.headers:
+            try:
+                return float(response.headers["Retry-After"])
+            except ValueError:
+                pass
+
+        # Exponential backoff
+        delay = self.retry_config.initial_delay * (
+            self.retry_config.exponential_base ** attempt
+        )
+        return min(delay, self.retry_config.max_delay)
+
+    def _log_request(self, method: str, url: str, **kwargs: Any) -> None:
+        """Log request details in verbose mode."""
+        if self.verbose:
+            logger.debug(f"Request: {method} {url}")
+            if "json" in kwargs:
+                logger.debug(f"Body: {kwargs['json']}")
+
+    def _log_response(self, response: httpx.Response) -> None:
+        """Log response details in verbose mode."""
+        if self.verbose:
+            logger.debug(f"Response: {response.status_code}")
+            if response.text:
+                logger.debug(f"Body: {response.text[:500]}...")
+
+    def request(
+        self,
+        method: str,
+        path: str,
+        **kwargs: Any,
+    ) -> httpx.Response:
+        """Make an HTTP request with retry logic.
+
+        Args:
+            method: HTTP method (GET, POST, PUT, DELETE, etc.)
+            path: API path (will be joined with base_url if relative)
+            **kwargs: Additional arguments passed to httpx
+
+        Returns:
+            httpx.Response object
+
+        Raises:
+            APIError: If request fails after all retries
+        """
+        # Build full URL
+        if path.startswith("http"):
+            url = path
+        elif path.startswith("/"):
+            url = f"{self.base_url}{path}"
+        else:
+            url = f"{self.base_url}/{path}"
+
+        self._log_request(method, url, **kwargs)
+
+        last_exception: Exception | None = None
+        last_response: httpx.Response | None = None
+
+        for attempt in range(self.retry_config.max_retries + 1):
+            try:
+                # Get fresh auth headers for each attempt
+                headers = {**self._get_auth_headers(), **kwargs.pop("headers", {})}
+
+                response = self._client.request(method, url, headers=headers, **kwargs)
+                self._log_response(response)
+
+                if response.is_success:
+                    return response
+
+                if not self._should_retry(response.status_code):
+                    raise APIError(
+                        f"Request failed: {response.status_code} {response.reason_phrase}",
+                        status_code=response.status_code,
+                        response_body=response.text,
+                    )
+
+                last_response = response
+
+            except httpx.RequestError as e:
+                last_exception = e
+                if attempt == self.retry_config.max_retries:
+                    raise APIError(f"Request failed: {e}") from e
+
+            # Calculate retry delay
+            if attempt < self.retry_config.max_retries:
+                delay = self._get_retry_delay(attempt, last_response)
+                if self.verbose:
+                    logger.debug(f"Retrying in {delay:.1f}s (attempt {attempt + 1})")
+                time.sleep(delay)
+
+        # All retries exhausted
+        if last_response is not None:
+            raise APIError(
+                f"Request failed after {self.retry_config.max_retries} retries: "
+                f"{last_response.status_code}",
+                status_code=last_response.status_code,
+                response_body=last_response.text,
+            )
+
+        raise APIError(
+            f"Request failed after {self.retry_config.max_retries} retries: {last_exception}"
+        )
+
+    def get(self, path: str, **kwargs: Any) -> httpx.Response:
+        """Make a GET request."""
+        return self.request("GET", path, **kwargs)
+
+    def post(self, path: str, **kwargs: Any) -> httpx.Response:
+        """Make a POST request."""
+        return self.request("POST", path, **kwargs)
+
+    def put(self, path: str, **kwargs: Any) -> httpx.Response:
+        """Make a PUT request."""
+        return self.request("PUT", path, **kwargs)
+
+    def patch(self, path: str, **kwargs: Any) -> httpx.Response:
+        """Make a PATCH request."""
+        return self.request("PATCH", path, **kwargs)
+
+    def delete(self, path: str, **kwargs: Any) -> httpx.Response:
+        """Make a DELETE request."""
+        return self.request("DELETE", path, **kwargs)
+
+
+def create_client_from_config(
+    config: Config | None = None,
+    context_name: str | None = None,
+    verbose: bool = False,
+) -> Client:
+    """Create a client from configuration.
+
+    Args:
+        config: Configuration object (loads from file if not provided)
+        context_name: Override context name (uses current-context if not provided)
+        verbose: Enable verbose logging
+
+    Returns:
+        Configured Client instance
+
+    Raises:
+        RuntimeError: If no context or credentials are configured
+    """
+    if config is None:
+        config = load_config()
+
+    # Check for environment variable overrides
+    ctx_name = get_env_override("context") or context_name or config.current_context
+
+    # Allow complete override via environment variables
+    env_client_id = get_env_override("client_id")
+    env_client_secret = get_env_override("client_secret")
+    env_account_uuid = get_env_override("account_uuid")
+
+    if env_client_id and env_client_secret and env_account_uuid:
+        # Use environment variables directly
+        token_manager = TokenManager(
+            client_id=env_client_id,
+            client_secret=env_client_secret,
+            account_uuid=env_account_uuid,
+        )
+        return Client(
+            account_uuid=env_account_uuid,
+            token_manager=token_manager,
+            verbose=verbose,
+        )
+
+    # Use config file
+    if not ctx_name:
+        raise RuntimeError(
+            "No context configured. Use 'dtiam config set-context' to create one, "
+            "or set DTIAM_CLIENT_ID, DTIAM_CLIENT_SECRET, and DTIAM_ACCOUNT_UUID."
+        )
+
+    context = config.get_context(ctx_name)
+    if not context:
+        raise RuntimeError(f"Context '{ctx_name}' not found in configuration.")
+
+    credential = config.get_credential(context.credentials_ref)
+    if not credential:
+        raise RuntimeError(
+            f"Credential '{context.credentials_ref}' not found. "
+            "Use 'dtiam config set-credentials' to add it."
+        )
+
+    token_manager = TokenManager(
+        client_id=credential.client_id,
+        client_secret=credential.client_secret,
+        account_uuid=context.account_uuid,
+    )
+
+    return Client(
+        account_uuid=context.account_uuid,
+        token_manager=token_manager,
+        verbose=verbose,
+    )

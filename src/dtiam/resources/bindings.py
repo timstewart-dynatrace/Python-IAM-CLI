@@ -1,0 +1,275 @@
+"""Policy binding resource handler for Dynatrace IAM API.
+
+Handles policy binding operations - connecting groups to policies.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Literal
+
+from dtiam.client import APIError
+from dtiam.resources.base import ResourceHandler
+
+
+LevelType = Literal["account", "environment"]
+
+
+class BindingHandler(ResourceHandler[Any]):
+    """Handler for IAM policy binding resources.
+
+    Policy bindings connect groups to policies at different levels.
+    """
+
+    def __init__(
+        self,
+        client: Any,
+        level_type: LevelType = "account",
+        level_id: str | None = None,
+    ):
+        """Initialize binding handler.
+
+        Args:
+            client: API client
+            level_type: Binding level (account or environment)
+            level_id: Level identifier (account UUID or environment ID)
+        """
+        super().__init__(client)
+        self.level_type = level_type
+        self.level_id = level_id or client.account_uuid
+
+    @property
+    def resource_name(self) -> str:
+        return "binding"
+
+    @property
+    def api_path(self) -> str:
+        return f"/repo/{self.level_type}/{self.level_id}/bindings"
+
+    def list(self, **params: Any) -> list[dict[str, Any]]:
+        """List all bindings at the configured level.
+
+        Args:
+            **params: Query parameters for filtering
+
+        Returns:
+            List of binding dictionaries
+        """
+        try:
+            response = self.client.get(self.api_path, params=params)
+            data = response.json()
+
+            if isinstance(data, dict):
+                # Bindings may be nested under policyBindings
+                bindings = data.get("policyBindings", data.get("bindings", []))
+                # Flatten the bindings structure for easier consumption
+                flat_bindings = []
+                for binding in bindings:
+                    policy_uuid = binding.get("policyUuid")
+                    groups = binding.get("groups", [])
+                    boundaries = binding.get("boundaries", [])
+                    for group_uuid in groups:
+                        flat_bindings.append({
+                            "policyUuid": policy_uuid,
+                            "groupUuid": group_uuid,
+                            "boundaries": boundaries,
+                            "levelType": self.level_type,
+                            "levelId": self.level_id,
+                        })
+                return flat_bindings
+            return []
+
+        except APIError as e:
+            self._handle_error("list", e)
+            return []
+
+    def list_raw(self, **params: Any) -> dict[str, Any]:
+        """List bindings in raw API format.
+
+        Args:
+            **params: Query parameters for filtering
+
+        Returns:
+            Raw API response dictionary
+        """
+        try:
+            response = self.client.get(self.api_path, params=params)
+            return response.json()
+        except APIError as e:
+            self._handle_error("list", e)
+            return {}
+
+    def get_for_group(self, group_id: str) -> list[dict[str, Any]]:
+        """Get all bindings for a specific group.
+
+        Args:
+            group_id: Group UUID
+
+        Returns:
+            List of binding dictionaries for the group
+        """
+        try:
+            response = self.client.get(f"{self.api_path}/groups/{group_id}")
+            data = response.json()
+
+            if isinstance(data, dict):
+                bindings = data.get("policyBindings", [])
+                flat_bindings = []
+                for binding in bindings:
+                    flat_bindings.append({
+                        "policyUuid": binding.get("policyUuid"),
+                        "groupUuid": group_id,
+                        "boundaries": binding.get("boundaries", []),
+                        "levelType": self.level_type,
+                        "levelId": self.level_id,
+                    })
+                return flat_bindings
+            return []
+
+        except APIError as e:
+            self._handle_error("get bindings for group", e)
+            return []
+
+    def create(
+        self,
+        group_uuid: str,
+        policy_uuid: str,
+        boundaries: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Create a new policy binding.
+
+        Args:
+            group_uuid: Group UUID to bind
+            policy_uuid: Policy UUID to bind to the group
+            boundaries: Optional list of boundary UUIDs
+
+        Returns:
+            Created/updated binding dictionary
+        """
+        data = {
+            "policyBindings": [
+                {
+                    "policyUuid": policy_uuid,
+                    "groups": [group_uuid],
+                    "boundaries": boundaries or [],
+                }
+            ]
+        }
+
+        try:
+            response = self.client.post(self.api_path, json=data)
+            return response.json()
+        except APIError as e:
+            self._handle_error("create", e)
+            return {}
+
+    def delete(
+        self,
+        group_uuid: str,
+        policy_uuid: str,
+    ) -> bool:
+        """Delete a policy binding.
+
+        Args:
+            group_uuid: Group UUID
+            policy_uuid: Policy UUID
+
+        Returns:
+            True if deleted successfully
+        """
+        # Deletion typically requires updating the bindings to remove the group
+        try:
+            # Get current bindings
+            current = self.list_raw()
+            bindings = current.get("policyBindings", [])
+
+            # Find and update the relevant binding
+            updated = False
+            for binding in bindings:
+                if binding.get("policyUuid") == policy_uuid:
+                    groups = binding.get("groups", [])
+                    if group_uuid in groups:
+                        groups.remove(group_uuid)
+                        updated = True
+                        break
+
+            if updated:
+                # PUT the updated bindings
+                self.client.put(self.api_path, json={"policyBindings": bindings})
+                return True
+            return False
+
+        except APIError as e:
+            self._handle_error("delete", e)
+            return False
+
+    def add_boundary(
+        self,
+        group_uuid: str,
+        policy_uuid: str,
+        boundary_uuid: str,
+    ) -> bool:
+        """Add a boundary to an existing binding.
+
+        Args:
+            group_uuid: Group UUID
+            policy_uuid: Policy UUID
+            boundary_uuid: Boundary UUID to add
+
+        Returns:
+            True if successful
+        """
+        try:
+            current = self.list_raw()
+            bindings = current.get("policyBindings", [])
+
+            for binding in bindings:
+                if binding.get("policyUuid") == policy_uuid:
+                    groups = binding.get("groups", [])
+                    if group_uuid in groups:
+                        boundaries = binding.get("boundaries", [])
+                        if boundary_uuid not in boundaries:
+                            boundaries.append(boundary_uuid)
+                            binding["boundaries"] = boundaries
+                            self.client.put(self.api_path, json={"policyBindings": bindings})
+                            return True
+            return False
+
+        except APIError as e:
+            self._handle_error("add boundary", e)
+            return False
+
+    def remove_boundary(
+        self,
+        group_uuid: str,
+        policy_uuid: str,
+        boundary_uuid: str,
+    ) -> bool:
+        """Remove a boundary from an existing binding.
+
+        Args:
+            group_uuid: Group UUID
+            policy_uuid: Policy UUID
+            boundary_uuid: Boundary UUID to remove
+
+        Returns:
+            True if successful
+        """
+        try:
+            current = self.list_raw()
+            bindings = current.get("policyBindings", [])
+
+            for binding in bindings:
+                if binding.get("policyUuid") == policy_uuid:
+                    groups = binding.get("groups", [])
+                    if group_uuid in groups:
+                        boundaries = binding.get("boundaries", [])
+                        if boundary_uuid in boundaries:
+                            boundaries.remove(boundary_uuid)
+                            binding["boundaries"] = boundaries
+                            self.client.put(self.api_path, json={"policyBindings": bindings})
+                            return True
+            return False
+
+        except APIError as e:
+            self._handle_error("remove boundary", e)
+            return False
