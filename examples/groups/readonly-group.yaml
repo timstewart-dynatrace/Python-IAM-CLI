@@ -1,0 +1,60 @@
+# Read-Only Group Example
+#
+# Group with view-only access for stakeholders, auditors, or observers.
+#
+# Usage:
+#   dtiam create group --name "Observers" --description "Read-only access for stakeholders"
+
+name: "Observers"
+description: "Read-only access for stakeholders and auditors"
+
+# Recommended policy: viewer-policy (custom) or Standard User (built-in)
+recommended_policies:
+  - name: "viewer-policy"
+    type: "custom"
+    description: "Custom read-only policy (see policies/viewer-policy.yaml)"
+  - name: "Standard User"
+    type: "built-in"
+    description: "Dynatrace built-in standard access"
+
+# Use cases:
+#   - Stakeholders needing visibility into monitoring
+#   - Auditors reviewing configurations
+#   - External consultants with limited access
+#   - New team members in onboarding
+
+# CLI commands:
+cli_commands:
+  create_group: |
+    dtiam create group --name "Observers" --description "Read-only access for stakeholders"
+
+  # Option 1: Use custom viewer policy
+  create_viewer_policy: |
+    dtiam create policy --name "viewer-policy" \
+      --statement "ALLOW settings:objects:read, storage:metrics:read, storage:logs:read, document:documents:read;"
+
+  bind_viewer_policy: |
+    dtiam create binding --group "Observers" --policy "viewer-policy"
+
+  # Option 2: Use built-in Standard User (has some write access)
+  bind_standard_policy: |
+    dtiam create binding --group "Observers" --policy "Standard User"
+
+# Example complete setup:
+example_setup: |
+  # 1. Create the group
+  dtiam create group --name "Observers" --description "Read-only access for stakeholders"
+
+  # 2. Create custom viewer policy
+  dtiam create policy --name "viewer-policy" \
+    --description "Read-only access" \
+    --statement "ALLOW settings:objects:read, storage:metrics:read, storage:logs:read, document:documents:read;"
+
+  # 3. Bind the policy
+  dtiam create binding --group "Observers" --policy "viewer-policy"
+
+  # 4. Add users
+  dtiam user add-to-group --user stakeholder@example.com --group "Observers"
+
+  # 5. Verify
+  dtiam describe group "Observers"

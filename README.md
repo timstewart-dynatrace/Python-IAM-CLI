@@ -239,17 +239,44 @@ preferences:
 
 ## Examples
 
+The `examples/` directory contains sample configurations, scripts, and templates:
+
+```
+examples/
+├── auth/           # Authentication configuration (.env.example)
+├── bulk/           # Bulk operation sample files (CSV/YAML)
+├── groups/         # Group configuration examples
+├── policies/       # Policy examples with common patterns
+├── templates/      # Reusable templates for the template system
+└── scripts/        # Shell scripts for validation and workflows
+```
+
+### Quick Start with Examples
+
+```bash
+# Set up authentication from example
+cp examples/auth/.env.example .env
+nano .env  # Add your credentials
+source .env
+
+# Run lifecycle validation (dry-run)
+bash examples/scripts/example_cli_lifecycle.sh
+
+# View common workflow examples
+bash examples/scripts/example_common_workflows.sh
+```
+
 ### Bulk Operations
 
 ```bash
 # Add multiple users to a group from CSV
-dtiam bulk add-users --group "DevOps" --file users.csv
+dtiam bulk add-users-to-group --file examples/bulk/sample_users.csv --group "DevOps Team"
 
-# Remove users from group
-dtiam bulk remove-users --group "DevOps" --file users.csv
+# Create multiple groups from YAML
+dtiam bulk create-groups --file examples/bulk/sample_groups.yaml
 
-# Create resources from YAML
-dtiam bulk create --file resources.yaml
+# Create multiple bindings from YAML
+dtiam bulk create-bindings --file examples/bulk/sample_bindings.yaml
 ```
 
 ### Template System
@@ -323,6 +350,7 @@ dtiam cache clear --force
 - [Command Reference](docs/COMMANDS.md) - Full command documentation
 - [Architecture](docs/ARCHITECTURE.md) - Technical design and implementation
 - [API Reference](docs/API_REFERENCE.md) - Programmatic usage
+- [Examples](examples/README.md) - Sample configurations and scripts
 
 ## Required OAuth2 Scopes
 

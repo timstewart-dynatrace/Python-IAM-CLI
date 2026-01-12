@@ -1,0 +1,32 @@
+# Boundary Template: Zone Restriction
+#
+# Reusable template for creating zone-based boundaries.
+# Restricts access to specific management zones.
+#
+# Usage:
+#   dtiam template save boundary-zone --kind Boundary --file examples/templates/boundary-zone.yaml
+#   dtiam template apply boundary-zone --var boundary_name=prod-boundary --var zones="Production,Staging"
+
+kind: Boundary
+metadata:
+  name: boundary-zone
+  description: Template for creating zone-restricted boundaries
+
+# Template variables
+variables:
+  - name: boundary_name
+    description: Name for the boundary
+    required: true
+  - name: zones
+    description: Comma-separated list of management zone names
+    required: true
+  - name: description
+    description: Boundary description
+    required: false
+    default: "Zone-restricted boundary"
+
+# Resource specification
+spec:
+  name: "{{ boundary_name }}"
+  description: "{{ description }}"
+  zones: "{{ zones }}"

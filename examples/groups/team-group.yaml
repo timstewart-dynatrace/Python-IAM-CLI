@@ -1,0 +1,46 @@
+# Team Group Example
+#
+# Standard team group configuration.
+# Use as a reference for creating team-based IAM groups.
+#
+# Usage:
+#   dtiam create group --name "My-Team" --description "My team description"
+
+name: "${TEAM_NAME}-Team"
+description: "${TEAM_NAME} team with standard access"
+
+# Placeholders:
+#   ${TEAM_NAME} - Replace with your team name (e.g., Platform, Frontend, Backend)
+
+# Recommended workflow:
+#   1. Create the group
+#   2. Create or identify the appropriate policy
+#   3. Bind the policy to the group
+#   4. Optionally attach a boundary for zone restrictions
+#   5. Add users to the group
+
+# CLI commands:
+cli_commands:
+  create_group: |
+    dtiam create group --name "Platform-Team" --description "Platform engineering team"
+
+  bind_policy: |
+    dtiam create binding --group "Platform-Team" --policy "Standard User"
+
+  add_user: |
+    dtiam user add-to-group --user user@example.com --group "Platform-Team"
+
+# Example complete setup:
+example_setup: |
+  # 1. Create the group
+  dtiam create group --name "Platform-Team" --description "Platform engineering team"
+
+  # 2. Bind a policy (using built-in Standard User policy)
+  dtiam create binding --group "Platform-Team" --policy "Standard User"
+
+  # 3. Add users
+  dtiam user add-to-group --user admin@example.com --group "Platform-Team"
+  dtiam user add-to-group --user developer@example.com --group "Platform-Team"
+
+  # 4. Verify
+  dtiam describe group "Platform-Team"

@@ -1,0 +1,41 @@
+# SLO Manager Policy
+#
+# Manage Service Level Objectives (SLOs) with supporting data access.
+# Ideal for SRE teams or reliability engineers.
+#
+# Usage:
+#   dtiam create policy --name "slo-manager" \
+#     --statement "ALLOW slo:slos:read, slo:slos:write, ..."
+
+name: slo-manager
+description: Manage Service Level Objectives (SLOs) with metrics and dashboard access
+
+# Policy statement query (Dynatrace IAM syntax)
+statement: |
+  ALLOW slo:slos:read,
+        slo:slos:write,
+        storage:metrics:read,
+        storage:events:read,
+        document:documents:read,
+        document:documents:write,
+        settings:objects:read;
+
+# Permissions breakdown:
+#   - slo:slos:read           - View SLOs
+#   - slo:slos:write          - Create/modify/delete SLOs
+#   - storage:metrics:read    - Read metrics for SLO calculations
+#   - storage:events:read     - Read events for SLO impact analysis
+#   - document:documents:*    - Create SLO dashboards
+#   - settings:objects:read   - View settings context
+
+# Use cases:
+#   - SLO definition and management
+#   - Service level reporting
+#   - Reliability engineering
+#   - Error budget tracking
+
+# CLI command to create:
+cli_command: |
+  dtiam create policy --name "slo-manager" \
+    --description "Manage Service Level Objectives (SLOs) with metrics and dashboard access" \
+    --statement "ALLOW slo:slos:read, slo:slos:write, storage:metrics:read, storage:events:read, document:documents:read, document:documents:write, settings:objects:read;"

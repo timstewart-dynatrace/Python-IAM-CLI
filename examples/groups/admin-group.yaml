@@ -1,0 +1,47 @@
+# Admin Group Example
+#
+# Administrator group with full access.
+# Use for platform administrators who need complete control.
+#
+# Usage:
+#   dtiam create group --name "Dynatrace-Admins" --description "Dynatrace administrators"
+
+name: "Dynatrace-Admins"
+description: "Dynatrace administrators with full access"
+
+# Recommended policy: Admin User (built-in)
+recommended_policy: "Admin User"
+
+# Security considerations:
+#   - Limit membership to essential personnel only
+#   - Consider using boundaries to restrict to specific environments
+#   - Audit group membership regularly
+#   - Use separate admin accounts (not daily-use accounts)
+
+# CLI commands:
+cli_commands:
+  create_group: |
+    dtiam create group --name "Dynatrace-Admins" --description "Dynatrace administrators with full access"
+
+  bind_admin_policy: |
+    dtiam create binding --group "Dynatrace-Admins" --policy "Admin User"
+
+  # Optional: Restrict to production environment only
+  bind_with_boundary: |
+    dtiam create boundary --name "prod-only" --zones "Production"
+    dtiam create binding --group "Dynatrace-Admins" --policy "Admin User" --boundary "prod-only"
+
+# Example complete setup:
+example_setup: |
+  # 1. Create the admin group
+  dtiam create group --name "Dynatrace-Admins" --description "Dynatrace administrators"
+
+  # 2. Bind Admin User policy
+  dtiam create binding --group "Dynatrace-Admins" --policy "Admin User"
+
+  # 3. Add admin users
+  dtiam user add-to-group --user platform-admin@example.com --group "Dynatrace-Admins"
+
+  # 4. Verify configuration
+  dtiam describe group "Dynatrace-Admins"
+  dtiam group list-bindings "Dynatrace-Admins"

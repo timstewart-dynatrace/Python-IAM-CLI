@@ -1,0 +1,38 @@
+# DevOps Policy
+#
+# Extended access for DevOps/Platform teams.
+# Includes settings management, automation, and monitoring access.
+#
+# Usage:
+#   dtiam create policy --name "devops-policy" \
+#     --statement "ALLOW settings:objects:read, settings:objects:write, ..."
+
+name: devops-policy
+description: DevOps team permissions with settings and automation access
+
+# Policy statement query (Dynatrace IAM syntax)
+statement: |
+  ALLOW settings:objects:read,
+        settings:objects:write,
+        storage:metrics:read,
+        storage:logs:read,
+        storage:events:read,
+        document:documents:read,
+        document:documents:write,
+        automation:workflows:read,
+        automation:workflows:run,
+        extensions:configurations:read,
+        extensions:configurations:write;
+
+# Permissions breakdown:
+#   - settings:objects:*          - Full settings access
+#   - storage:*:read              - Read all observability data
+#   - document:documents:*        - Create/edit dashboards
+#   - automation:workflows:*      - Run and view workflows
+#   - extensions:configurations:* - Manage extension configs
+
+# CLI command to create:
+cli_command: |
+  dtiam create policy --name "devops-policy" \
+    --description "DevOps team permissions with settings and automation access" \
+    --statement "ALLOW settings:objects:read, settings:objects:write, storage:metrics:read, storage:logs:read, storage:events:read, document:documents:read, document:documents:write, automation:workflows:read, automation:workflows:run, extensions:configurations:read, extensions:configurations:write;"

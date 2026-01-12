@@ -1,0 +1,60 @@
+# Production-Only Boundary Example
+#
+# Restricts access to production management zones only.
+# Use to limit write access to production environments.
+
+name: "production-only"
+description: "Restrict access to production management zones"
+
+# Management zones to include
+zones:
+  - "Production"
+  - "Prod-US"
+  - "Prod-EU"
+
+# CLI commands:
+cli_commands:
+  # Create the boundary
+  create: |
+    dtiam create boundary --name "production-only" \
+      --description "Restrict access to production management zones" \
+      --zones "Production,Prod-US,Prod-EU"
+
+  # Create with custom query (alternative)
+  create_with_query: |
+    dtiam create boundary --name "production-only" \
+      --description "Restrict access to production management zones" \
+      --query 'management-zone IN ("Production", "Prod-US", "Prod-EU")'
+
+  # Attach to existing binding
+  attach: |
+    dtiam boundary attach --group "Prod-Admins" --policy "Admin User" --boundary "production-only"
+
+  # View bindings using this boundary
+  list_attached: |
+    dtiam boundary list-attached "production-only"
+
+# Usage pattern:
+# Give admin access but restrict to production zones only
+usage_example: |
+  # 1. Create the boundary
+  dtiam create boundary --name "production-only" \
+    --zones "Production,Prod-US,Prod-EU"
+
+  # 2. Create a group for production admins
+  dtiam create group --name "Prod-Admins" --description "Production administrators"
+
+  # 3. Bind Admin policy WITH the boundary restriction
+  dtiam create binding --group "Prod-Admins" --policy "Admin User" --boundary "production-only"
+
+  # 4. Add users
+  dtiam user add-to-group --user prod-admin@example.com --group "Prod-Admins"
+
+  # Result: Users have admin access ONLY within production zones
+
+# Security benefits:
+security:
+  - Prevents accidental changes to non-production environments
+  - Enforces separation of duties
+  - Limits blast radius of misconfigurations
+  - Supports compliance requirements (SOC2, etc.)

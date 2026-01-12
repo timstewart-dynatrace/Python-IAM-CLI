@@ -81,6 +81,41 @@ src/dtiam/
     ├── templates.py         # Template rendering
     ├── permissions.py       # Permissions calculation
     └── cache.py             # In-memory caching
+
+examples/                    # Example configurations and scripts
+├── README.md                # Examples documentation
+├── auth/                    # Authentication examples
+│   └── .env.example         # Environment variable template
+├── boundaries/              # Policy boundary examples
+│   ├── production-only.yaml # Restrict to production zones
+│   └── team-scoped.yaml     # Team-specific zone restrictions
+├── bulk/                    # Bulk operation sample files
+│   ├── sample_users.csv     # For bulk add-users-to-group
+│   ├── sample_groups.yaml   # For bulk create-groups
+│   └── sample_bindings.yaml # For bulk create-bindings
+├── config/                  # Configuration examples
+│   └── multi-account.yaml   # Multi-account config template
+├── groups/                  # Group configuration examples
+│   ├── team-group.yaml      # Standard team group
+│   ├── admin-group.yaml     # Administrator group
+│   └── readonly-group.yaml  # Read-only access group
+├── policies/                # Policy examples
+│   ├── README.md            # Policy documentation
+│   ├── viewer-policy.yaml   # Read-only policy
+│   ├── devops-policy.yaml   # DevOps permissions
+│   ├── slo-manager.yaml     # SLO management
+│   ├── settings-writer.yaml # Settings write access
+│   └── alerting-only.yaml   # Schema-restricted policy
+├── service-users/           # Service user (OAuth client) examples
+│   ├── ci-pipeline.yaml     # CI/CD automation service user
+│   └── monitoring-bot.yaml  # Read-only monitoring service user
+├── templates/               # Reusable templates
+│   ├── group-team.yaml      # Team group template
+│   ├── policy-readonly.yaml # Read-only policy template
+│   └── boundary-zone.yaml   # Zone boundary template
+└── scripts/                 # Shell script examples
+    ├── example_cli_lifecycle.sh      # Full IAM lifecycle validation
+    └── example_common_workflows.sh   # Common workflow reference
 ```
 
 ## Authentication
@@ -430,5 +465,6 @@ pip install -e .
 - [docs/COMMANDS.md](docs/COMMANDS.md) - Full command reference
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Technical design
 - [docs/API_REFERENCE.md](docs/API_REFERENCE.md) - Programmatic usage
+- [examples/README.md](examples/README.md) - Sample configurations and scripts
 - [INSTALLATION.md](INSTALLATION.md) - Installation guide for end users
 - [RELEASES.md](RELEASES.md) - GitHub Releases workflow guide

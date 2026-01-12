@@ -1,0 +1,65 @@
+# Monitoring Bot Service User Example
+#
+# Read-only service user for monitoring and reporting.
+# Use for: Dashboards, alerting integrations, audit scripts.
+#
+# IMPORTANT: Save the client secret immediately after creation - it cannot be retrieved later!
+
+name: "monitoring-bot"
+description: "Read-only service user for monitoring and reporting"
+
+# Recommended group memberships:
+# - A group with read-only access
+groups:
+  - "Observers"         # Read-only group
+
+# CLI commands to create:
+cli_commands:
+  # Create the service user
+  create: |
+    dtiam service-user create --name "monitoring-bot" \
+      --description "Read-only service user for monitoring and reporting" \
+      --save-credentials monitoring-bot-creds.json
+
+  # Create with read-only group
+  create_with_group: |
+    dtiam service-user create --name "monitoring-bot" \
+      --description "Read-only service user for monitoring and reporting" \
+      --groups "Observers" \
+      --save-credentials monitoring-bot-creds.json
+
+# Setup workflow:
+setup_workflow: |
+  # 1. Create a read-only group (if it doesn't exist)
+  dtiam create group --name "Observers" --description "Read-only access for monitoring"
+
+  # 2. Create a viewer policy
+  dtiam create policy --name "viewer-policy" \
+    --statement "ALLOW settings:objects:read, storage:metrics:read, storage:logs:read;"
+
+  # 3. Bind the policy to the group
+  dtiam create binding --group "Observers" --policy "viewer-policy"
+
+  # 4. Create the service user with the group
+  dtiam service-user create --name "monitoring-bot" \
+    --description "Read-only service user for monitoring" \
+    --groups "Observers" \
+    --save-credentials monitoring-bot-creds.json
+
+  # 5. Verify permissions
+  dtiam analyze effective-group "Observers"
+
+# Use cases:
+use_cases:
+  - Automated compliance reporting
+  - Dashboard data collection
+  - Alerting system integrations
+  - Audit log collection
+  - Permission analysis scripts
+
+# Security recommendations:
+security:
+  - Use read-only permissions only
+  - Store credentials securely
+  - Monitor for unusual access patterns
+  - Rotate credentials on schedule

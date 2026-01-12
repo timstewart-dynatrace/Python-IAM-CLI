@@ -1,0 +1,17 @@
+# Sample groups for bulk creation
+# Usage: dtiam bulk create-groups --file examples/bulk/sample_groups.yaml
+
+- name: "Platform-Team"
+  description: "Platform engineering team with infrastructure access"
+
+- name: "Frontend-Team"
+  description: "Frontend development team"
+
+- name: "Backend-Team"
+  description: "Backend services development team"
+
+- name: "SRE-Team"
+  description: "Site Reliability Engineering team"
+
+- name: "Security-Team"
+  description: "Security and compliance team"

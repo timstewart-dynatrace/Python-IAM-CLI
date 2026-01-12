@@ -1,0 +1,25 @@
+# Sample policy bindings for bulk creation
+# Usage: dtiam bulk create-bindings --file examples/bulk/sample_bindings.yaml
+#
+# Note: Groups and policies must exist before creating bindings.
+# Use group/policy names or UUIDs.
+
+# Standard viewer access for all teams
+- group: "Frontend-Team"
+  policy: "Standard User"
+
+- group: "Backend-Team"
+  policy: "Standard User"
+
+# Pro access for SRE team
+- group: "SRE-Team"
+  policy: "Pro User"
+
+# Admin access for Platform team (with boundary restriction)
+- group: "Platform-Team"
+  policy: "Admin User"
+  boundary: "production-boundary"  # Optional: restrict to specific zones
+
+# Security team with read-only access
+- group: "Security-Team"
+  policy: "viewer-policy"

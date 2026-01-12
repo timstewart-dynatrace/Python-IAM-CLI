@@ -1,0 +1,63 @@
+# CI/CD Pipeline Service User Example
+#
+# Service user for automated CI/CD pipelines.
+# Use for: GitHub Actions, GitLab CI, Jenkins, etc.
+#
+# IMPORTANT: Save the client secret immediately after creation - it cannot be retrieved later!
+
+name: "ci-pipeline"
+description: "Service user for CI/CD automation pipelines"
+
+# Recommended group memberships for CI/CD:
+# - A group with read access for validation/testing
+# - A group with write access for deployments (if needed)
+groups:
+  - "Automation"        # Group with appropriate permissions
+  - "DevOps"            # Optional: broader access if needed
+
+# CLI commands to create:
+cli_commands:
+  # Create the service user
+  create: |
+    dtiam service-user create --name "ci-pipeline" \
+      --description "Service user for CI/CD automation pipelines"
+
+  # Create and save credentials to file
+  create_with_save: |
+    dtiam service-user create --name "ci-pipeline" \
+      --description "Service user for CI/CD automation pipelines" \
+      --save-credentials ci-pipeline-creds.json
+
+  # Create with group membership
+  create_with_groups: |
+    dtiam service-user create --name "ci-pipeline" \
+      --description "Service user for CI/CD automation pipelines" \
+      --groups "Automation,DevOps"
+
+  # Add to group after creation
+  add_to_group: |
+    dtiam service-user add-to-group --user "ci-pipeline" --group "Automation"
+
+  # List service user's groups
+  list_groups: |
+    dtiam service-user list-groups "ci-pipeline"
+
+# Example GitHub Actions usage:
+github_actions_example: |
+  # .github/workflows/deploy.yml
+  env:
+    DTIAM_CLIENT_ID: ${{ secrets.DTIAM_CLIENT_ID }}
+    DTIAM_CLIENT_SECRET: ${{ secrets.DTIAM_CLIENT_SECRET }}
+    DTIAM_ACCOUNT_UUID: ${{ secrets.DTIAM_ACCOUNT_UUID }}
+
+  steps:
+    - name: List IAM groups
+      run: dtiam get groups
+
+# Security recommendations:
+security:
+  - Store credentials in CI/CD secrets manager (never in code)
+  - Use minimal required permissions
+  - Rotate credentials periodically
+  - Monitor service user activity in audit logs
+  - Use separate service users for different pipelines/environments

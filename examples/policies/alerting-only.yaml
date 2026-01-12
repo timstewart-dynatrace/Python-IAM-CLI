@@ -1,0 +1,35 @@
+# Alerting Only Policy
+#
+# Restricted access to alerting settings only.
+# Uses condition to limit to specific schema prefixes.
+#
+# Usage:
+#   dtiam create policy --name "alerting-only" \
+#     --statement "ALLOW settings:objects:read, settings:objects:write WHERE settings:schemaId STARTS WITH \"builtin:alerting\";"
+
+name: alerting-only
+description: Access to alerting configuration settings only
+
+# Policy statement query (Dynatrace IAM syntax)
+# Uses condition to restrict to builtin:alerting.* schemas
+statement: |
+  ALLOW settings:objects:read,
+        settings:objects:write
+  WHERE settings:schemaId STARTS WITH "builtin:alerting";
+
+# Permissions breakdown:
+#   - settings:objects:read   - View alerting settings
+#   - settings:objects:write  - Modify alerting settings
+#   - Condition: Only applies to builtin:alerting.* schemas
+
+# Covered settings schemas:
+#   - builtin:alerting.profile
+#   - builtin:alerting.maintenance-window
+#   - builtin:alerting.connectivity-alerts
+#   - And other alerting-related schemas
+
+# CLI command to create:
+cli_command: |
+  dtiam create policy --name "alerting-only" \
+    --description "Access to alerting configuration settings only" \
+    --statement 'ALLOW settings:objects:read, settings:objects:write WHERE settings:schemaId STARTS WITH "builtin:alerting";'

@@ -1,0 +1,122 @@
+# Multi-Account Configuration Example
+#
+# Sample dtiam config file for managing multiple Dynatrace accounts.
+# Copy to ~/.config/dtiam/config and customize with your values.
+#
+# File location: ~/.config/dtiam/config
+
+api-version: v1
+kind: Config
+
+# Current active context
+current-context: production
+
+# Context definitions - each represents an account configuration
+contexts:
+  # Production account
+  - name: production
+    context:
+      account-uuid: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx  # Your prod account UUID
+      credentials-ref: prod-creds
+
+  # Staging/Pre-production account
+  - name: staging
+    context:
+      account-uuid: yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy  # Your staging account UUID
+      credentials-ref: staging-creds
+
+  # Development account
+  - name: development
+    context:
+      account-uuid: zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz  # Your dev account UUID
+      credentials-ref: dev-creds
+
+  # Sandbox/Testing account (shared credentials with dev)
+  - name: sandbox
+    context:
+      account-uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa  # Your sandbox account UUID
+      credentials-ref: dev-creds  # Can reuse credentials if same OAuth client
+
+# Credential definitions - OAuth2 client credentials
+credentials:
+  # Production credentials (most restricted scopes)
+  - name: prod-creds
+    credential:
+      client-id: dt0s01.PROD_CLIENT_ID
+      client-secret: dt0s01.PROD_CLIENT_ID.PROD_SECRET
+
+  # Staging credentials
+  - name: staging-creds
+    credential:
+      client-id: dt0s01.STAGING_CLIENT_ID
+      client-secret: dt0s01.STAGING_CLIENT_ID.STAGING_SECRET
+
+  # Development credentials (broader scopes for testing)
+  - name: dev-creds
+    credential:
+      client-id: dt0s01.DEV_CLIENT_ID
+      client-secret: dt0s01.DEV_CLIENT_ID.DEV_SECRET
+
+# User preferences
+preferences:
+  output: table  # Default output format: table, json, yaml, csv, wide
+
+# =============================================================================
+# Usage
+# =============================================================================
+#
+# Switch between contexts:
+#   dtiam config use-context production
+#   dtiam config use-context staging
+#   dtiam config use-context development
+#
+# Override context for single command:
+#   dtiam -c staging get groups
+#   dtiam --context production get users
+#
+# View current context:
+#   dtiam config current-context
+#
+# List all contexts:
+#   dtiam config get-contexts
+#
+# View full config:
+#   dtiam config view
+#
+# =============================================================================
+# Setup Commands
+# =============================================================================
+#
+# Create this config step by step:
+#
+# 1. Add credentials
+#    dtiam config set-credentials prod-creds \
+#      --client-id dt0s01.XXX --client-secret dt0s01.XXX.YYY
+#
+# 2. Create contexts
+#    dtiam config set-context production \
+#      --account-uuid abc-123-def --credentials-ref prod-creds
+#
+# 3. Set current context
+#    dtiam config use-context production
+#
+# =============================================================================
+# Best Practices
+# =============================================================================
+#
+# 1. Use separate OAuth clients per environment
+#    - Production: minimal required scopes
+#    - Development: broader scopes for testing
+#
+# 2. Name contexts clearly
+#    - Use environment names: production, staging, development
+#    - Or account names if managing multiple orgs
+#
+# 3. Protect the config file
+#    - File permissions: 600 (owner read/write only)
+#    - Never commit to version control
+#
+# 4. Use environment variables for CI/CD
+#    - Don't use config file in automation
+#    - Set DTIAM_CLIENT_ID, DTIAM_CLIENT_SECRET, DTIAM_ACCOUNT_UUID
+#

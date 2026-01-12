@@ -1,0 +1,30 @@
+# Settings Writer Policy
+#
+# Full access to Dynatrace settings objects.
+# Use with boundary restrictions to limit to specific management zones.
+#
+# Usage:
+#   dtiam create policy --name "settings-writer" \
+#     --statement "ALLOW settings:objects:read, settings:objects:write;"
+
+name: settings-writer
+description: Full read/write access to settings objects
+
+# Policy statement query (Dynatrace IAM syntax)
+statement: |
+  ALLOW settings:objects:read,
+        settings:objects:write;
+
+# Permissions breakdown:
+#   - settings:objects:read   - View all settings
+#   - settings:objects:write  - Create/modify settings
+
+# Recommended: Use with boundary restriction
+# Example with boundary:
+#   dtiam create binding --group "My Team" --policy "settings-writer" --boundary "production-boundary"
+
+# CLI command to create:
+cli_command: |
+  dtiam create policy --name "settings-writer" \
+    --description "Full read/write access to settings objects" \
+    --statement "ALLOW settings:objects:read, settings:objects:write;"

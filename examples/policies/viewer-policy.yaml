@@ -1,0 +1,32 @@
+# Viewer Policy
+#
+# Read-only access to Dynatrace resources.
+# Use this as a base for teams that need visibility but no write access.
+#
+# Usage:
+#   dtiam create policy --name "viewer-policy" \
+#     --statement "ALLOW settings:objects:read, storage:metrics:read, storage:logs:read, storage:events:read;"
+
+name: viewer-policy
+description: Read-only access to settings, metrics, logs, and events
+
+# Policy statement query (Dynatrace IAM syntax)
+statement: |
+  ALLOW settings:objects:read,
+        storage:metrics:read,
+        storage:logs:read,
+        storage:events:read,
+        document:documents:read;
+
+# Permissions breakdown:
+#   - settings:objects:read    - View configuration settings
+#   - storage:metrics:read     - View metrics data
+#   - storage:logs:read        - View log data
+#   - storage:events:read      - View events
+#   - document:documents:read  - View dashboards and documents
+
+# CLI command to create:
+cli_command: |
+  dtiam create policy --name "viewer-policy" \
+    --description "Read-only access to settings, metrics, logs, and events" \
+    --statement "ALLOW settings:objects:read, storage:metrics:read, storage:logs:read, storage:events:read, document:documents:read;"

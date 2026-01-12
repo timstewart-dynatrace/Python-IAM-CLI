@@ -1,0 +1,29 @@
+# Policy Template: Read-Only
+#
+# Reusable template for creating read-only policies.
+# Uses variables to customize the policy name and scope.
+#
+# Usage:
+#   dtiam template save policy-readonly --kind Policy --file examples/templates/policy-readonly.yaml
+#   dtiam template apply policy-readonly --var policy_name=my-viewer
+
+kind: Policy
+metadata:
+  name: policy-readonly
+  description: Template for creating read-only access policies
+
+# Template variables
+variables:
+  - name: policy_name
+    description: Name for the policy
+    required: true
+  - name: include_logs
+    description: Include log access (true/false)
+    required: false
+    default: "true"
+
+# Resource specification
+spec:
+  name: "{{ policy_name }}"
+  description: "Read-only access policy"
+  statement: "ALLOW settings:objects:read, storage:metrics:read, storage:events:read, document:documents:read;"

@@ -1,0 +1,28 @@
+# Group Template: Team
+#
+# Reusable template for creating team groups.
+# Uses variables that are substituted at apply time.
+#
+# Usage:
+#   dtiam template save group-team --kind Group --file examples/templates/group-team.yaml
+#   dtiam template apply group-team --var team_name=Platform --var description="Platform Team"
+
+kind: Group
+metadata:
+  name: group-team
+  description: Template for creating team-based IAM groups
+
+# Template variables (required when applying)
+variables:
+  - name: team_name
+    description: Name of the team (e.g., Platform, Frontend, Backend)
+    required: true
+  - name: description
+    description: Group description
+    required: false
+    default: "Team group created from template"
+
+# Resource specification
+spec:
+  name: "{{ team_name }}-Team"
+  description: "{{ description }}"
