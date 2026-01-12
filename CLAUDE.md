@@ -15,8 +15,12 @@ This file provides guidance for AI agents working with the dtiam codebase.
 ### Build & Run
 
 ```bash
-# Install in development mode
+# Install in development mode (from source)
 pip install -e .
+
+# Or use automated installation script
+./install.sh           # macOS/Linux
+install.bat           # Windows
 
 # Run CLI
 dtiam --help
@@ -407,6 +411,18 @@ Ensure installed in development mode:
 pip install -e .
 ```
 
+## Distribution & Installation
+
+**For End Users:**
+- [INSTALLATION.md](INSTALLATION.md) - Installation guide with multiple methods
+- [RELEASES.md](RELEASES.md) - How to distribute via GitHub Releases
+- Automated scripts: `install.sh` (macOS/Linux), `install.bat` (Windows)
+
+**For Developers:**
+- Use `./install.sh` or `install.bat` to test user installation flow
+- Scripts support system-wide, user, and virtual environment installations
+- Always test distribution before creating a GitHub Release
+
 ## Documentation
 
 - [README.md](README.md) - Overview and quick start
@@ -414,3 +430,5 @@ pip install -e .
 - [docs/COMMANDS.md](docs/COMMANDS.md) - Full command reference
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Technical design
 - [docs/API_REFERENCE.md](docs/API_REFERENCE.md) - Programmatic usage
+- [INSTALLATION.md](INSTALLATION.md) - Installation guide for end users
+- [RELEASES.md](RELEASES.md) - GitHub Releases workflow guide
