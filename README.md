@@ -18,13 +18,20 @@ A kubectl-inspired command-line interface for managing Dynatrace Identity and Ac
 
 ## Installation
 
-```bash
-# From source
-pip install -e .
+**Quick Start** - Use the automated installation script:
 
-# Or install dependencies and use directly
-pip install typer[all] httpx pydantic pyyaml rich platformdirs
+### macOS / Linux
+```bash
+chmod +x install.sh
+./install.sh
 ```
+
+### Windows
+```bash
+install.bat
+```
+
+See [INSTALLATION.md](./INSTALLATION.md) for detailed instructions and alternative installation methods.
 
 ## Authentication
 
