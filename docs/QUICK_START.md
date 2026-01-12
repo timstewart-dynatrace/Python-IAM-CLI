@@ -18,8 +18,8 @@ This guide walks you through setting up dtiam and performing common IAM manageme
 
 ```bash
 # Clone the repository
-git clone https://github.com/jtimothystewart/Python-IAM-Utility-3.0.git
-cd Python-IAM-Utility-3.0
+git clone https://github.com/jtimothystewart/Python-IAM-CLI.git
+cd Python-IAM-CLI
 
 # Install in development mode
 pip install -e .

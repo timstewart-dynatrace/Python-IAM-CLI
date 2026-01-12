@@ -50,8 +50,8 @@ dev = [
 dtiam = "dtiam.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/jtimothystewart/Python-IAM-Utility-3.0"
-Repository = "https://github.com/jtimothystewart/Python-IAM-Utility-3.0"
+Homepage = "https://github.com/jtimothystewart/Python-IAM-CLI"
+Repository = "https://github.com/jtimothystewart/Python-IAM-CLI"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dtiam"]
