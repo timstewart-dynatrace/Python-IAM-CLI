@@ -17,6 +17,7 @@ from dtiam.config import (
     get_config_path,
     mask_secret,
 )
+from dtiam.utils.auth import extract_client_id_from_secret
 
 app = typer.Typer(no_args_is_help=True, help="Manage dtiam configuration")
 console = Console()
@@ -191,7 +192,7 @@ def set_credentials(
         None,
         "--client-id",
         "-i",
-        help="OAuth2 client ID (will prompt if not provided)",
+        help="OAuth2 client ID (auto-extracted from secret if not provided)",
     ),
     client_secret: Optional[str] = typer.Option(
         None,
@@ -220,13 +221,22 @@ def set_credentials(
 ) -> None:
     """Store OAuth2 credentials and environment settings.
 
+    The client ID is automatically extracted from the client secret since
+    Dynatrace secrets follow the format: dt0s01.CLIENTID.SECRETPART
+    where the client ID is dt0s01.CLIENTID.
+
     Examples:
-        # Store credentials with all options (new credential)
+        # Store credentials (client ID auto-extracted from secret)
         dtiam config set-credentials prod-creds \\
-          --client-id dt0s01.XXX \\
           --client-secret dt0s01.XXX.YYY \\
           --account-uuid abc-123 \\
           --environment-url https://abc123.live.dynatrace.com
+
+        # Explicitly specify client ID (overrides auto-extraction)
+        dtiam config set-credentials prod-creds \\
+          --client-id dt0s01.XXX \\
+          --client-secret dt0s01.XXX.YYY \\
+          --account-uuid abc-123
 
         # Update just the environment token (existing credential)
         dtiam config set-credentials prod-creds --environment-token dt0c01.XXX
@@ -271,19 +281,25 @@ def set_credentials(
         console.print(f"Updated credentials '{name}'.")
         return
 
-    # New credential - require client-id, client-secret, account-uuid
-    if not client_id:
-        client_id = typer.prompt("Enter OAuth2 client ID")
-
-    if not client_id:
-        console.print("[red]Error:[/red] Client ID cannot be empty.")
-        raise typer.Exit(1)
-
+    # New credential - require client-secret, account-uuid (client-id auto-extracted)
     if not client_secret:
         client_secret = typer.prompt("Enter OAuth2 client secret", hide_input=True)
 
     if not client_secret:
         console.print("[red]Error:[/red] Client secret cannot be empty.")
+        raise typer.Exit(1)
+
+    # Auto-extract client ID from secret if not provided
+    if not client_id:
+        client_id = extract_client_id_from_secret(client_secret)
+        if client_id:
+            console.print(f"Auto-extracted client ID: {mask_secret(client_id)}")
+        else:
+            # Fall back to prompting if extraction failed
+            client_id = typer.prompt("Enter OAuth2 client ID (could not auto-extract)")
+
+    if not client_id:
+        console.print("[red]Error:[/red] Client ID cannot be empty.")
         raise typer.Exit(1)
 
     if not account_uuid:

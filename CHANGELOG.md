@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.5.0] - 2026-01-13
+
+### Added
+- Auto-extraction of OAuth2 client ID from client secret
+  - Client ID is now optional in `config set-credentials` command
+  - Client ID is auto-extracted from `DTIAM_CLIENT_SECRET` environment variable
+  - Dynatrace secrets follow format `dt0s01.CLIENTID.SECRETPART` where client ID is `dt0s01.CLIENTID`
+  - Explicit `--client-id` or `DTIAM_CLIENT_ID` still supported (overrides auto-extraction)
+- New helper function `extract_client_id_from_secret()` in `utils/auth.py`
+
+### Changed
+- User-Agent bumped to dtiam/3.5.0
+
+### Documentation
+- Updated CLAUDE.md, README.md, and docs/COMMANDS.md with client ID auto-extraction feature
+
 ## [3.4.4] - 2026-01-13
 
 ### Fixed
@@ -151,7 +167,8 @@ No unreleased changes yet.
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.4...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.5.0...HEAD
+[3.5.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.4...v3.5.0
 [3.4.4]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.3...v3.4.4
 [3.4.3]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.2...v3.4.3
 [3.4.2]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.1...v3.4.2

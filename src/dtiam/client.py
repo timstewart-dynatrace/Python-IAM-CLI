@@ -19,7 +19,13 @@ import httpx
 from pydantic import BaseModel
 
 from dtiam.config import Config, load_config, get_env_override
-from dtiam.utils.auth import TokenManager, StaticTokenManager, BaseTokenManager, OAuthError
+from dtiam.utils.auth import (
+    TokenManager,
+    StaticTokenManager,
+    BaseTokenManager,
+    OAuthError,
+    extract_client_id_from_secret,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +85,7 @@ class Client:
             timeout=timeout,
             headers={
                 "Content-Type": "application/json",
-                "User-Agent": "dtiam/3.4.4",
+                "User-Agent": "dtiam/3.5.0",
             },
         )
 
@@ -262,8 +268,11 @@ def create_client_from_config(
 
     Authentication Priority (first match wins):
     1. DTIAM_BEARER_TOKEN + DTIAM_ACCOUNT_UUID (static bearer token)
-    2. DTIAM_CLIENT_ID + DTIAM_CLIENT_SECRET + DTIAM_ACCOUNT_UUID (OAuth2 via env)
+    2. DTIAM_CLIENT_SECRET + DTIAM_ACCOUNT_UUID (OAuth2 via env, client ID auto-extracted)
     3. Config file context with OAuth2 credentials
+
+    Note: DTIAM_CLIENT_ID is optional - if not set, it will be automatically
+    extracted from DTIAM_CLIENT_SECRET (format: dt0s01.CLIENTID.SECRETPART).
 
     Optional Environment Token for Management Zones (legacy):
     - DTIAM_ENVIRONMENT_TOKEN: Environment API token for management zone operations
@@ -305,6 +314,12 @@ def create_client_from_config(
     # Priority 2: OAuth2 via environment variables (auto-refresh)
     env_client_id = get_env_override("client_id")
     env_client_secret = get_env_override("client_secret")
+
+    # Auto-extract client ID from secret if not provided
+    if env_client_secret and not env_client_id:
+        env_client_id = extract_client_id_from_secret(env_client_secret)
+        if env_client_id:
+            logger.info(f"Auto-extracted client ID from DTIAM_CLIENT_SECRET")
 
     if env_client_id and env_client_secret and env_account_uuid:
         logger.info("Using OAuth2 authentication via environment variables")

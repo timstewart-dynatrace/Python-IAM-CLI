@@ -14,6 +14,39 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+
+def extract_client_id_from_secret(client_secret: str) -> str | None:
+    """Extract the client ID from a Dynatrace OAuth client secret.
+
+    Dynatrace OAuth client secrets follow the format:
+        dt0s01.XXXXXXXX.YYYYYYYYYYYYYYYY
+
+    Where the client_id is the first two dot-separated segments:
+        dt0s01.XXXXXXXX
+
+    Args:
+        client_secret: The full OAuth client secret
+
+    Returns:
+        The extracted client ID, or None if the secret format is invalid
+    """
+    if not client_secret:
+        return None
+
+    parts = client_secret.split(".")
+    if len(parts) < 3:
+        logger.warning(
+            "Client secret does not match expected format (dt0s01.XXXXXXXX.YYYY...). "
+            "Cannot auto-extract client ID."
+        )
+        return None
+
+    # Client ID is the first two parts: dt0s01.XXXXXXXX
+    client_id = f"{parts[0]}.{parts[1]}"
+    logger.debug(f"Auto-extracted client ID: {client_id}")
+    return client_id
+
+
 # OAuth2 scopes required for IAM operations
 IAM_SCOPES = (
     "account-idm-read iam:users:read iam:groups:read account-idm-write "

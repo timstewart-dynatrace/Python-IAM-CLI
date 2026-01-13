@@ -51,9 +51,8 @@ dtiam supports two authentication methods. Choose based on your use case:
 - Requires creating an OAuth2 client in Dynatrace
 
 ```bash
-# Add OAuth2 credentials
+# Add OAuth2 credentials (client ID auto-extracted from secret)
 dtiam config set-credentials prod \
-  --client-id YOUR_CLIENT_ID \
   --client-secret YOUR_CLIENT_SECRET
 
 # Create a context
@@ -64,8 +63,7 @@ dtiam config set-context prod \
 # Switch to the context
 dtiam config use-context prod
 
-# Or use environment variables
-export DTIAM_CLIENT_ID="dt0s01.XXXXX"
+# Or use environment variables (client ID is auto-extracted from secret)
 export DTIAM_CLIENT_SECRET="dt0s01.XXXXX.YYYYY"
 export DTIAM_ACCOUNT_UUID="abc-123-def"
 ```
@@ -97,17 +95,18 @@ dtiam get groups
 
 When multiple authentication methods are configured, dtiam uses this priority:
 1. `DTIAM_BEARER_TOKEN` + `DTIAM_ACCOUNT_UUID` (bearer token)
-2. `DTIAM_CLIENT_ID` + `DTIAM_CLIENT_SECRET` + `DTIAM_ACCOUNT_UUID` (OAuth2 via env)
+2. `DTIAM_CLIENT_SECRET` + `DTIAM_ACCOUNT_UUID` (OAuth2 via env, client ID auto-extracted)
 3. Config file context with OAuth2 credentials
+
+**Note:** `DTIAM_CLIENT_ID` is optional - it's automatically extracted from `DTIAM_CLIENT_SECRET` since Dynatrace secrets follow the format `dt0s01.CLIENTID.SECRETPART`.
 
 ## Quick Start
 
 ### 1. Set up credentials (OAuth2)
 
 ```bash
-# Add OAuth2 credentials
+# Add OAuth2 credentials (client ID auto-extracted from secret)
 dtiam config set-credentials prod \
-  --client-id YOUR_CLIENT_ID \
   --client-secret YOUR_CLIENT_SECRET
 
 # Create a context
@@ -430,8 +429,8 @@ iam:effective-permissions:read
 | Variable | Description |
 |----------|-------------|
 | `DTIAM_BEARER_TOKEN` | Static bearer token (alternative to OAuth2) |
-| `DTIAM_CLIENT_ID` | OAuth2 client ID |
-| `DTIAM_CLIENT_SECRET` | OAuth2 client secret |
+| `DTIAM_CLIENT_ID` | OAuth2 client ID (optional - auto-extracted from secret) |
+| `DTIAM_CLIENT_SECRET` | OAuth2 client secret (format: dt0s01.CLIENTID.SECRET) |
 | `DTIAM_ACCOUNT_UUID` | Dynatrace account UUID |
 | `DTIAM_CONTEXT` | Override current context name |
 | `DTIAM_OUTPUT` | Default output format |

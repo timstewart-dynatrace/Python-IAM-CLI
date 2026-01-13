@@ -466,11 +466,14 @@ dtiam supports two authentication methods:
 | Variable | Description |
 |----------|-------------|
 | `DTIAM_BEARER_TOKEN` | Static bearer token (alternative to OAuth2) |
-| `DTIAM_CLIENT_ID` | OAuth2 client ID |
-| `DTIAM_CLIENT_SECRET` | OAuth2 client secret |
+| `DTIAM_CLIENT_ID` | OAuth2 client ID (optional - auto-extracted from secret) |
+| `DTIAM_CLIENT_SECRET` | OAuth2 client secret (format: dt0s01.CLIENTID.SECRET) |
 | `DTIAM_ACCOUNT_UUID` | Dynatrace account UUID |
 | `DTIAM_CONTEXT` | Override current context |
 | `DTIAM_ENVIRONMENT_URL` | Environment URL for App Engine Registry (e.g., abc12345.apps.dynatrace.com) |
+
+**Note:** `DTIAM_CLIENT_ID` is optional. If not set, it will be automatically extracted from
+`DTIAM_CLIENT_SECRET` since Dynatrace secrets follow the format `dt0s01.CLIENTID.SECRETPART`.
 
 ## Key Patterns
 

@@ -189,6 +189,8 @@ dtiam config delete-context NAME [--force]
 
 Store OAuth2 credentials and environment settings. For existing credentials, only the provided fields are updated (partial update support).
 
+**Client ID Auto-Extraction:** The client ID is automatically extracted from the client secret since Dynatrace secrets follow the format `dt0s01.CLIENTID.SECRETPART`. You only need to provide `--client-secret`.
+
 ```bash
 dtiam config set-credentials NAME [OPTIONS]
 ```
@@ -196,7 +198,7 @@ dtiam config set-credentials NAME [OPTIONS]
 | Argument/Option       | Short | Description                                          |
 | --------------------- | ----- | ---------------------------------------------------- |
 | `NAME`                |       | Credential name                                      |
-| `--client-id`         | `-i`  | OAuth2 client ID (prompts if not provided for new)   |
+| `--client-id`         | `-i`  | OAuth2 client ID (auto-extracted from secret if not provided) |
 | `--client-secret`     | `-s`  | OAuth2 client secret (prompts if not provided for new) |
 | `--account-uuid`      | `-a`  | Dynatrace account UUID (prompts if not provided for new) |
 | `--environment-url`   | `-e`  | Dynatrace environment URL                            |
@@ -205,12 +207,17 @@ dtiam config set-credentials NAME [OPTIONS]
 **Examples:**
 
 ```bash
-# Create new credentials with all options
+# Create new credentials (client ID auto-extracted from secret)
 dtiam config set-credentials prod-creds \
-  --client-id dt0s01.XXX \
   --client-secret dt0s01.XXX.YYY \
   --account-uuid abc-123 \
   --environment-url https://abc123.live.dynatrace.com
+
+# Explicitly specify client ID (overrides auto-extraction)
+dtiam config set-credentials prod-creds \
+  --client-id dt0s01.XXX \
+  --client-secret dt0s01.XXX.YYY \
+  --account-uuid abc-123
 
 # Update just the environment token (existing credential)
 dtiam config set-credentials prod-creds --environment-token dt0c01.XXX
