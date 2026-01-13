@@ -47,14 +47,15 @@ def extract_client_id_from_secret(client_secret: str) -> str | None:
     return client_id
 
 
-# OAuth2 scopes required for IAM operations
+# OAuth2 scopes required for IAM and platform operations
 IAM_SCOPES = (
     "account-idm-read iam:users:read iam:groups:read account-idm-write "
     "account-env-read account-env-write account-uac-read account-uac-write "
     "iam-policies-management iam:policies:write "
     "iam:policies:read iam:bindings:write iam:bindings:read "
     "iam:effective-permissions:read "
-    "iam:boundaries:read iam:boundaries:write"
+    "iam:boundaries:read iam:boundaries:write "
+    "app-engine:apps:run"  # Required for App Engine Registry API (get apps)
 )
 
 TOKEN_URL = "https://sso.dynatrace.com/sso/oauth2/token"
