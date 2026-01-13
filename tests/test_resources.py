@@ -196,7 +196,11 @@ class TestBoundaryHandler:
         handler = BoundaryHandler(mock_client)
         query = handler._build_zone_query(["Production"])
 
-        expected = 'management-zone IN ("Production")'
+        expected = (
+            'environment:management-zone IN ("Production");\n'
+            'storage:dt.security_context IN ("Production");\n'
+            'settings:dt.security_context IN ("Production");'
+        )
         assert query == expected
 
     def test_build_zone_query_multiple_zones(self, mock_client):
@@ -204,7 +208,11 @@ class TestBoundaryHandler:
         handler = BoundaryHandler(mock_client)
         query = handler._build_zone_query(["Production", "Staging"])
 
-        expected = 'management-zone IN ("Production", "Staging")'
+        expected = (
+            'environment:management-zone IN ("Production", "Staging");\n'
+            'storage:dt.security_context IN ("Production", "Staging");\n'
+            'settings:dt.security_context IN ("Production", "Staging");'
+        )
         assert query == expected
 
     def test_create_boundary_with_zones(self, mock_client, mock_response):
@@ -223,7 +231,18 @@ class TestBoundaryHandler:
             # Verify the boundary query was built correctly
             call_args = mock_post.call_args
             assert "boundaryQuery" in call_args[1]["json"]
-            assert "management-zone IN" in call_args[1]["json"]["boundaryQuery"]
+            assert "environment:management-zone IN" in call_args[1]["json"]["boundaryQuery"]
+
+    def test_list_boundaries(self, mock_client, sample_boundaries, mock_response):
+        """Test listing boundaries."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"items": sample_boundaries})
+
+            handler = BoundaryHandler(mock_client)
+            boundaries = handler.list()
+
+            assert len(boundaries) == 1
+            assert boundaries[0]["name"] == "production-boundary"
 
 
 class TestPolicyHandler:
@@ -370,21 +389,6 @@ class TestBindingHandler:
 
             assert result is True
             mock_put.assert_called_once()
-
-
-class TestBoundaryHandler:
-    """Tests for BoundaryHandler."""
-
-    def test_list_boundaries(self, mock_client, sample_boundaries, mock_response):
-        """Test listing boundaries."""
-        with patch.object(mock_client, "get") as mock_get:
-            mock_get.return_value = mock_response({"items": sample_boundaries})
-
-            handler = BoundaryHandler(mock_client)
-            boundaries = handler.list()
-
-            assert len(boundaries) == 1
-            assert boundaries[0]["name"] == "production-boundary"
 
 
 class TestEnvironmentHandler:

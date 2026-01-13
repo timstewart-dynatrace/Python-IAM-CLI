@@ -132,6 +132,30 @@ class BoundaryHandler(ResourceHandler[Any]):
             self._handle_error("create", e)
             return {}
 
+    def create_from_zones(
+        self,
+        name: str,
+        management_zones: list[str],
+        description: str | None = None,
+    ) -> dict[str, Any]:
+        """Create a boundary from management zone names.
+
+        Convenience method that builds the boundary query automatically.
+
+        Args:
+            name: Boundary name
+            management_zones: List of management zone names
+            description: Optional description
+
+        Returns:
+            Created boundary dictionary
+        """
+        return self.create(
+            name=name,
+            management_zones=management_zones,
+            description=description,
+        )
+
     def update(
         self,
         boundary_id: str,
@@ -196,6 +220,7 @@ class BoundaryHandler(ResourceHandler[Any]):
         """Build a boundary query from management zone names.
 
         The query restricts access to entities within the specified zones.
+        Format matches Dynatrace API expectations with semicolons and newlines.
 
         Args:
             management_zones: List of management zone names
@@ -209,9 +234,15 @@ class BoundaryHandler(ResourceHandler[Any]):
         # Build zone list for IN clause
         zone_list = ', '.join(f'"{zone}"' for zone in management_zones)
 
-        # Simple boundary query format for management zones
-        # This restricts environment access to the specified zones
-        return f"management-zone IN ({zone_list})"
+        # Full boundary query format matching existing boundaries in Dynatrace
+        # Uses semicolons with newlines between each clause
+        query_parts = [
+            f'environment:management-zone IN ({zone_list});',
+            f'storage:dt.security_context IN ({zone_list});',
+            f'settings:dt.security_context IN ({zone_list});',
+        ]
+
+        return "\n".join(query_parts)
 
     def get_attached_policies(self, boundary_id: str) -> list[dict[str, Any]]:
         """Get policies that use this boundary.
