@@ -26,10 +26,16 @@ No unreleased changes yet.
   - Mandatory documentation checklist before merge
   - Mandatory version increment requirements
   - Semantic versioning guidelines with examples
+- Optional environment token support for management zones (legacy feature)
+  - `DTIAM_ENVIRONMENT_TOKEN` environment variable for environment-level API access
+  - Auto-detection of environment API URLs (.live.dynatrace.com, .apps.dynatrace.com)
+  - Enables management zone operations with environment-level API tokens
 
 ### Changed
 - Enhanced `.gitignore` with better Python/IDE exclusions
 - Improved boundary handling in `BoundaryHandler`
+- Updated Client class to support optional environment_token parameter
+- User-Agent bumped to dtiam/3.1.0
 
 ### Documentation
 - Added comprehensive command reference for `get apps` in docs/COMMANDS.md
@@ -39,6 +45,7 @@ No unreleased changes yet.
 - Added App Engine Registry API endpoints to CLAUDE.md
 - Added mandatory development workflow to CLAUDE.md
 - Added version management requirements to CLAUDE.md
+- Added `DTIAM_ENVIRONMENT_TOKEN` documentation to config.py and .env.example
 
 ### Tests
 - Added new test coverage in `tests/test_resources.py`
