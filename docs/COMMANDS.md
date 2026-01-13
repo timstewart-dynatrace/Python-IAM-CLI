@@ -421,7 +421,7 @@ Aliases: `get app`
 - Requires an environment URL via `--environment` or `DTIAM_ENVIRONMENT_URL`
 - App IDs can be used in policy/boundary statements: `shared:app-id = '{app.id}';`
 - Environment can be specified as ID (e.g., `abc12345`) or full URL (e.g., `abc12345.apps.dynatrace.com`)
-- **Authentication**: Uses OAuth2 Bearer token. Your OAuth2 client must have `app-engine:apps:read` scope or equivalent platform permissions. Does NOT use `DTIAM_ENVIRONMENT_TOKEN`.
+- **Authentication**: Uses OAuth2 Bearer token. Your OAuth2 client must have `app-engine:apps:run` scope. Does NOT use `DTIAM_ENVIRONMENT_TOKEN`.
 
 **Examples:**
 
