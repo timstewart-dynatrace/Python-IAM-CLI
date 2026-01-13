@@ -4,6 +4,110 @@ This file provides guidance for AI agents working with the dtiam codebase.
 
 > **DISCLAIMER:** This tool is provided "as-is" without warranty. Use at your own risk. This is an independent, community-developed tool and is **NOT produced, endorsed, or supported by Dynatrace**.
 
+## Development Workflow - MANDATORY
+
+**ALL development work MUST follow this workflow:**
+
+### Branching Requirements
+
+1. **NEVER commit features directly to main**
+   - ALL new features, enhancements, and non-trivial changes MUST be developed in a feature branch
+   - Branch naming convention: `feature/descriptive-name` or `fix/descriptive-name`
+   - Only documentation fixes and critical hotfixes may be committed directly to main (with approval)
+
+2. **Feature Branch Workflow**
+   ```bash
+   # Create feature branch from main
+   git checkout main
+   git pull
+   git checkout -b feature/my-feature
+
+   # Develop and commit
+   git add <files>
+   git commit -m "feat: description"
+
+   # Push feature branch
+   git push -u origin feature/my-feature
+   ```
+
+3. **Documentation Requirements - MANDATORY**
+   - **ALL features MUST be documented BEFORE merging to main**
+   - Documentation checklist (ALL must be completed):
+     - [ ] [CLAUDE.md](CLAUDE.md) - Add to project structure, patterns, or API endpoints
+     - [ ] [docs/COMMANDS.md](docs/COMMANDS.md) - Full command reference with examples
+     - [ ] [README.md](README.md) - Update quick start or features section
+     - [ ] [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Update if architecture changes
+     - [ ] [examples/](examples/) - Add sample files if applicable
+     - [ ] Code comments and docstrings for new functions/classes
+
+4. **Merge Process**
+   ```bash
+   # Before merging: verify ALL documentation is complete
+   git checkout main
+   git merge feature/my-feature --no-ff
+
+   # If documentation is missing, DO NOT MERGE
+   # Create documentation commits in the feature branch first
+   ```
+
+5. **Verification Before Merge**
+   - Run tests: `pytest tests/ -v`
+   - Verify command help: `dtiam <new-command> --help`
+   - Check all documentation files are updated
+   - Ensure examples are provided
+   - Verify CLAUDE.md includes new patterns/endpoints
+
+### Why This Matters
+
+- **Prevents incomplete features in main**: Feature branches isolate work-in-progress
+- **Ensures documentation completeness**: No undocumented features reach users
+- **Enables easy rollback**: Feature branches can be deleted if not needed
+- **Maintains clean history**: Main branch only contains complete, documented features
+- **Facilitates collaboration**: Multiple features can be developed in parallel
+
+### Example: Adding a New Resource
+
+```bash
+# 1. Create feature branch
+git checkout -b feature/add-apps-resource
+
+# 2. Implement feature
+# - Add src/dtiam/resources/apps.py
+# - Add command in src/dtiam/commands/get.py
+# - Add output columns in src/dtiam/output.py
+
+# 3. Test implementation
+pip install -e .
+dtiam get apps --help
+
+# 4. Document EVERYTHING
+# - Update CLAUDE.md (project structure)
+# - Update docs/COMMANDS.md (command reference)
+# - Update README.md (add to resources table)
+# - Update docs/ARCHITECTURE.md (add to resource handlers)
+# - Add examples/apps/ directory with samples
+
+# 5. Commit feature and documentation together
+git add .
+git commit -m "feat: add apps resource for App Engine Registry
+
+- Add AppHandler for App Engine Registry API
+- Add get apps command with --environment option
+- Add app_columns() for table output
+- Document in CLAUDE.md, COMMANDS.md, README.md, ARCHITECTURE.md
+- Add usage examples"
+
+# 6. Push feature branch
+git push -u origin feature/add-apps-resource
+
+# 7. Merge to main (only after ALL documentation complete)
+git checkout main
+git merge feature/add-apps-resource --no-ff
+git push
+```
+
+**REMEMBER: Documentation is NOT optional. It is MANDATORY before merge.**
+
 ## Project Overview
 
 **dtiam** is a kubectl-inspired CLI for managing Dynatrace Identity and Access Management (IAM) resources. It provides a consistent interface for managing groups, users, policies, bindings, boundaries, environments, and management zones.
