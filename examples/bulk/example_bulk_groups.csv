@@ -1,0 +1,7 @@
+group_name,policy_name,level,level_id,management_zones,boundary_name,description
+ent-monitor-np-test-2,Read-Only User,account,,,,ent-monitor-np-test-2 test team - global read access (account level)
+ent-monitor-np-test-2,Standard User,account,,,,ent-monitor-np-test-2 test team - basic access (standard at environment level)
+ent-monitor-np-test-2,Pro User,environment,tst86290,ent-monitor-np-test-2,ent-monitor-np-test-2-Boundary,ent-monitor-np-test-2 test team - restricted write access (Pro at environment level)
+ent-monitor-np-test,Read-Only User,account,,,,ent-monitor-np-test test team - global read access (account level)
+ent-monitor-np-test,Standard User,account,,,,ent-monitor-np-test test team - basic access (standard at environment level)
+ent-monitor-np-test,Pro User,environment,tst86290,ent-monitor-np-test,ent-monitor-np-test-Boundary,ent-monitor-np-test test team - restricted write access (Pro at environment level)
