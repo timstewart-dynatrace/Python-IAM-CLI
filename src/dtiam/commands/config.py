@@ -253,11 +253,17 @@ def set_credentials(
         # Update existing credential - only update provided fields
         updated = False
 
-        if client_id:
-            existing_cred.client_id = client_id
-            updated = True
         if client_secret:
             existing_cred.client_secret = client_secret
+            updated = True
+            # Auto-extract and update client ID when secret changes (unless explicitly provided)
+            if not client_id:
+                extracted_id = extract_client_id_from_secret(client_secret)
+                if extracted_id:
+                    existing_cred.client_id = extracted_id
+                    console.print(f"Auto-extracted client ID: {mask_secret(extracted_id)}")
+        if client_id:
+            existing_cred.client_id = client_id
             updated = True
         if environment_url:
             existing_cred.environment_url = environment_url
