@@ -128,37 +128,110 @@ def get_users(
 def get_policies(
     identifier: Optional[str] = typer.Argument(None, help="Policy UUID or name"),
     name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name"),
-    level: str = typer.Option("account", "--level", "-l", help="Policy level (account, global)"),
+    level: Optional[str] = typer.Option(None, "--level", "-l", help="Policy level (account, global, environment, or env ID). Default: all levels"),
     output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
 ) -> None:
-    """List or get IAM policies."""
+    """List or get IAM policies.
+
+    By default, lists policies from all levels (account, global, and environments).
+    Use --level to filter to a specific level.
+    """
     from dtiam.resources.policies import PolicyHandler
+    from dtiam.resources.environments import EnvironmentHandler
 
     config = load_config()
     client = create_client_from_config(config, get_context(), is_verbose())
-
-    # Determine level type
-    level_type = "global" if level == "global" else "account"
-    level_id = "global" if level == "global" else client.account_uuid
-
-    handler = PolicyHandler(client, level_type=level_type, level_id=level_id)
 
     fmt = output or get_output_format()
     printer = Printer(format=fmt, plain=is_plain_mode())
 
     try:
         if identifier:
-            # Try to resolve by UUID or name
+            # Try to find policy by UUID or name - search all levels
+            handler = PolicyHandler(client, level_type="account", level_id=client.account_uuid)
             result = handler.get(identifier)
             if not result:
                 result = handler.get_by_name(identifier)
+            if not result:
+                # Try global level
+                handler = PolicyHandler(client, level_type="global", level_id="global")
+                result = handler.get(identifier)
+                if not result:
+                    result = handler.get_by_name(identifier)
             if not result:
                 console.print(f"[red]Error:[/red] Policy '{identifier}' not found.")
                 raise typer.Exit(1)
             printer.print(result)
         else:
             # List policies
-            results = handler.list()
+            results: list[dict] = []
+
+            if level is None:
+                # Query all levels: account, global, and environments
+                # Account level
+                handler = PolicyHandler(client, level_type="account", level_id=client.account_uuid)
+                account_policies = handler.list()
+                for p in account_policies:
+                    p["_level"] = "account"
+                results.extend(account_policies)
+
+                # Global level (built-in policies)
+                try:
+                    handler = PolicyHandler(client, level_type="global", level_id="global")
+                    global_policies = handler.list()
+                    for p in global_policies:
+                        p["_level"] = "global"
+                    results.extend(global_policies)
+                except Exception:
+                    pass  # Global policies might not be accessible
+
+                # Environment level - get all environments and query each
+                try:
+                    env_handler = EnvironmentHandler(client)
+                    environments = env_handler.list()
+                    for env in environments:
+                        env_id = env.get("id")
+                        if env_id:
+                            try:
+                                handler = PolicyHandler(client, level_type="environment", level_id=env_id)
+                                env_policies = handler.list()
+                                for p in env_policies:
+                                    p["_level"] = f"environment:{env_id}"
+                                results.extend(env_policies)
+                            except Exception:
+                                pass  # Some environments might not have policies
+                except Exception:
+                    pass  # Environments might not be accessible
+
+            elif level == "global":
+                handler = PolicyHandler(client, level_type="global", level_id="global")
+                results = handler.list()
+            elif level == "account":
+                handler = PolicyHandler(client, level_type="account", level_id=client.account_uuid)
+                results = handler.list()
+            elif level == "environment":
+                # All environments
+                try:
+                    env_handler = EnvironmentHandler(client)
+                    environments = env_handler.list()
+                    for env in environments:
+                        env_id = env.get("id")
+                        if env_id:
+                            try:
+                                handler = PolicyHandler(client, level_type="environment", level_id=env_id)
+                                env_policies = handler.list()
+                                for p in env_policies:
+                                    p["_level"] = f"environment:{env_id}"
+                                results.extend(env_policies)
+                            except Exception:
+                                pass
+                except Exception:
+                    pass
+            else:
+                # Specific environment ID
+                handler = PolicyHandler(client, level_type="environment", level_id=level)
+                results = handler.list()
+
             if name:
                 results = [p for p in results if name.lower() in p.get("name", "").lower()]
             printer.print(results, policy_columns())
@@ -170,23 +243,100 @@ def get_policies(
 @app.command("binding")
 def get_bindings(
     group_id: Optional[str] = typer.Option(None, "--group", "-g", help="Filter by group UUID"),
+    level: Optional[str] = typer.Option(None, "--level", "-l", help="Binding level (account, global, environment, or env ID). Default: all levels"),
     output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
 ) -> None:
-    """List IAM policy bindings."""
+    """List IAM policy bindings.
+
+    By default, lists bindings from all levels (account, global, and environments).
+    Use --level to filter to a specific level.
+    """
     from dtiam.resources.bindings import BindingHandler
+    from dtiam.resources.environments import EnvironmentHandler
 
     config = load_config()
     client = create_client_from_config(config, get_context(), is_verbose())
-    handler = BindingHandler(client)
 
     fmt = output or get_output_format()
     printer = Printer(format=fmt, plain=is_plain_mode())
 
     try:
+        results: list[dict] = []
+
         if group_id:
+            # When filtering by group, query all levels for that group
+            handler = BindingHandler(client, level_type="account", level_id=client.account_uuid)
             results = handler.get_for_group(group_id)
-        else:
+        elif level is None:
+            # Query all levels: account, global, and environments
+            # Account level
+            handler = BindingHandler(client, level_type="account", level_id=client.account_uuid)
+            account_bindings = handler.list()
+            for b in account_bindings:
+                b["levelType"] = b.get("levelType", "account")
+                b["levelId"] = b.get("levelId", client.account_uuid)
+            results.extend(account_bindings)
+
+            # Global level
+            try:
+                handler = BindingHandler(client, level_type="global", level_id="global")
+                global_bindings = handler.list()
+                for b in global_bindings:
+                    b["levelType"] = b.get("levelType", "global")
+                    b["levelId"] = b.get("levelId", "global")
+                results.extend(global_bindings)
+            except Exception:
+                pass  # Global bindings might not be accessible
+
+            # Environment level - get all environments and query each
+            try:
+                env_handler = EnvironmentHandler(client)
+                environments = env_handler.list()
+                for env in environments:
+                    env_id = env.get("id")
+                    if env_id:
+                        try:
+                            handler = BindingHandler(client, level_type="environment", level_id=env_id)
+                            env_bindings = handler.list()
+                            for b in env_bindings:
+                                b["levelType"] = b.get("levelType", "environment")
+                                b["levelId"] = b.get("levelId", env_id)
+                            results.extend(env_bindings)
+                        except Exception:
+                            pass  # Some environments might not have bindings
+            except Exception:
+                pass  # Environments might not be accessible
+
+        elif level == "global":
+            handler = BindingHandler(client, level_type="global", level_id="global")
             results = handler.list()
+        elif level == "account":
+            handler = BindingHandler(client, level_type="account", level_id=client.account_uuid)
+            results = handler.list()
+        elif level == "environment":
+            # All environments
+            try:
+                env_handler = EnvironmentHandler(client)
+                environments = env_handler.list()
+                for env in environments:
+                    env_id = env.get("id")
+                    if env_id:
+                        try:
+                            handler = BindingHandler(client, level_type="environment", level_id=env_id)
+                            env_bindings = handler.list()
+                            for b in env_bindings:
+                                b["levelType"] = "environment"
+                                b["levelId"] = env_id
+                            results.extend(env_bindings)
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+        else:
+            # Specific environment ID
+            handler = BindingHandler(client, level_type="environment", level_id=level)
+            results = handler.list()
+
         printer.print(results, binding_columns())
     finally:
         client.close()

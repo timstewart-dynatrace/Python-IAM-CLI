@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.4.0] - 2026-01-13
+
+### Added
+- Multi-level querying for `get policies` command
+  - Now queries all levels by default (account, global, and environments)
+  - Added `--level` option to filter by level (account, global, environment, or specific env ID)
+- Multi-level querying for `get bindings` command
+  - Now queries all levels by default (account, global, and environments)
+  - Added `--level` option to filter by level
+
+### Fixed
+- Fixed /repo/ API endpoint paths (policies, bindings, boundaries)
+  - These endpoints use `/iam/v1/repo/` not `/iam/v1/accounts/{uuid}/repo/`
+- Fixed `zone_columns()` to return Column objects instead of tuples
+
+### Changed
+- User-Agent bumped to dtiam/3.4.0
+
 ## [3.3.0] - 2026-01-13
 
 ### Added
@@ -91,7 +109,8 @@ No unreleased changes yet.
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.3.0...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.0...HEAD
+[3.4.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.0.0...v3.1.0
