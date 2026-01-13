@@ -288,16 +288,42 @@ Aliases: `get user`
 
 List or get IAM policies.
 
+By default, lists policies from all levels (account, global, and environments).
+Use `--level` to filter to a specific level.
+
 ```bash
 dtiam get policies [IDENTIFIER] [OPTIONS]
 ```
 
-| Argument/Option | Short | Description                             |
-| --------------- | ----- | --------------------------------------- |
-| `IDENTIFIER`    |       | Policy UUID or name (optional)          |
-| `--name`        | `-n`  | Filter by name                          |
-| `--level`       | `-l`  | Policy level: account (default), global |
-| `--output`      | `-o`  | Output format                           |
+| Argument/Option | Short | Description                                                       |
+| --------------- | ----- | ----------------------------------------------------------------- |
+| `IDENTIFIER`    |       | Policy UUID or name (optional)                                    |
+| `--name`        | `-n`  | Filter by name                                                    |
+| `--level`       | `-l`  | Policy level: account, global, environment, or specific env ID   |
+| `--output`      | `-o`  | Output format                                                     |
+
+**Level options:**
+- (default): All levels (account + global + all environments)
+- `account`: Account-level custom policies only
+- `global`: Dynatrace built-in policies only
+- `environment`: All environment-level policies
+- `<env-id>`: Policies for a specific environment ID
+
+**Examples:**
+
+```bash
+# List all policies from all levels
+dtiam get policies
+
+# List only account-level policies
+dtiam get policies --level account
+
+# List only global (built-in) policies
+dtiam get policies --level global
+
+# List policies for a specific environment
+dtiam get policies --level yhu28601
+```
 
 Aliases: `get policy`
 
@@ -305,14 +331,41 @@ Aliases: `get policy`
 
 List IAM policy bindings.
 
+By default, lists bindings from all levels (account, global, and environments).
+Use `--level` to filter to a specific level.
+
 ```bash
 dtiam get bindings [OPTIONS]
 ```
 
-| Option     | Short | Description          |
-| ---------- | ----- | -------------------- |
-| `--group`  | `-g`  | Filter by group UUID |
-| `--output` | `-o`  | Output format        |
+| Option     | Short | Description                                                       |
+| ---------- | ----- | ----------------------------------------------------------------- |
+| `--group`  | `-g`  | Filter by group UUID                                              |
+| `--level`  | `-l`  | Binding level: account, global, environment, or specific env ID  |
+| `--output` | `-o`  | Output format                                                     |
+
+**Level options:**
+- (default): All levels (account + global + all environments)
+- `account`: Account-level bindings only
+- `global`: Global bindings only
+- `environment`: All environment-level bindings
+- `<env-id>`: Bindings for a specific environment ID
+
+**Examples:**
+
+```bash
+# List all bindings from all levels
+dtiam get bindings
+
+# List only account-level bindings
+dtiam get bindings --level account
+
+# List bindings for a specific group
+dtiam get bindings --group 12345678-1234-1234-1234-123456789abc
+
+# List bindings for a specific environment
+dtiam get bindings --level yhu28601
+```
 
 Aliases: `get binding`
 
