@@ -225,6 +225,7 @@ def get_env_override(key: str) -> str | None:
     - DTIAM_CLIENT_SECRET: OAuth2 client secret (use with DTIAM_CLIENT_ID)
     - DTIAM_ACCOUNT_UUID: Dynatrace account UUID
     - DTIAM_BEARER_TOKEN: Static bearer token (alternative to OAuth2)
+    - DTIAM_ENVIRONMENT_TOKEN: Environment API token for management zones (optional)
 
     Note: DTIAM_BEARER_TOKEN takes precedence over OAuth2 credentials.
     Bearer tokens do NOT auto-refresh and will fail when expired.

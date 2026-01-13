@@ -11,6 +11,7 @@ Provides a robust HTTP client with:
 from __future__ import annotations
 
 import logging
+import os
 import time
 from typing import Any
 
@@ -51,7 +52,10 @@ class RetryConfig(BaseModel):
 
 
 class Client:
-    """HTTP client for Dynatrace IAM API with OAuth2 or bearer token auth and retry handling."""
+    """HTTP client for Dynatrace IAM API with OAuth2 or bearer token auth and retry handling.
+
+    Also supports optional environment-level API token for management zones (legacy feature).
+    """
 
     def __init__(
         self,
@@ -60,12 +64,14 @@ class Client:
         timeout: float = 30.0,
         retry_config: RetryConfig | None = None,
         verbose: bool = False,
+        environment_token: str | None = None,
     ):
         self.account_uuid = account_uuid
         self.token_manager = token_manager
         self.timeout = timeout
         self.retry_config = retry_config or RetryConfig()
         self.verbose = verbose
+        self.environment_token = environment_token  # Optional environment API token
 
         self.base_url = f"{IAM_API_BASE}/accounts/{account_uuid}"
 
@@ -73,7 +79,7 @@ class Client:
             timeout=timeout,
             headers={
                 "Content-Type": "application/json",
-                "User-Agent": "dtiam/3.0.0",
+                "User-Agent": "dtiam/3.1.0",
             },
         )
 
@@ -88,8 +94,17 @@ class Client:
     def __exit__(self, *args: Any) -> None:
         self.close()
 
-    def _get_auth_headers(self) -> dict[str, str]:
-        """Get current authentication headers."""
+    def _get_auth_headers(self, use_environment_token: bool = False) -> dict[str, str]:
+        """Get current authentication headers.
+
+        Args:
+            use_environment_token: If True and environment_token is set, use that instead
+
+        Returns:
+            Dictionary with authorization headers
+        """
+        if use_environment_token and self.environment_token:
+            return {"Authorization": f"Api-Token {self.environment_token}"}
         return self.token_manager.get_headers()
 
     def _should_retry(self, status_code: int) -> bool:
@@ -129,6 +144,7 @@ class Client:
         self,
         method: str,
         path: str,
+        use_environment_token: bool = False,
         **kwargs: Any,
     ) -> httpx.Response:
         """Make an HTTP request with retry logic.
@@ -136,6 +152,7 @@ class Client:
         Args:
             method: HTTP method (GET, POST, PUT, DELETE, etc.)
             path: API path (will be joined with base_url if relative)
+            use_environment_token: Use environment token for environment API calls (default: False)
             **kwargs: Additional arguments passed to httpx
 
         Returns:
@@ -147,6 +164,9 @@ class Client:
         # Build full URL
         if path.startswith("http"):
             url = path
+            # Auto-detect environment API calls (for management zones)
+            if ".live.dynatrace.com" in url or ".apps.dynatrace.com" in url:
+                use_environment_token = True
         elif path.startswith("/"):
             url = f"{self.base_url}{path}"
         else:
@@ -160,7 +180,7 @@ class Client:
         for attempt in range(self.retry_config.max_retries + 1):
             try:
                 # Get fresh auth headers for each attempt
-                headers = {**self._get_auth_headers(), **kwargs.pop("headers", {})}
+                headers = {**self._get_auth_headers(use_environment_token), **kwargs.pop("headers", {})}
 
                 response = self._client.request(method, url, headers=headers, **kwargs)
                 self._log_response(response)
@@ -235,6 +255,9 @@ def create_client_from_config(
     2. DTIAM_CLIENT_ID + DTIAM_CLIENT_SECRET + DTIAM_ACCOUNT_UUID (OAuth2 via env)
     3. Config file context with OAuth2 credentials
 
+    Optional Environment Token for Management Zones (legacy):
+    - DTIAM_ENVIRONMENT_TOKEN: Environment API token for management zone operations
+
     Args:
         config: Configuration object (loads from file if not provided)
         context_name: Override context name (uses current-context if not provided)
@@ -252,6 +275,9 @@ def create_client_from_config(
     # Check for environment variable overrides
     ctx_name = get_env_override("context") or context_name or config.current_context
 
+    # Check for optional environment token (for management zones)
+    env_token = os.environ.get("DTIAM_ENVIRONMENT_TOKEN")
+
     # Priority 1: Bearer token (static, no auto-refresh)
     env_bearer_token = get_env_override("bearer_token")
     env_account_uuid = get_env_override("account_uuid")
@@ -263,6 +289,7 @@ def create_client_from_config(
             account_uuid=env_account_uuid,
             token_manager=token_manager,
             verbose=verbose,
+            environment_token=env_token,
         )
 
     # Priority 2: OAuth2 via environment variables (auto-refresh)
@@ -280,6 +307,7 @@ def create_client_from_config(
             account_uuid=env_account_uuid,
             token_manager=token_manager,
             verbose=verbose,
+            environment_token=env_token,
         )
 
     # Priority 3: Config file with OAuth2 credentials
@@ -313,4 +341,5 @@ def create_client_from_config(
         account_uuid=context.account_uuid,
         token_manager=token_manager,
         verbose=verbose,
+        environment_token=env_token,
     )
