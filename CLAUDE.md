@@ -108,6 +108,107 @@ git push
 
 **REMEMBER: Documentation is NOT optional. It is MANDATORY before merge.**
 
+### Version Management - MANDATORY
+
+**ALL merges to main that add features or fixes MUST increment the version number.**
+
+Current version: **3.0.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
+
+#### Semantic Versioning (SemVer)
+
+We follow [Semantic Versioning 2.0.0](https://semver.org/):
+
+**Format:** `MAJOR.MINOR.PATCH` (e.g., 3.0.0)
+
+1. **MAJOR version** (X.0.0) - Incompatible API changes
+   - Breaking changes to CLI commands
+   - Removal of commands or options
+   - Changes that break existing scripts/workflows
+   - Example: Removing `--zone` flag, changing command structure
+
+2. **MINOR version** (3.X.0) - New features (backwards-compatible)
+   - New commands (e.g., `get apps`)
+   - New options to existing commands
+   - New resource handlers
+   - Example: Adding `bulk create-groups-with-policies`
+
+3. **PATCH version** (3.0.X) - Bug fixes (backwards-compatible)
+   - Bug fixes
+   - Documentation updates
+   - Performance improvements
+   - Example: Fixing error handling, updating help text
+
+#### When to Increment
+
+**Before merging to main:**
+
+```bash
+# For new features (MINOR)
+# 3.0.0 -> 3.1.0
+git checkout feature/my-feature
+# Edit pyproject.toml: version = "3.1.0"
+# Edit src/dtiam/__init__.py: __version__ = "3.1.0"
+git add pyproject.toml src/dtiam/__init__.py
+git commit -m "chore: bump version to 3.1.0"
+
+# For bug fixes (PATCH)
+# 3.0.0 -> 3.0.1
+git checkout fix/my-bugfix
+# Edit pyproject.toml: version = "3.0.1"
+# Edit src/dtiam/__init__.py: __version__ = "3.0.1"
+git add pyproject.toml src/dtiam/__init__.py
+git commit -m "chore: bump version to 3.0.1"
+
+# Then merge to main
+git checkout main
+git merge feature/my-feature --no-ff
+```
+
+#### Version Bump Checklist
+
+Before merging to main, ensure:
+- [ ] Version incremented in `pyproject.toml` (line 7)
+- [ ] Version incremented in `src/dtiam/__init__.py` (line 3)
+- [ ] Both files have **matching** version numbers
+- [ ] Correct increment type (MAJOR/MINOR/PATCH)
+- [ ] Version bump committed in feature branch before merge
+
+#### Version Display
+
+Users can check the version:
+```bash
+dtiam --version
+# Output: dtiam version 3.0.0
+```
+
+#### Examples
+
+**Adding new feature (`get apps` command):**
+- Type: MINOR version bump
+- Before: 3.0.0
+- After: 3.1.0
+- Commit: `chore: bump version to 3.1.0`
+
+**Adding bulk command:**
+- Type: MINOR version bump
+- Before: 3.1.0
+- After: 3.2.0
+- Commit: `chore: bump version to 3.2.0`
+
+**Fixing bug in error handling:**
+- Type: PATCH version bump
+- Before: 3.2.0
+- After: 3.2.1
+- Commit: `chore: bump version to 3.2.1`
+
+**Documentation-only changes:**
+- Type: PATCH version bump (optional)
+- Before: 3.2.1
+- After: 3.2.2
+- Note: Documentation fixes may optionally bump PATCH
+
+**REMEMBER: Version increments are MANDATORY for all feature and fix merges to main.**
+
 ## Project Overview
 
 **dtiam** is a kubectl-inspired CLI for managing Dynatrace Identity and Access Management (IAM) resources. It provides a consistent interface for managing groups, users, policies, bindings, boundaries, environments, and management zones.
