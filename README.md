@@ -195,6 +195,7 @@ dtiam create binding --group "New Team" --policy "viewer-policy"
 | `boundaries` | Scope restrictions for bindings |
 | `limits` | Account limits and quotas |
 | `subscriptions` | Account subscriptions |
+| `apps` | Dynatrace Apps (App Engine Registry) |
 
 ## Global Options
 

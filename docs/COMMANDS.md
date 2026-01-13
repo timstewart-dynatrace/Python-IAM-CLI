@@ -62,11 +62,12 @@ dtiam supports authentication and configuration via environment variables:
 
 ### Configuration Variables
 
-| Variable        | Description                   |
-| --------------- | ----------------------------- |
-| `DTIAM_CONTEXT` | Override current context name |
-| `DTIAM_OUTPUT`  | Default output format         |
-| `DTIAM_VERBOSE` | Enable verbose mode           |
+| Variable                 | Description                                  |
+| ------------------------ | -------------------------------------------- |
+| `DTIAM_CONTEXT`          | Override current context name                |
+| `DTIAM_OUTPUT`           | Default output format                        |
+| `DTIAM_VERBOSE`          | Enable verbose mode                          |
+| `DTIAM_ENVIRONMENT_URL`  | Environment URL for App Engine Registry      |
 
 ### Authentication Priority
 
@@ -327,6 +328,45 @@ dtiam get boundaries [IDENTIFIER] [OPTIONS]
 | `--output`      | `-o`  | Output format                    |
 
 Aliases: `get boundary`
+
+### get apps
+
+List or get Dynatrace Apps from the App Engine Registry.
+
+```bash
+dtiam get apps [IDENTIFIER] [OPTIONS]
+```
+
+| Argument/Option   | Short | Description                                     |
+| ----------------- | ----- | ----------------------------------------------- |
+| `IDENTIFIER`      |       | App ID or name (optional)                       |
+| `--environment`   | `-e`  | Environment ID or URL (required)                |
+| `--ids`           |       | Output only app IDs (for use in policies)       |
+| `--output`        | `-o`  | Output format                                   |
+
+Aliases: `get app`
+
+**Notes:**
+- Requires an environment URL via `--environment` or `DTIAM_ENVIRONMENT_URL`
+- App IDs can be used in policy/boundary statements: `shared:app-id = '{app.id}';`
+- Environment can be specified as ID (e.g., `abc12345`) or full URL (e.g., `abc12345.apps.dynatrace.com`)
+
+**Examples:**
+
+```bash
+# List all apps in an environment
+dtiam get apps -e abc12345
+
+# Get app IDs for policy statements
+dtiam get apps -e abc12345 --ids
+
+# Get specific app details
+dtiam get apps my-app-id -e abc12345
+
+# Using environment variable
+export DTIAM_ENVIRONMENT_URL=abc12345.apps.dynatrace.com
+dtiam get apps
+```
 
 ---
 

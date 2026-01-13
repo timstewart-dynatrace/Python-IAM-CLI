@@ -60,7 +60,8 @@ src/dtiam/
 │   ├── environments.py      # EnvironmentHandler
 │   ├── zones.py             # ZoneHandler (legacy - will be removed)
 │   ├── limits.py            # AccountLimitsHandler
-│   └── subscriptions.py     # SubscriptionHandler
+│   ├── subscriptions.py     # SubscriptionHandler
+│   └── apps.py              # AppHandler (App Engine Registry)
 │
 └── utils/
     ├── __init__.py

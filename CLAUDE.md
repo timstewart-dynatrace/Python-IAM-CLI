@@ -74,7 +74,8 @@ src/dtiam/
 │   ├── zones.py             # Management zones API (legacy - will be removed)
 │   ├── service_users.py     # Service users (OAuth clients) API
 │   ├── limits.py            # Account limits API
-│   └── subscriptions.py     # Subscriptions API
+│   ├── subscriptions.py     # Subscriptions API
+│   └── apps.py              # App Engine Registry API
 └── utils/
     ├── auth.py              # OAuth2 + bearer token management
     ├── resolver.py          # Name-to-UUID resolution
@@ -141,6 +142,7 @@ dtiam supports two authentication methods:
 | `DTIAM_CLIENT_SECRET` | OAuth2 client secret |
 | `DTIAM_ACCOUNT_UUID` | Dynatrace account UUID |
 | `DTIAM_CONTEXT` | Override current context |
+| `DTIAM_ENVIRONMENT_URL` | Environment URL for App Engine Registry (e.g., abc12345.apps.dynatrace.com) |
 
 ## Key Patterns
 
@@ -291,6 +293,16 @@ Base URL: `https://api.dynatrace.com/sub/v2/accounts/{account_uuid}`
 |----------|------|
 | Subscriptions | `/subscriptions` |
 | Forecast | `/subscriptions/forecast` |
+
+**App Engine Registry API**:
+Base URL: `https://{environment-id}.apps.dynatrace.com/platform/app-engine/registry/v1`
+
+| Resource | Path |
+|----------|------|
+| Apps | `/apps` |
+| App Details | `/apps/{id}` |
+
+Note: App IDs can be used in policy/boundary statements like `shared:app-id = '{app.id}';`
 
 Query parameters for effective permissions:
 - `entityId` - User UID or Group UUID
