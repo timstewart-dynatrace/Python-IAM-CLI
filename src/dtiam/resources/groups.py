@@ -113,9 +113,9 @@ class GroupHandler(CRUDHandler[Any]):
             List of policy UUIDs
         """
         try:
-            # Get bindings for the group
+            # Get bindings for the group - must use full URL since /repo/ is not under /accounts/
             response = self.client.get(
-                f"/repo/account/{self.client.account_uuid}/bindings/groups/{group_id}"
+                f"https://api.dynatrace.com/iam/v1/repo/account/{self.client.account_uuid}/bindings/groups/{group_id}"
             )
             data = response.json()
 

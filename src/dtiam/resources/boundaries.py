@@ -24,7 +24,9 @@ class BoundaryHandler(ResourceHandler[Any]):
 
     @property
     def api_path(self) -> str:
-        return f"/repo/account/{self.client.account_uuid}/boundaries"
+        # Boundaries use repo path which is NOT under /accounts/{uuid}/
+        # Must return full URL since /repo/ is at /iam/v1/repo/, not /iam/v1/accounts/{uuid}/repo/
+        return f"https://api.dynatrace.com/iam/v1/repo/account/{self.client.account_uuid}/boundaries"
 
     @property
     def id_field(self) -> str:

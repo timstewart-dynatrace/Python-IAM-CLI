@@ -43,7 +43,9 @@ class BindingHandler(ResourceHandler[Any]):
 
     @property
     def api_path(self) -> str:
-        return f"/repo/{self.level_type}/{self.level_id}/bindings"
+        # Bindings use repo path which is NOT under /accounts/{uuid}/
+        # Must return full URL since /repo/ is at /iam/v1/repo/, not /iam/v1/accounts/{uuid}/repo/
+        return f"https://api.dynatrace.com/iam/v1/repo/{self.level_type}/{self.level_id}/bindings"
 
     def list(self, **params: Any) -> list[dict[str, Any]]:
         """List all bindings at the configured level.

@@ -43,8 +43,9 @@ class PolicyHandler(ResourceHandler[Any]):
 
     @property
     def api_path(self) -> str:
-        # Policies use a different base URL structure
-        return f"/repo/{self.level_type}/{self.level_id}/policies"
+        # Policies use repo path which is NOT under /accounts/{uuid}/
+        # Must return full URL since /repo/ is at /iam/v1/repo/, not /iam/v1/accounts/{uuid}/repo/
+        return f"https://api.dynatrace.com/iam/v1/repo/{self.level_type}/{self.level_id}/policies"
 
     @property
     def id_field(self) -> str:
