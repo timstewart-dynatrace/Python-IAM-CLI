@@ -19,6 +19,8 @@ class Credential(BaseModel):
 
     client_id: str = Field(alias="client-id", description="OAuth2 client ID")
     client_secret: str = Field(alias="client-secret", description="OAuth2 client secret")
+    environment_url: str | None = Field(default=None, alias="environment-url", description="Dynatrace environment URL")
+    environment_token: str | None = Field(default=None, alias="environment-token", description="Optional environment API token")
 
     model_config = {"populate_by_name": True}
 
@@ -37,6 +39,7 @@ class Context(BaseModel):
     credentials_ref: str = Field(
         alias="credentials-ref", description="Reference to a named credential"
     )
+    environment_url: str | None = Field(default=None, alias="environment-url", description="Dynatrace environment URL (overrides credential setting)")
 
     model_config = {"populate_by_name": True}
 
@@ -99,6 +102,7 @@ class Config(BaseModel):
         name: str,
         account_uuid: str | None = None,
         credentials_ref: str | None = None,
+        environment_url: str | None = None,
     ) -> None:
         """Create or update a context."""
         existing = None
@@ -113,6 +117,8 @@ class Config(BaseModel):
                 ctx.account_uuid = account_uuid
             if credentials_ref:
                 ctx.credentials_ref = credentials_ref
+            if environment_url:
+                ctx.environment_url = environment_url
         else:
             if not account_uuid or not credentials_ref:
                 raise ValueError("New context requires both account-uuid and credentials-ref")
@@ -120,22 +126,44 @@ class Config(BaseModel):
                 NamedContext(
                     name=name,
                     context=Context(
-                        **{"account-uuid": account_uuid, "credentials-ref": credentials_ref}
+                        **{
+                            "account-uuid": account_uuid,
+                            "credentials-ref": credentials_ref,
+                            "environment-url": environment_url,
+                        }
                     ),
                 )
             )
 
-    def set_credential(self, name: str, client_id: str, client_secret: str) -> None:
+    def set_credential(
+        self,
+        name: str,
+        client_id: str,
+        client_secret: str,
+        environment_url: str | None = None,
+        environment_token: str | None = None,
+    ) -> None:
         """Create or update a credential."""
         for c in self.credentials:
             if c.name == name:
                 c.credential.client_id = client_id
                 c.credential.client_secret = client_secret
+                if environment_url is not None:
+                    c.credential.environment_url = environment_url
+                if environment_token is not None:
+                    c.credential.environment_token = environment_token
                 return
         self.credentials.append(
             NamedCredential(
                 name=name,
-                credential=Credential(**{"client-id": client_id, "client-secret": client_secret}),
+                credential=Credential(
+                    **{
+                        "client-id": client_id,
+                        "client-secret": client_secret,
+                        "environment-url": environment_url,
+                        "environment-token": environment_token,
+                    }
+                ),
             )
         )
 

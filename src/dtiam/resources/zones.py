@@ -55,15 +55,26 @@ class ZoneHandler(ResourceHandler[Any]):
             List of zone dictionaries with id, name, rules
         """
         try:
-            # Use environment API if available
-            if self.environment_url:
-                response = self.client.get_raw(
-                    f"{self.environment_url}{self.api_path}",
-                    params=params
+            # Management zones require an environment URL
+            if not self.environment_url:
+                raise RuntimeError(
+                    "Management zones require an environment URL. "
+                    "Set DTIAM_ENVIRONMENT_URL environment variable or "
+                    "configure environment-url in credentials."
                 )
-            else:
-                response = self.client.get(self.api_path, params=params)
 
+            # Build the full URL for the environment API
+            url = self.environment_url.rstrip('/')
+            if not url.startswith('http'):
+                # Assume it's an environment ID and construct the URL
+                url = f"https://{url}.live.dynatrace.com"
+
+            response = self.client.request(
+                "GET",
+                f"{url}{self.api_path}",
+                use_environment_token=True,
+                params=params
+            )
             data = response.json()
 
             if isinstance(data, dict):
@@ -84,12 +95,24 @@ class ZoneHandler(ResourceHandler[Any]):
             Zone dictionary
         """
         try:
-            if self.environment_url:
-                response = self.client.get_raw(
-                    f"{self.environment_url}{self.api_path}/{zone_id}"
+            if not self.environment_url:
+                raise RuntimeError(
+                    "Management zones require an environment URL. "
+                    "Set DTIAM_ENVIRONMENT_URL environment variable or "
+                    "configure environment-url in credentials."
                 )
-            else:
-                response = self.client.get(f"{self.api_path}/{zone_id}")
+
+            # Build the full URL for the environment API
+            url = self.environment_url.rstrip('/')
+            if not url.startswith('http'):
+                # Assume it's an environment ID and construct the URL
+                url = f"https://{url}.live.dynatrace.com"
+
+            response = self.client.request(
+                "GET",
+                f"{url}{self.api_path}/{zone_id}",
+                use_environment_token=True
+            )
             return response.json()
         except APIError as e:
             self._handle_error("get", e)

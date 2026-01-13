@@ -79,7 +79,7 @@ class Client:
             timeout=timeout,
             headers={
                 "Content-Type": "application/json",
-                "User-Agent": "dtiam/3.2.0",
+                "User-Agent": "dtiam/3.3.0",
             },
         )
 
@@ -130,6 +130,10 @@ class Client:
         """Log request details in verbose mode."""
         if self.verbose:
             logger.debug(f"Request: {method} {url}")
+            if "headers" in kwargs:
+                headers = kwargs["headers"]
+                auth_header = headers.get("Authorization", "None")
+                logger.debug(f"Auth: {auth_header[:20]}..." if len(auth_header) > 20 else f"Auth: {auth_header}")
             if "json" in kwargs:
                 logger.debug(f"Body: {kwargs['json']}")
 
@@ -172,8 +176,6 @@ class Client:
         else:
             url = f"{self.base_url}/{path}"
 
-        self._log_request(method, url, **kwargs)
-
         last_exception: Exception | None = None
         last_response: httpx.Response | None = None
 
@@ -181,6 +183,12 @@ class Client:
             try:
                 # Get fresh auth headers for each attempt
                 headers = {**self._get_auth_headers(use_environment_token), **kwargs.pop("headers", {})}
+                
+                # Log request with headers
+                if self.verbose:
+                    logger.debug(f"Request: {method} {url}")
+                    auth_header = headers.get("Authorization", "None")
+                    logger.debug(f"Auth: {auth_header[:30]}..." if len(auth_header) > 30 else f"Auth: {auth_header}")
 
                 response = self._client.request(method, url, headers=headers, **kwargs)
                 self._log_response(response)
@@ -337,9 +345,12 @@ def create_client_from_config(
         account_uuid=context.account_uuid,
     )
 
+    # Use environment token from credential if no env override, or use credential's env token if available
+    final_env_token = env_token or credential.environment_token
+
     return Client(
         account_uuid=context.account_uuid,
         token_manager=token_manager,
         verbose=verbose,
-        environment_token=env_token,
+        environment_token=final_env_token,
     )
