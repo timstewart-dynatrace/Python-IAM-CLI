@@ -18,6 +18,8 @@ No unreleased changes yet.
 - Fixed binding creation API endpoint (uses `POST /bindings/{policyUuid}` not `POST /bindings`)
 - Fixed `bulk create-groups-with-policies` to update existing bindings instead of failing
 - Added `create_or_update()` method to `BindingHandler` for idempotent binding creation
+- Fixed `bulk create-groups-with-policies` not finding global-level policies like "Standard User"
+- Added `get_by_name_all_levels()` method to `PolicyHandler` to search all policy levels
 
 ## [3.4.1] - 2026-01-13
 

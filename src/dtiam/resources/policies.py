@@ -159,6 +159,29 @@ class PolicyHandler(ResourceHandler[Any]):
                 return policy
         return None
 
+    def get_by_name_all_levels(self, name: str) -> dict[str, Any] | None:
+        """Get a policy by name, searching all levels.
+
+        Searches account, global, and environment levels to find the policy.
+
+        Args:
+            name: Policy name
+
+        Returns:
+            Policy dictionary or None if not found
+        """
+        # First check current level
+        policy = self.get_by_name(name)
+        if policy:
+            return policy
+
+        # Then check all levels
+        all_policies = self.list_all_levels()
+        for policy in all_policies:
+            if policy.get("name") == name:
+                return policy
+        return None
+
     def list_all_levels(self) -> list[dict[str, Any]]:
         """List policies from all levels (account, environments, global).
 

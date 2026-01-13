@@ -522,7 +522,7 @@ def bulk_create_groups_with_policies(
                     raise ValueError(f"Group '{group_name}' not found")
                 group_uuid = group.get('uuid')
 
-                policy = policy_handler.get_by_name(policy_name)
+                policy = policy_handler.get_by_name_all_levels(policy_name)
                 if not policy:
                     raise ValueError(f"Policy '{policy_name}' not found")
                 policy_uuid = policy.get('uuid')
