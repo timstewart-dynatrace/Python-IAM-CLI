@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.2.0] - 2025-01-13
+
+### Added
+- Optional environment token support for management zones (legacy feature)
+  - `DTIAM_ENVIRONMENT_TOKEN` environment variable for environment-level API access
+  - Auto-detection of environment API URLs (.live.dynatrace.com, .apps.dynatrace.com)
+  - Enables management zone operations with environment-level API tokens
+
+### Changed
+- Updated Client class to support optional environment_token parameter
+- User-Agent bumped to dtiam/3.2.0
+
+### Documentation
+- Added `DTIAM_ENVIRONMENT_TOKEN` documentation to config.py and .env.example
+
 ## [3.1.0] - 2025-01-13
 
 ### Added
@@ -26,16 +41,10 @@ No unreleased changes yet.
   - Mandatory documentation checklist before merge
   - Mandatory version increment requirements
   - Semantic versioning guidelines with examples
-- Optional environment token support for management zones (legacy feature)
-  - `DTIAM_ENVIRONMENT_TOKEN` environment variable for environment-level API access
-  - Auto-detection of environment API URLs (.live.dynatrace.com, .apps.dynatrace.com)
-  - Enables management zone operations with environment-level API tokens
 
 ### Changed
 - Enhanced `.gitignore` with better Python/IDE exclusions
 - Improved boundary handling in `BoundaryHandler`
-- Updated Client class to support optional environment_token parameter
-- User-Agent bumped to dtiam/3.1.0
 
 ### Documentation
 - Added comprehensive command reference for `get apps` in docs/COMMANDS.md
@@ -45,7 +54,6 @@ No unreleased changes yet.
 - Added App Engine Registry API endpoints to CLAUDE.md
 - Added mandatory development workflow to CLAUDE.md
 - Added version management requirements to CLAUDE.md
-- Added `DTIAM_ENVIRONMENT_TOKEN` documentation to config.py and .env.example
 
 ### Tests
 - Added new test coverage in `tests/test_resources.py`
@@ -67,6 +75,7 @@ No unreleased changes yet.
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/releases/tag/v3.0.0
