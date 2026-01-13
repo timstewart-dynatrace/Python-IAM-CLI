@@ -30,6 +30,43 @@ class GroupHandler(CRUDHandler[Any]):
     def id_field(self) -> str:
         return "uuid"
 
+    def create(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Create a new group.
+
+        The IAM API expects group creation data as an array of objects.
+
+        Args:
+            data: Group data with required fields:
+                - name: Group name
+                - description: Optional description
+
+        Returns:
+            Created group dictionary
+
+        Raises:
+            ValueError: If name is not provided
+        """
+        # Ensure required fields
+        if "name" not in data:
+            raise ValueError("Group name is required")
+
+        try:
+            # API expects array of groups
+            payload = [data]
+            response = self.client.post(self.api_path, json=payload)
+            result = response.json()
+
+            # API returns array of created groups
+            if isinstance(result, list) and result:
+                return result[0]
+            elif isinstance(result, dict):
+                items = result.get("items", [result])
+                return items[0] if items else {}
+            return {}
+        except APIError as e:
+            self._handle_error("create", e)
+            return {}
+
     def get_members(self, group_id: str) -> list[dict[str, Any]]:
         """Get members of a group.
 
@@ -154,22 +191,6 @@ class GroupHandler(CRUDHandler[Any]):
 
         return group
 
-    def create(self, data: dict[str, Any]) -> dict[str, Any]:
-        """Create a new group.
-
-        Args:
-            data: Group data with required fields:
-                - name: Group name
-                - description: Optional description
-
-        Returns:
-            Created group dictionary
-        """
-        # Ensure required fields
-        if "name" not in data:
-            raise ValueError("Group name is required")
-
-        return super().create(data)
 
     def clone(
         self,

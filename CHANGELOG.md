@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.4.1] - 2026-01-13
+
+### Fixed
+- Fixed group creation API payload format - API expects array of groups `[{...}]` not single object
+- Removed duplicate `create()` method in `GroupHandler` that was overriding the fix
+- Fixes 500 error "e.map is not a function" when creating groups via `bulk create-groups-with-policies`
+
 ## [3.4.0] - 2026-01-13
 
 ### Added
@@ -109,7 +116,8 @@ No unreleased changes yet.
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.1...HEAD
+[3.4.1]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.0...v3.4.1
 [3.4.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.1.0...v3.2.0
