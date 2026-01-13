@@ -262,9 +262,23 @@ def describe_boundary(
 
     try:
         # Try to resolve by UUID or name
-        result = handler.get(identifier)
+        # Check if identifier looks like a UUID (contains dashes and is 36 chars)
+        is_uuid = len(identifier) == 36 and identifier.count("-") == 4
+        result = None
+
+        if is_uuid:
+            result = handler.get(identifier)
+
         if not result:
             result = handler.get_by_name(identifier)
+
+        if not result and is_uuid:
+            # Try get again in case name lookup failed
+            try:
+                result = handler.get(identifier)
+            except Exception:
+                pass
+
         if not result:
             console.print(f"[red]Error:[/red] Boundary '{identifier}' not found.")
             raise typer.Exit(1)

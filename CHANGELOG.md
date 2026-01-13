@@ -14,6 +14,7 @@ No unreleased changes yet.
 ### Fixed
 - Fixed `get environments` not returning data - API returns under `"data"` key
 - Fixed `get boundaries` not returning data - API returns under `"content"` key
+- Fixed `describe boundary` failing with 400 error when using boundary name instead of UUID
 
 ## [3.4.1] - 2026-01-13
 
