@@ -278,6 +278,9 @@ dtiam bulk create-groups --file examples/bulk/sample_groups.yaml
 
 # Create multiple bindings from YAML
 dtiam bulk create-bindings --file examples/bulk/sample_bindings.yaml
+
+# Create groups with policies and bindings from CSV (all-in-one)
+dtiam bulk create-groups-with-policies --file examples/bulk/sample_bulk_groups.csv
 ```
 
 ### Template System

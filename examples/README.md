@@ -77,6 +77,7 @@ Sample files for bulk CLI operations:
 | `sample_users.csv` | Sample CSV for `dtiam bulk add-users-to-group` |
 | `sample_groups.yaml` | Sample YAML for `dtiam bulk create-groups` |
 | `sample_bindings.yaml` | Sample YAML for `dtiam bulk create-bindings` |
+| `sample_bulk_groups.csv` | Sample CSV for `dtiam bulk create-groups-with-policies` (all-in-one) |
 
 **Usage:**
 
@@ -89,7 +90,26 @@ dtiam bulk create-groups --file examples/bulk/sample_groups.yaml
 
 # Create multiple bindings
 dtiam bulk create-bindings --file examples/bulk/sample_bindings.yaml
+
+# Create groups with policies and bindings (all-in-one operation)
+dtiam bulk create-groups-with-policies --file examples/bulk/sample_bulk_groups.csv
 ```
+
+**CSV Format for `sample_bulk_groups.csv`:**
+
+The all-in-one CSV format creates groups, boundaries, and bindings together:
+
+```csv
+group_name,policy_name,level,level_id,management_zones,boundary_name,description
+LOB5-TEST,Standard User - Config,account,,,,LOB5 test team - global read
+LOB5-TEST,ALL SETTINGS DUDE,environment,yhu28601,LOB5,LOB5-TEST-Boundary,LOB5 restricted write
+```
+
+**Features:**
+- Creates groups if they don't exist
+- Creates boundaries with management zones
+- Creates policy bindings at account or environment level
+- Idempotent (skips existing resources)
 
 ### `config/` - Configuration Examples
 

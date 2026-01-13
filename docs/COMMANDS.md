@@ -801,6 +801,63 @@ dtiam bulk create-groups [OPTIONS]
   description: "Description for Group B"
 ```
 
+### bulk create-groups-with-policies
+
+Create groups with policies and bindings from a CSV file.
+
+This command creates groups, boundaries, and policy bindings in one operation, matching the behavior from the 2.0 project.
+
+```bash
+dtiam bulk create-groups-with-policies [OPTIONS]
+```
+
+| Option                | Short | Description                                         |
+| --------------------- | ----- | --------------------------------------------------- |
+| `--file`              | `-f`  | CSV file with group, policy, and binding definitions (required) |
+| `--continue-on-error` |       | Continue processing on errors                       |
+
+**CSV Columns:**
+
+| Column              | Required | Description                                          |
+| ------------------- | -------- | ---------------------------------------------------- |
+| `group_name`        | Yes      | Name of the group to create                          |
+| `policy_name`       | Yes      | Policy to bind to the group                          |
+| `level`             | No       | 'account' or 'environment' (default: account)        |
+| `level_id`          | No       | Environment ID if level=environment                  |
+| `management_zones`  | No       | Zone(s) for boundary (pipe-separated)                |
+| `boundary_name`     | No       | Custom boundary name (default: {group}-Boundary)     |
+| `description`       | No       | Group description                                    |
+
+**CSV Example:**
+
+```csv
+group_name,policy_name,level,level_id,management_zones,boundary_name,description
+LOB5-TEST,Standard User - Config,account,,,,LOB5 test team - global read access
+LOB5-TEST,ALL SETTINGS DUDE,environment,yhu28601,LOB5,LOB5-TEST-Boundary,LOB5 restricted write
+LOB6-TEST,Standard User - Config,account,,,,LOB6 test team - global read access
+LOB6-TEST,ALL SETTINGS DUDE,environment,yhu28601,LOB6,LOB6-TEST-Boundary,LOB6 restricted write
+```
+
+**Example Usage:**
+
+```bash
+# Create groups with policies from CSV
+dtiam bulk create-groups-with-policies --file examples/bulk/sample_bulk_groups.csv
+
+# Dry-run mode to preview changes
+dtiam --dry-run bulk create-groups-with-policies --file groups.csv
+
+# Continue on errors
+dtiam bulk create-groups-with-policies --file groups.csv --continue-on-error
+```
+
+**Notes:**
+- Creates groups if they don't exist
+- Creates boundaries with management zones if specified
+- Creates policy bindings at account or environment level
+- Skips existing resources (idempotent)
+- See [examples/bulk/sample_bulk_groups.csv](../examples/bulk/sample_bulk_groups.csv) for a complete example
+
 ### bulk create-bindings
 
 Create multiple policy bindings from a file.
