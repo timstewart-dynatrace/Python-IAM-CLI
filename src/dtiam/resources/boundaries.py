@@ -209,15 +209,9 @@ class BoundaryHandler(ResourceHandler[Any]):
         # Build zone list for IN clause
         zone_list = ', '.join(f'"{zone}"' for zone in management_zones)
 
-        # Standard boundary query structure
-        # This restricts environment, storage, and settings access to the zones
-        query_parts = [
-            f"environment:management-zone IN ({zone_list})",
-            f"storage:dt.security_context IN ({zone_list})",
-            f"settings:dt.security_context IN ({zone_list})",
-        ]
-
-        return "; ".join(query_parts)
+        # Simple boundary query format for management zones
+        # This restricts environment access to the specified zones
+        return f"management-zone IN ({zone_list})"
 
     def get_attached_policies(self, boundary_id: str) -> list[dict[str, Any]]:
         """Get policies that use this boundary.

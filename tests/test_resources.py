@@ -196,11 +196,7 @@ class TestBoundaryHandler:
         handler = BoundaryHandler(mock_client)
         query = handler._build_zone_query(["Production"])
 
-        expected = (
-            'environment:management-zone IN ("Production"); '
-            'storage:dt.security_context IN ("Production"); '
-            'settings:dt.security_context IN ("Production")'
-        )
+        expected = 'management-zone IN ("Production")'
         assert query == expected
 
     def test_build_zone_query_multiple_zones(self, mock_client):
@@ -208,11 +204,7 @@ class TestBoundaryHandler:
         handler = BoundaryHandler(mock_client)
         query = handler._build_zone_query(["Production", "Staging"])
 
-        expected = (
-            'environment:management-zone IN ("Production", "Staging"); '
-            'storage:dt.security_context IN ("Production", "Staging"); '
-            'settings:dt.security_context IN ("Production", "Staging")'
-        )
+        expected = 'management-zone IN ("Production", "Staging")'
         assert query == expected
 
     def test_create_boundary_with_zones(self, mock_client, mock_response):
@@ -231,7 +223,7 @@ class TestBoundaryHandler:
             # Verify the boundary query was built correctly
             call_args = mock_post.call_args
             assert "boundaryQuery" in call_args[1]["json"]
-            assert "environment:management-zone IN" in call_args[1]["json"]["boundaryQuery"]
+            assert "management-zone IN" in call_args[1]["json"]["boundaryQuery"]
 
 
 class TestPolicyHandler:
