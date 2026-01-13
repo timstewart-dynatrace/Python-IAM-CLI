@@ -158,7 +158,11 @@ class BindingHandler(ResourceHandler[Any]):
         try:
             # POST /iam/v1/repo/{levelType}/{levelId}/bindings/{policyUuid}
             response = self.client.post(f"{self.api_path}/{policy_uuid}", json=data)
-            return response.json()
+            # Handle empty response (204 No Content or empty body)
+            try:
+                return response.json() if response.text else {}
+            except Exception:
+                return {}
         except APIError as e:
             self._handle_error("create", e)
             return {}
@@ -191,7 +195,12 @@ class BindingHandler(ResourceHandler[Any]):
         try:
             # POST /iam/v1/repo/{levelType}/{levelId}/bindings/{policyUuid}
             response = self.client.post(f"{self.api_path}/{policy_uuid}", json=data)
-            return response.json(), "created"
+            # Handle empty response (204 No Content or empty body)
+            try:
+                result = response.json() if response.text else {}
+            except Exception:
+                result = {}
+            return result, "created"
         except APIError as e:
             # Check if binding already exists (400 error)
             if e.status_code == 400 and e.response_body and "already exists" in e.response_body.lower():
@@ -203,7 +212,12 @@ class BindingHandler(ResourceHandler[Any]):
                             f"{self.api_path}/{policy_uuid}/{group_uuid}",
                             json={"boundaries": boundaries}
                         )
-                        return response.json(), "updated"
+                        # Handle empty response
+                        try:
+                            result = response.json() if response.text else {}
+                        except Exception:
+                            result = {}
+                        return result, "updated"
                     except APIError:
                         pass
                 return {}, "unchanged"
