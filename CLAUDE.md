@@ -112,7 +112,7 @@ git push
 
 **ALL merges to main that add features or fixes MUST increment the version number.**
 
-Current version: **3.0.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
+Current version: **3.1.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
 
 #### Semantic Versioning (SemVer)
 
@@ -208,6 +208,128 @@ dtiam --version
 - Note: Documentation fixes may optionally bump PATCH
 
 **REMEMBER: Version increments are MANDATORY for all feature and fix merges to main.**
+
+### CHANGELOG Management - MANDATORY
+
+**ALL changes MUST be documented in CHANGELOG.md**
+
+We follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
+
+#### CHANGELOG Structure
+
+```markdown
+## [Unreleased]
+
+### Added
+- New features go here
+
+### Changed
+- Changes to existing functionality
+
+### Deprecated
+- Features marked for removal
+
+### Removed
+- Removed features
+
+### Fixed
+- Bug fixes
+
+### Security
+- Security fixes
+
+## [3.1.0] - 2025-01-13
+
+### Added
+- Actual released features
+...
+```
+
+#### When to Update CHANGELOG
+
+**In your feature branch, BEFORE merging:**
+
+1. **For new features** - Add to `## [Unreleased]` → `### Added` section
+2. **For changes** - Add to `## [Unreleased]` → `### Changed` section
+3. **For bug fixes** - Add to `## [Unreleased]` → `### Fixed` section
+4. **For documentation** - Add to `## [Unreleased]` → `### Documentation` section (optional)
+
+#### Workflow Example
+
+```bash
+# In feature branch
+git checkout feature/add-apps
+
+# 1. Implement feature
+# 2. Update CHANGELOG.md
+# Add to [Unreleased] section:
+### Added
+- `get apps` command for listing Dynatrace Apps from App Engine Registry
+  - Supports --environment flag or DTIAM_ENVIRONMENT_URL
+  - --ids flag for policy statements
+
+# 3. Bump version
+# Edit pyproject.toml: version = "3.1.0"
+# Edit src/dtiam/__init__.py: __version__ = "3.1.0"
+
+# 4. Move [Unreleased] to version section
+# Change:
+## [Unreleased]
+### Added
+- Feature
+
+# To:
+## [Unreleased]
+(empty)
+
+## [3.1.0] - 2025-01-13
+### Added
+- Feature
+
+# 5. Update comparison links at bottom
+[Unreleased]: .../compare/v3.1.0...HEAD
+[3.1.0]: .../compare/v3.0.0...v3.1.0
+
+# 6. Commit
+git add CHANGELOG.md pyproject.toml src/dtiam/__init__.py
+git commit -m "chore: bump version to 3.1.0 and update CHANGELOG"
+
+# 7. Merge to main
+git checkout main
+git merge feature/add-apps --no-ff
+```
+
+#### CHANGELOG Checklist
+
+Before merging to main:
+- [ ] CHANGELOG.md updated with your changes
+- [ ] Changes in appropriate section (Added/Changed/Fixed/etc)
+- [ ] [Unreleased] section moved to version section
+- [ ] Version number matches pyproject.toml and __init__.py
+- [ ] Comparison links updated at bottom
+- [ ] Date added to version heading (YYYY-MM-DD)
+
+### Creating GitHub Releases
+
+**After merging to main with version bump:**
+
+```bash
+# 1. Create git tag
+git tag -a v3.1.0 -m "Release version 3.1.0"
+git push origin v3.1.0
+
+# 2. Create GitHub Release (web UI or CLI)
+gh release create v3.1.0 \
+  --title "v3.1.0" \
+  --notes-file <(sed -n '/## \[3.1.0\]/,/## \[3.0.0\]/p' CHANGELOG.md | head -n -1)
+
+# Or use web interface:
+# https://github.com/timstewart-dynatrace/Python-IAM-CLI/releases/new
+```
+
+See [RELEASES.md](RELEASES.md) for detailed release instructions.
+
+**REMEMBER: CHANGELOG updates are MANDATORY for all merges to main.**
 
 ## Project Overview
 
