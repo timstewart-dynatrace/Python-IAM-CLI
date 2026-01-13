@@ -674,6 +674,10 @@ Base URL: `https://{environment-id}.apps.dynatrace.com/platform/app-engine/regis
 | Apps | `/apps` |
 | App Details | `/apps/{id}` |
 
+**Authentication**: Uses OAuth2 Bearer token (same as IAM API). The OAuth2 client must have
+the `app-engine:apps:read` scope or equivalent platform permissions. This is a platform API,
+NOT an environment API, so it does NOT use `DTIAM_ENVIRONMENT_TOKEN`.
+
 Note: App IDs can be used in policy/boundary statements like `shared:app-id = '{app.id}';`
 
 Query parameters for effective permissions:
