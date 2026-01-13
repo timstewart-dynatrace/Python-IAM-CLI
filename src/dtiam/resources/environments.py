@@ -46,7 +46,8 @@ class EnvironmentHandler(ResourceHandler[Any]):
             data = response.json()
 
             if isinstance(data, dict):
-                return data.get("tenants", data.get("environments", data.get("items", [])))
+                # API returns data under "data" key
+                return data.get("data", data.get("tenants", data.get("environments", data.get("items", []))))
             return data if isinstance(data, list) else []
 
         except APIError as e:

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.4.2] - 2026-01-13
+
+### Fixed
+- Fixed `get environments` not returning data - API returns under `"data"` key
+- Fixed `get boundaries` not returning data - API returns under `"content"` key
+
 ## [3.4.1] - 2026-01-13
 
 ### Fixed
@@ -116,7 +122,8 @@ No unreleased changes yet.
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.1...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.2...HEAD
+[3.4.2]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.1...v3.4.2
 [3.4.1]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.0...v3.4.1
 [3.4.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.2.0...v3.3.0

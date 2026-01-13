@@ -46,7 +46,8 @@ class BoundaryHandler(ResourceHandler[Any]):
             data = response.json()
 
             if isinstance(data, dict):
-                return data.get("boundaries", data.get("items", []))
+                # API returns data under "content" key
+                return data.get("content", data.get("boundaries", data.get("items", [])))
             return data if isinstance(data, list) else []
 
         except APIError as e:
