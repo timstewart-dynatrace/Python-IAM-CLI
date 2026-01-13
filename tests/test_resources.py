@@ -188,6 +188,52 @@ class TestUserHandler:
             mock_post.assert_called_once()
 
 
+class TestBoundaryHandler:
+    """Tests for BoundaryHandler."""
+
+    def test_build_zone_query_single_zone(self, mock_client):
+        """Test building boundary query with single zone."""
+        handler = BoundaryHandler(mock_client)
+        query = handler._build_zone_query(["Production"])
+
+        expected = (
+            'environment:management-zone IN ("Production"); '
+            'storage:dt.security_context IN ("Production"); '
+            'settings:dt.security_context IN ("Production")'
+        )
+        assert query == expected
+
+    def test_build_zone_query_multiple_zones(self, mock_client):
+        """Test building boundary query with multiple zones."""
+        handler = BoundaryHandler(mock_client)
+        query = handler._build_zone_query(["Production", "Staging"])
+
+        expected = (
+            'environment:management-zone IN ("Production", "Staging"); '
+            'storage:dt.security_context IN ("Production", "Staging"); '
+            'settings:dt.security_context IN ("Production", "Staging")'
+        )
+        assert query == expected
+
+    def test_create_boundary_with_zones(self, mock_client, mock_response):
+        """Test creating boundary with management zones."""
+        new_boundary = {"uuid": "boundary-uuid", "name": "Test Boundary"}
+        with patch.object(mock_client, "post") as mock_post:
+            mock_post.return_value = mock_response(new_boundary)
+
+            handler = BoundaryHandler(mock_client)
+            result = handler.create(
+                name="Test Boundary",
+                management_zones=["Production"],
+            )
+
+            assert result["name"] == "Test Boundary"
+            # Verify the boundary query was built correctly
+            call_args = mock_post.call_args
+            assert "boundaryQuery" in call_args[1]["json"]
+            assert "environment:management-zone IN" in call_args[1]["json"]["boundaryQuery"]
+
+
 class TestPolicyHandler:
     """Tests for PolicyHandler."""
 

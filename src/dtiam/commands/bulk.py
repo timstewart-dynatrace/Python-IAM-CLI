@@ -393,6 +393,194 @@ def bulk_create_groups(
         client.close()
 
 
+@app.command("create-groups-with-policies")
+def bulk_create_groups_with_policies(
+    file: Path = typer.Option(..., "--file", "-f", help="CSV file with group, policy, and binding definitions"),
+    continue_on_error: bool = typer.Option(False, "--continue-on-error", help="Continue processing on errors"),
+) -> None:
+    """Create groups with policies and bindings from a CSV file.
+
+    This command creates groups, boundaries, and policy bindings in one operation,
+    matching the behavior from the 2.0 project.
+
+    CSV columns:
+      - group_name (required): Name of the group to create
+      - policy_name (required): Policy to bind to the group
+      - level (optional): 'account' or 'environment' (default: account)
+      - level_id (optional): Environment ID if level=environment
+      - management_zones (optional): Zone(s) for boundary (pipe-separated)
+      - boundary_name (optional): Custom boundary name (default: {group}-Boundary)
+      - description (optional): Group description
+
+    Example CSV:
+        group_name,policy_name,level,level_id,management_zones,boundary_name,description
+        LOB5-TEST,Standard User,account,,,,LOB5 global read
+        LOB5-TEST,Pro User,environment,yhu28601,LOB5,LOB5-Boundary,LOB5 restricted write
+
+    Example:
+        dtiam bulk create-groups-with-policies --file examples/bulk/sample_bulk_groups.csv
+    """
+    from dtiam.resources.bindings import BindingHandler
+    from dtiam.resources.boundaries import BoundaryHandler
+    from dtiam.resources.groups import GroupHandler
+    from dtiam.resources.policies import PolicyHandler
+
+    if not file.exists():
+        console.print(f"[red]Error:[/red] File not found: {file}")
+        raise typer.Exit(1)
+
+    # Load CSV file
+    try:
+        with file.open() as f:
+            reader = csv.DictReader(f)
+            records = list(reader)
+    except Exception as e:
+        console.print(f"[red]Error:[/red] Failed to read CSV file: {e}")
+        raise typer.Exit(1)
+
+    if not records:
+        console.print("[yellow]Warning:[/yellow] No records found in CSV file.")
+        return
+
+    # Validate required columns
+    required_cols = ['group_name', 'policy_name']
+    if not all(col in records[0] for col in required_cols):
+        console.print(f"[red]Error:[/red] CSV must have columns: {', '.join(required_cols)}")
+        raise typer.Exit(1)
+
+    config = load_config()
+    client = create_client_from_config(config, get_context(), is_verbose())
+    group_handler = GroupHandler(client)
+    policy_handler = PolicyHandler(client)
+    binding_handler = BindingHandler(client)
+    boundary_handler = BoundaryHandler(client)
+
+    try:
+        console.print(f"Processing {len(records)} row(s) from {file.name}...\n")
+
+        results = {"success": [], "failed": []}
+        groups_created = set()
+        boundaries_created = {}
+
+        for i, row in enumerate(records, 1):
+            group_name = row.get('group_name', '').strip()
+            policy_name = row.get('policy_name', '').strip()
+            level = row.get('level', 'account').strip() or 'account'
+            level_id = row.get('level_id', '').strip() or None
+            zones_str = row.get('management_zones', '').strip()
+            boundary_name = row.get('boundary_name', '').strip() or None
+            description = row.get('description', '').strip() or None
+
+            # Parse pipe-separated zones
+            management_zones = [z.strip() for z in zones_str.split('|') if z.strip()] if zones_str else None
+
+            if not group_name or not policy_name:
+                console.print(f"[{i}/{len(records)}] [yellow]Skipped:[/yellow] Missing group_name or policy_name")
+                results["failed"].append({"row": i, "error": "Missing required fields"})
+                continue
+
+            try:
+                # Step 1: Create group if it doesn't exist
+                if group_name not in groups_created:
+                    existing_group = group_handler.get_by_name(group_name)
+                    if not existing_group:
+                        if is_dry_run():
+                            console.print(f"[{i}/{len(records)}] [yellow]Would create group:[/yellow] {group_name}")
+                        else:
+                            group_data = {"name": group_name}
+                            if description:
+                                group_data["description"] = description
+                            group_handler.create(group_data)
+                            console.print(f"[{i}/{len(records)}] [green]Created group:[/green] {group_name}")
+                    groups_created.add(group_name)
+
+                # Step 2: Create boundary if needed
+                boundary_uuid = None
+                if management_zones:
+                    boundary_key = f"{group_name}:{','.join(sorted(management_zones))}"
+                    if boundary_key not in boundaries_created:
+                        bound_name = boundary_name or f"{group_name}-Boundary"
+                        existing_boundary = boundary_handler.get_by_name(bound_name)
+                        if existing_boundary:
+                            boundary_uuid = existing_boundary.get('uuid')
+                        elif is_dry_run():
+                            console.print(f"[{i}/{len(records)}] [yellow]Would create boundary:[/yellow] {bound_name}")
+                        else:
+                            boundary = boundary_handler.create(
+                                name=bound_name,
+                                management_zones=management_zones
+                            )
+                            boundary_uuid = boundary.get('uuid')
+                            console.print(f"[{i}/{len(records)}] [green]Created boundary:[/green] {bound_name}")
+                        boundaries_created[boundary_key] = boundary_uuid
+                    else:
+                        boundary_uuid = boundaries_created[boundary_key]
+
+                # Step 3: Resolve group and policy UUIDs
+                group = group_handler.get_by_name(group_name)
+                if not group:
+                    raise ValueError(f"Group '{group_name}' not found")
+                group_uuid = group.get('uuid')
+
+                policy = policy_handler.get_by_name(policy_name)
+                if not policy:
+                    raise ValueError(f"Policy '{policy_name}' not found")
+                policy_uuid = policy.get('uuid')
+
+                # Step 4: Create binding
+                binding_data = {
+                    "policyUuid": policy_uuid,
+                    "groups": [group_uuid]
+                }
+                if boundary_uuid:
+                    binding_data["boundaries"] = [boundary_uuid]
+
+                if is_dry_run():
+                    level_desc = f"{level}" + (f":{level_id}" if level_id else "")
+                    console.print(f"[{i}/{len(records)}] [yellow]Would bind:[/yellow] {policy_name} to {group_name} at {level_desc}")
+                else:
+                    binding_handler.create(
+                        group_uuid=group_uuid,
+                        policy_uuid=policy_uuid,
+                        level_type=level,
+                        level_id=level_id if level == 'environment' else None,
+                        boundary_uuids=[boundary_uuid] if boundary_uuid else None
+                    )
+                    level_desc = f"{level}" + (f":{level_id}" if level_id else "")
+                    console.print(f"[{i}/{len(records)}] [green]Bound:[/green] {policy_name} to {group_name} at {level_desc}")
+
+                results["success"].append({"row": i, "group": group_name, "policy": policy_name})
+
+            except Exception as e:
+                error_msg = str(e)
+                console.print(f"[{i}/{len(records)}] [red]Error:[/red] {error_msg}")
+                results["failed"].append({"row": i, "group": group_name, "error": error_msg})
+                if not continue_on_error:
+                    raise typer.Exit(1)
+
+        # Print summary
+        console.print()
+        console.print("=" * 60)
+        if is_dry_run():
+            console.print("[yellow]DRY RUN SUMMARY:[/yellow]")
+        else:
+            console.print("[green]SUMMARY:[/green]")
+        console.print(f"  Success: {len(results['success'])}")
+        console.print(f"  Failed: {len(results['failed'])}")
+        console.print(f"  Total: {len(records)}")
+        if is_dry_run():
+            console.print("\nRun without --dry-run to execute these changes")
+        console.print("=" * 60)
+
+        if results["failed"]:
+            console.print("\n[red]Failed rows:[/red]")
+            for failure in results["failed"]:
+                console.print(f"  Row {failure['row']}: {failure['error']}")
+
+    finally:
+        client.close()
+
+
 @app.command("create-bindings")
 def bulk_create_bindings(
     file: Path = typer.Option(..., "--file", "-f", help="File with binding definitions (JSON or YAML)"),

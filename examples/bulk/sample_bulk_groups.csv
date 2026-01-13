@@ -1,0 +1,11 @@
+group_name,policy_name,level,level_id,management_zones,boundary_name,description
+LOB5-TEST,Standard User - Config,account,,,,LOB5 test team - global read access (account level)
+LOB5-TEST,ALL SETTINGS DUDE,environment,yhu28601,LOB5,LOB5-TEST-Boundary,LOB5 test team - restricted write access (environment level)
+LOB6-TEST,Standard User - Config,account,,,,LOB6 test team - global read access (account level)
+LOB6-TEST,ALL SETTINGS DUDE,environment,yhu28601,LOB6,LOB6-TEST-Boundary,LOB6 test team - restricted write access (environment level)
+LOB7-TEST,Standard User - Config,account,,,,LOB7 test team - global read access (account level)
+LOB7-TEST,ALL SETTINGS DUDE,environment,yhu28601,LOB7,LOB7-TEST-Boundary,LOB7 test team - restricted write access (environment level)
+LOB8-TEST,Standard User - Config,account,,,,LOB8 test team - global read access (account level)
+LOB8-TEST,ALL SETTINGS DUDE,environment,yhu28601,LOB8,LOB8-TEST-Boundary,LOB8 test team - restricted write access (environment level)
+LOB9-TEST,Standard User - Config,account,,,,LOB9 test team - global read access (account level)
+LOB9-TEST,ALL SETTINGS DUDE,environment,yhu28601,LOB9,LOB9-TEST-Boundary,LOB9 test team - restricted write access (environment level)

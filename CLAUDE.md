@@ -91,9 +91,10 @@ examples/                    # Example configurations and scripts
 │   ├── production-only.yaml # Restrict to production zones
 │   └── team-scoped.yaml     # Team-specific zone restrictions
 ├── bulk/                    # Bulk operation sample files
-│   ├── sample_users.csv     # For bulk add-users-to-group
-│   ├── sample_groups.yaml   # For bulk create-groups
-│   └── sample_bindings.yaml # For bulk create-bindings
+│   ├── sample_users.csv            # For bulk add-users-to-group
+│   ├── sample_groups.yaml          # For bulk create-groups
+│   ├── sample_bindings.yaml        # For bulk create-bindings
+│   └── sample_bulk_groups.csv      # For bulk create-groups-with-policies
 ├── config/                  # Configuration examples
 │   └── multi-account.yaml   # Multi-account config template
 ├── groups/                  # Group configuration examples
@@ -146,6 +147,34 @@ dtiam supports two authentication methods:
 
 ## Key Patterns
 
+### Bulk Operations
+
+**Integrated Bulk Creation:**
+
+The `bulk create-groups-with-policies` command creates groups, boundaries, and bindings in one operation:
+
+```bash
+# Preview changes (dry-run by default)
+dtiam bulk create-groups-with-policies --file examples/bulk/sample_bulk_groups.csv
+
+# Execute for real
+dtiam bulk create-groups-with-policies --file examples/bulk/sample_bulk_groups.csv --no-dry-run
+```
+
+CSV format:
+```csv
+group_name,policy_name,level,level_id,management_zones,boundary_name,description
+LOB5-TEST,Standard User,account,,,,LOB5 global read
+LOB5-TEST,Pro User,environment,yhu28601,LOB5,LOB5-Boundary,LOB5 restricted write
+```
+
+**Features:**
+- Creates groups if they don't exist
+- Creates boundaries with correct Dynatrace query format
+- Creates policy bindings at account or environment level
+- Supports dry-run mode (enabled by default)
+- Shows progress and summary
+
 ### Adding a New Command
 
 1. Create command file in `commands/`:
@@ -191,6 +220,22 @@ def do_something(
 ```python
 from dtiam.commands import new_feature as new_cmd
 app.add_typer(new_cmd.app, name="new-feature", help="New feature operations")
+```
+
+### Boundary Query Format
+
+Boundaries use the following Dynatrace-compliant format:
+
+```python
+# Single zone
+environment:management-zone IN ("Production");
+storage:dt.security_context IN ("Production");
+settings:dt.security_context IN ("Production")
+
+# Multiple zones
+environment:management-zone IN ("Production", "Staging");
+storage:dt.security_context IN ("Production", "Staging");
+settings:dt.security_context IN ("Production", "Staging")
 ```
 
 ### Adding a New Resource Handler
