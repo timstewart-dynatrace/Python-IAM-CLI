@@ -20,6 +20,9 @@ No unreleased changes yet.
 - Added `create_or_update()` method to `BindingHandler` for idempotent binding creation
 - Fixed `bulk create-groups-with-policies` not finding global-level policies like "Standard User"
 - Added `get_by_name_all_levels()` method to `PolicyHandler` to search all policy levels
+- Fixed boundary query format to match Dynatrace API format (semicolons and newlines)
+- Added `create_from_zones()` method to `BoundaryHandler` for CLI boundary creation
+- Fixed empty API response handling in binding creation
 
 ## [3.4.1] - 2026-01-13
 
