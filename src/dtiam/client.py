@@ -79,7 +79,7 @@ class Client:
             timeout=timeout,
             headers={
                 "Content-Type": "application/json",
-                "User-Agent": "dtiam/3.4.3",
+                "User-Agent": "dtiam/3.4.4",
             },
         )
 
@@ -169,7 +169,9 @@ class Client:
         if path.startswith("http"):
             url = path
             # Auto-detect environment API calls (for management zones)
-            if ".live.dynatrace.com" in url or ".apps.dynatrace.com" in url:
+            # Note: .apps.dynatrace.com (App Engine Registry) uses OAuth2 Bearer tokens,
+            # NOT environment API tokens, so we don't include it here
+            if ".live.dynatrace.com" in url:
                 use_environment_token = True
         elif path.startswith("/"):
             url = f"{self.base_url}{path}"

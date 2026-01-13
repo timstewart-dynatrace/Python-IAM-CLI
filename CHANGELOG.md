@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.4.4] - 2026-01-13
+
+### Fixed
+- Fixed `get apps` command returning 401 Unauthorized error
+  - App Engine Registry API (*.apps.dynatrace.com) requires OAuth2 Bearer token, not Api-Token
+  - Removed .apps.dynatrace.com from auto-detection for environment API tokens
+
 ## [3.4.3] - 2026-01-13
 
 ### Added
@@ -144,7 +151,8 @@ No unreleased changes yet.
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.3...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.4...HEAD
+[3.4.4]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.3...v3.4.4
 [3.4.3]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.2...v3.4.3
 [3.4.2]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.1...v3.4.2
 [3.4.1]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.0...v3.4.1
