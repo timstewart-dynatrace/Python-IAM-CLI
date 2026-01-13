@@ -1,9 +1,19 @@
 #!/bin/bash
-# Pre-commit hook to prevent direct commits to main branch
+# Pre-commit hook to enforce development workflow mandates
 # Install: git config core.hooksPath .githooks
+#
+# Enforces:
+# 1. No direct commits to main/master branch
+# 2. Version consistency across pyproject.toml, __init__.py, and client.py
+# 3. CHANGELOG.md is updated when version changes
+
+set -e
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
+# =============================================================================
+# Check 1: Block direct commits to main/master
+# =============================================================================
 if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
     echo ""
     echo "ERROR: Direct commits to '$BRANCH' are not allowed."
@@ -19,4 +29,96 @@ if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
     exit 1
 fi
 
+# =============================================================================
+# Check 2: Version consistency across files
+# =============================================================================
+# Extract versions from each file
+PYPROJECT_VERSION=""
+INIT_VERSION=""
+CLIENT_VERSION=""
+
+if [ -f "pyproject.toml" ]; then
+    PYPROJECT_VERSION=$(grep -E '^version = "' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+fi
+
+if [ -f "src/dtiam/__init__.py" ]; then
+    INIT_VERSION=$(grep -E '^__version__ = "' src/dtiam/__init__.py | sed 's/__version__ = "\(.*\)"/\1/')
+fi
+
+if [ -f "src/dtiam/client.py" ]; then
+    CLIENT_VERSION=$(grep -E '"User-Agent": "dtiam/' src/dtiam/client.py | sed 's/.*"User-Agent": "dtiam\/\(.*\)".*/\1/')
+fi
+
+# Check if versions are available
+if [ -z "$PYPROJECT_VERSION" ] || [ -z "$INIT_VERSION" ] || [ -z "$CLIENT_VERSION" ]; then
+    echo ""
+    echo "WARNING: Could not extract version from one or more files."
+    echo "  pyproject.toml: ${PYPROJECT_VERSION:-NOT FOUND}"
+    echo "  __init__.py: ${INIT_VERSION:-NOT FOUND}"
+    echo "  client.py User-Agent: ${CLIENT_VERSION:-NOT FOUND}"
+    echo ""
+    echo "Skipping version consistency check."
+    echo ""
+else
+    # Check version consistency
+    if [ "$PYPROJECT_VERSION" != "$INIT_VERSION" ] || [ "$PYPROJECT_VERSION" != "$CLIENT_VERSION" ]; then
+        echo ""
+        echo "ERROR: Version mismatch detected!"
+        echo ""
+        echo "  pyproject.toml:        $PYPROJECT_VERSION"
+        echo "  src/dtiam/__init__.py: $INIT_VERSION"
+        echo "  src/dtiam/client.py:   $CLIENT_VERSION (User-Agent)"
+        echo ""
+        echo "All version numbers must match. Please update all files to the same version."
+        echo ""
+        echo "Files to update:"
+        echo "  - pyproject.toml (line ~7): version = \"X.Y.Z\""
+        echo "  - src/dtiam/__init__.py (line ~3): __version__ = \"X.Y.Z\""
+        echo "  - src/dtiam/client.py (User-Agent line): \"User-Agent\": \"dtiam/X.Y.Z\""
+        echo ""
+        exit 1
+    fi
+fi
+
+# =============================================================================
+# Check 3: CHANGELOG.md should be updated when version changes
+# =============================================================================
+# Check if version files are being modified in this commit
+VERSION_FILES_CHANGED=false
+CHANGELOG_CHANGED=false
+
+# Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || true)
+
+for file in $STAGED_FILES; do
+    case "$file" in
+        pyproject.toml|src/dtiam/__init__.py|src/dtiam/client.py)
+            VERSION_FILES_CHANGED=true
+            ;;
+        CHANGELOG.md)
+            CHANGELOG_CHANGED=true
+            ;;
+    esac
+done
+
+# If version files changed but CHANGELOG didn't, warn (but don't block)
+if [ "$VERSION_FILES_CHANGED" = true ] && [ "$CHANGELOG_CHANGED" = false ]; then
+    # Check if this is actually a version bump by comparing staged vs HEAD
+    if git diff --cached pyproject.toml 2>/dev/null | grep -q '^+version = '; then
+        echo ""
+        echo "WARNING: Version appears to be changing but CHANGELOG.md is not updated."
+        echo ""
+        echo "Per CLAUDE.md mandates, ALL version changes MUST include CHANGELOG.md updates."
+        echo ""
+        echo "Please update CHANGELOG.md with your changes before committing."
+        echo "See: https://keepachangelog.com/en/1.0.0/"
+        echo ""
+        # Note: This is a warning, not blocking, to allow for legitimate cases
+        # where only the User-Agent or __init__.py is being synced
+    fi
+fi
+
+# =============================================================================
+# All checks passed
+# =============================================================================
 exit 0

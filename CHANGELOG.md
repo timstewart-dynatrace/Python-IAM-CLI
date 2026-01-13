@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-No unreleased changes yet.
+### Added
+- Enhanced pre-commit hook with version enforcement
+  - Blocks direct commits to main/master branch
+  - Validates version consistency across pyproject.toml, __init__.py, and client.py User-Agent
+  - Warns when version changes without CHANGELOG.md update
+  - Install with: `git config core.hooksPath .githooks`
 
 ## [3.4.2] - 2026-01-13
 
