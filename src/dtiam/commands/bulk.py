@@ -398,24 +398,33 @@ def bulk_create_groups_with_policies(
     file: Path = typer.Option(..., "--file", "-f", help="CSV file with group, policy, and binding definitions"),
     continue_on_error: bool = typer.Option(False, "--continue-on-error", help="Continue processing on errors"),
 ) -> None:
-    """Create groups with policies and bindings from a CSV file.
+    """Bulk create groups with policy bindings, optionally scoped to management zones.
 
-    This command creates groups, boundaries, and policy bindings in one operation,
-    matching the behavior from the 2.0 project.
+    Creates groups, policy bindings, and management zone boundaries in one operation.
+    Boundaries created by this command restrict access to specified management zones
+    using Dynatrace's boundary query format. This command does NOT support other
+    boundary types (custom queries, security contexts, etc.).
 
     CSV columns:
       - group_name (required): Name of the group to create
       - policy_name (required): Policy to bind to the group
       - level (optional): 'account' or 'environment' (default: account)
       - level_id (optional): Environment ID if level=environment
-      - management_zones (optional): Zone(s) for boundary (pipe-separated)
+      - management_zones (optional): Management zone name(s) to restrict access to
+        (pipe-separated for multiple zones, e.g., "Zone1|Zone2")
       - boundary_name (optional): Custom boundary name (default: {group}-Boundary)
       - description (optional): Group description
 
+    Notes:
+      - Groups are created if they don't exist
+      - Boundaries are only created when management_zones is specified
+      - Boundary queries use the format: environment:management-zone IN ("zone")
+      - Existing groups/boundaries are reused (idempotent operation)
+
     Example CSV:
         group_name,policy_name,level,level_id,management_zones,boundary_name,description
-        LOB5-TEST,Standard User,account,,,,LOB5 global read
-        LOB5-TEST,Pro User,environment,yhu28601,LOB5,LOB5-Boundary,LOB5 restricted write
+        LOB5-TEST,Standard User,account,,,,LOB5 global read access
+        LOB5-TEST,Pro User,environment,yhu28601,LOB5,LOB5-Boundary,LOB5 zone-restricted write
 
     Example:
         dtiam bulk create-groups-with-policies --file examples/bulk/sample_bulk_groups.csv
