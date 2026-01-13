@@ -198,20 +198,15 @@ class BoundaryHandler(ResourceHandler[Any]):
         if not management_zones:
             raise ValueError("At least one management zone is required")
 
-        # Build zone conditions
-        zone_conditions = []
-        for zone in management_zones:
-            zone_conditions.append(f'managementZone.name = "{zone}"')
-
-        # Combine with OR for multiple zones
-        zone_filter = " OR ".join(zone_conditions)
+        # Build zone list for IN clause
+        zone_list = ', '.join(f'"{zone}"' for zone in management_zones)
 
         # Standard boundary query structure
         # This restricts environment, storage, and settings access to the zones
         query_parts = [
-            f"ALLOW environment:* WHERE {zone_filter}",
-            f"ALLOW storage:* WHERE {zone_filter}",
-            f"ALLOW settings:* WHERE {zone_filter}",
+            f"environment:management-zone IN ({zone_list})",
+            f"storage:dt.security_context IN ({zone_list})",
+            f"settings:dt.security_context IN ({zone_list})",
         ]
 
         return "; ".join(query_parts)
