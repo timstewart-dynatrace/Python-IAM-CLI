@@ -18,7 +18,7 @@ from rich.table import Table
 
 from dtiam.client import create_client_from_config
 from dtiam.config import load_config
-from dtiam.output import OutputFormat, Printer
+from dtiam.output import Column, OutputFormat, Printer
 
 app = typer.Typer(no_args_is_help=True)
 console = Console()
@@ -48,11 +48,11 @@ def is_plain_mode() -> bool:
     return state.plain
 
 
-def zone_columns() -> list[tuple[str, str]]:
+def zone_columns() -> list[Column]:
     """Return column definitions for zones."""
     return [
-        ("id", "ID"),
-        ("name", "Name"),
+        Column("id", "ID"),
+        Column("name", "Name"),
     ]
 
 
