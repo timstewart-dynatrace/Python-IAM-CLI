@@ -68,6 +68,7 @@ dtiam supports authentication and configuration via environment variables:
 | `DTIAM_OUTPUT`           | Default output format                        |
 | `DTIAM_VERBOSE`          | Enable verbose mode                          |
 | `DTIAM_ENVIRONMENT_URL`  | Environment URL for App Engine Registry      |
+| `DTIAM_ENVIRONMENT_TOKEN`| Environment API token for management zones   |
 
 ### Authentication Priority
 
@@ -186,22 +187,39 @@ dtiam config delete-context NAME [--force]
 
 ### config set-credentials
 
-Store OAuth2 credentials.
+Store OAuth2 credentials and environment settings. For existing credentials, only the provided fields are updated (partial update support).
 
 ```bash
 dtiam config set-credentials NAME [OPTIONS]
 ```
 
-| Argument/Option   | Short | Description                                    |
-| ----------------- | ----- | ---------------------------------------------- |
-| `NAME`            |       | Credential name                                |
-| `--client-id`     | `-i`  | OAuth2 client ID (prompts if not provided)     |
-| `--client-secret` | `-s`  | OAuth2 client secret (prompts if not provided) |
+| Argument/Option       | Short | Description                                          |
+| --------------------- | ----- | ---------------------------------------------------- |
+| `NAME`                |       | Credential name                                      |
+| `--client-id`         | `-i`  | OAuth2 client ID (prompts if not provided for new)   |
+| `--client-secret`     | `-s`  | OAuth2 client secret (prompts if not provided for new) |
+| `--account-uuid`      | `-a`  | Dynatrace account UUID (prompts if not provided for new) |
+| `--environment-url`   | `-e`  | Dynatrace environment URL                            |
+| `--environment-token` | `-t`  | Environment API token (for management zones)         |
 
-**Example:**
+**Examples:**
 
 ```bash
-dtiam config set-credentials prod-creds --client-id dt0s01.XXX --client-secret dt0s01.XXX.YYY
+# Create new credentials with all options
+dtiam config set-credentials prod-creds \
+  --client-id dt0s01.XXX \
+  --client-secret dt0s01.XXX.YYY \
+  --account-uuid abc-123 \
+  --environment-url https://abc123.live.dynatrace.com
+
+# Update just the environment token (existing credential)
+dtiam config set-credentials prod-creds --environment-token dt0c01.XXX
+
+# Update environment URL only
+dtiam config set-credentials prod-creds --environment-url https://new-env.live.dynatrace.com
+
+# Interactive prompt for new credentials
+dtiam config set-credentials dev-creds
 ```
 
 ### config delete-credentials

@@ -62,11 +62,22 @@ def list_zones(
     output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List management zones."""
+    import os
     from dtiam.resources.zones import ZoneHandler
 
     config = load_config()
     client = create_client_from_config(config, get_context(), is_verbose())
-    handler = ZoneHandler(client)
+    
+    # Get environment URL from config, environment variable, or prompt
+    environment_url = os.environ.get("DTIAM_ENVIRONMENT_URL")
+    if not environment_url:
+        ctx = config.get_current_context()
+        if ctx:
+            cred = config.get_credential(ctx.credentials_ref)
+            if cred:
+                environment_url = cred.environment_url or ctx.environment_url
+    
+    handler = ZoneHandler(client, environment_url=environment_url)
 
     fmt = output or get_output_format()
     printer = Printer(format=fmt, plain=is_plain_mode())
@@ -89,11 +100,22 @@ def get_zone(
     output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
 ) -> None:
     """Get a management zone by ID or name."""
+    import os
     from dtiam.resources.zones import ZoneHandler
 
     config = load_config()
     client = create_client_from_config(config, get_context(), is_verbose())
-    handler = ZoneHandler(client)
+    
+    # Get environment URL from config, environment variable, or prompt
+    environment_url = os.environ.get("DTIAM_ENVIRONMENT_URL")
+    if not environment_url:
+        ctx = config.get_current_context()
+        if ctx:
+            cred = config.get_credential(ctx.credentials_ref)
+            if cred:
+                environment_url = cred.environment_url or ctx.environment_url
+    
+    handler = ZoneHandler(client, environment_url=environment_url)
 
     fmt = output or get_output_format()
     printer = Printer(format=fmt, plain=is_plain_mode())
@@ -119,11 +141,22 @@ def export_zones(
     format: str = typer.Option("yaml", "--format", "-f", help="Output format (yaml, json, csv)"),
 ) -> None:
     """Export management zones to a file."""
+    import os
     from dtiam.resources.zones import ZoneHandler
 
     config = load_config()
     client = create_client_from_config(config, get_context(), is_verbose())
-    handler = ZoneHandler(client)
+    
+    # Get environment URL from config, environment variable, or prompt
+    environment_url = os.environ.get("DTIAM_ENVIRONMENT_URL")
+    if not environment_url:
+        ctx = config.get_current_context()
+        if ctx:
+            cred = config.get_credential(ctx.credentials_ref)
+            if cred:
+                environment_url = cred.environment_url or ctx.environment_url
+    
+    handler = ZoneHandler(client, environment_url=environment_url)
 
     try:
         zones = handler.list()
@@ -163,12 +196,23 @@ def compare_zones_groups(
     This is useful for identifying zones that have corresponding groups
     and vice versa.
     """
+    import os
     from dtiam.resources.zones import ZoneHandler
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
     client = create_client_from_config(config, get_context(), is_verbose())
-    zone_handler = ZoneHandler(client)
+    
+    # Get environment URL from config, environment variable, or prompt
+    environment_url = os.environ.get("DTIAM_ENVIRONMENT_URL")
+    if not environment_url:
+        ctx = config.get_current_context()
+        if ctx:
+            cred = config.get_credential(ctx.credentials_ref)
+            if cred:
+                environment_url = cred.environment_url or ctx.environment_url
+    
+    zone_handler = ZoneHandler(client, environment_url=environment_url)
     group_handler = GroupHandler(client)
 
     fmt = output or get_output_format()

@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.3.0] - 2026-01-13
+
+### Added
+- Partial credential update support for `config set-credentials`
+  - Update just `--environment-token` without re-entering all credentials
+  - Update `--environment-url`, `--client-id`, or `--client-secret` individually
+  - Only prompts for required fields when creating new credentials
+- Store `environment-url` and `environment-token` in credential configuration
+- Store `environment-url` in context configuration
+
+### Changed
+- `config set-credentials` now supports partial updates for existing credentials
+- Credential model extended with `environment-url` and `environment-token` fields
+- Context model extended with `environment-url` field
+- User-Agent bumped to dtiam/3.3.0
+
 ## [3.2.0] - 2025-01-13
 
 ### Added
@@ -75,7 +91,8 @@ No unreleased changes yet.
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/releases/tag/v3.0.0

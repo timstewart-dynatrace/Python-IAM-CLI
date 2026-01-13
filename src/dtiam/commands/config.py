@@ -199,15 +199,79 @@ def set_credentials(
         "-s",
         help="OAuth2 client secret (will prompt if not provided)",
     ),
+    account_uuid: Optional[str] = typer.Option(
+        None,
+        "--account-uuid",
+        "-a",
+        help="Dynatrace account UUID (will prompt if not provided)",
+    ),
+    environment_url: Optional[str] = typer.Option(
+        None,
+        "--environment-url",
+        "-e",
+        help="Dynatrace environment URL (will prompt if not provided)",
+    ),
+    environment_token: Optional[str] = typer.Option(
+        None,
+        "--environment-token",
+        "-t",
+        help="Optional environment API token",
+    ),
 ) -> None:
-    """Store OAuth2 credentials.
+    """Store OAuth2 credentials and environment settings.
 
-    Example:
-        dtiam config set-credentials prod-creds --client-id abc --client-secret xyz
-        dtiam config set-credentials dev-creds  # Will prompt for values
+    Examples:
+        # Store credentials with all options (new credential)
+        dtiam config set-credentials prod-creds \\
+          --client-id dt0s01.XXX \\
+          --client-secret dt0s01.XXX.YYY \\
+          --account-uuid abc-123 \\
+          --environment-url https://abc123.live.dynatrace.com
+
+        # Update just the environment token (existing credential)
+        dtiam config set-credentials prod-creds --environment-token dt0c01.XXX
+
+        # Interactive prompt for required values (new credential)
+        dtiam config set-credentials dev-creds
     """
     config = load_config()
 
+    # Check if credential already exists
+    existing_cred = config.get_credential(name)
+
+    if existing_cred:
+        # Update existing credential - only update provided fields
+        updated = False
+
+        if client_id:
+            existing_cred.client_id = client_id
+            updated = True
+        if client_secret:
+            existing_cred.client_secret = client_secret
+            updated = True
+        if environment_url:
+            existing_cred.environment_url = environment_url
+            updated = True
+        if environment_token:
+            existing_cred.environment_token = environment_token
+            updated = True
+
+        if not updated:
+            console.print(f"[yellow]Warning:[/yellow] No changes specified for '{name}'.")
+            console.print("Use --client-id, --client-secret, --environment-url, or --environment-token to update.")
+            raise typer.Exit(1)
+
+        # Update context environment-url if provided
+        if environment_url:
+            existing_ctx = config.get_context(name)
+            if existing_ctx:
+                existing_ctx.environment_url = environment_url
+
+        save_config(config)
+        console.print(f"Updated credentials '{name}'.")
+        return
+
+    # New credential - require client-id, client-secret, account-uuid
     if not client_id:
         client_id = typer.prompt("Enter OAuth2 client ID")
 
@@ -222,9 +286,26 @@ def set_credentials(
         console.print("[red]Error:[/red] Client secret cannot be empty.")
         raise typer.Exit(1)
 
-    config.set_credential(name, client_id, client_secret)
+    if not account_uuid:
+        account_uuid = typer.prompt("Enter account UUID")
+
+    if not account_uuid:
+        console.print("[red]Error:[/red] Account UUID cannot be empty.")
+        raise typer.Exit(1)
+
+    if not environment_url:
+        environment_url = typer.prompt(
+            "Enter environment URL (e.g., https://abc123.live.dynatrace.com)",
+            default="",
+        ) or None
+
+    config.set_credential(name, client_id, client_secret, environment_url, environment_token)
+    config.set_context(name, account_uuid, name, environment_url)
     save_config(config)
     console.print(f"Stored credentials as '{name}'.")
+    console.print(f"Created context '{name}' with account UUID {account_uuid}.")
+    if environment_url:
+        console.print(f"Environment URL: {environment_url}")
 
 
 @app.command("delete-credentials")

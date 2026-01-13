@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dtiam"
-version = "3.2.0"
+version = "3.3.0"
 description = "Dynatrace IAM CLI - A kubectl-style CLI for Dynatrace Identity and Access Management"
 license = "MIT"
 requires-python = ">=3.10"
