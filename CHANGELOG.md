@@ -7,12 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+## [3.4.3] - 2026-01-13
+
 ### Added
 - Enhanced pre-commit hook with version enforcement
   - Blocks direct commits to main/master branch
   - Validates version consistency across pyproject.toml, __init__.py, and client.py User-Agent
   - Warns when version changes without CHANGELOG.md update
   - Install with: `git config core.hooksPath .githooks`
+
+### Documentation
+- Clarified `bulk create-groups-with-policies` help text to indicate it only supports
+  management zone boundaries (not custom boundary queries)
 
 ## [3.4.2] - 2026-01-13
 
@@ -136,7 +144,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.2...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.3...HEAD
+[3.4.3]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.2...v3.4.3
 [3.4.2]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.1...v3.4.2
 [3.4.1]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.0...v3.4.1
 [3.4.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.3.0...v3.4.0
