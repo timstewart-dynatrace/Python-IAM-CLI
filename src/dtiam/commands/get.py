@@ -18,6 +18,7 @@ from dtiam.output import (
     binding_columns,
     environment_columns,
     boundary_columns,
+    app_columns,
 )
 
 app = typer.Typer(no_args_is_help=True)
@@ -259,5 +260,80 @@ def get_boundaries(
             if name:
                 results = [b for b in results if name.lower() in b.get("name", "").lower()]
             printer.print(results, boundary_columns())
+    finally:
+        client.close()
+
+
+@app.command("apps")
+@app.command("app")
+def get_apps(
+    identifier: Optional[str] = typer.Argument(None, help="App ID or name"),
+    environment: Optional[str] = typer.Option(
+        None, "--environment", "-e", help="Environment ID or URL (e.g., abc12345 or abc12345.apps.dynatrace.com)"
+    ),
+    ids_only: bool = typer.Option(False, "--ids", help="Output only app IDs (for use in policies)"),
+    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+) -> None:
+    """List or get Dynatrace Apps from the App Engine Registry.
+
+    App IDs can be used in policy/boundary statements like:
+        shared:app-id = '{app.id}';
+
+    Requires an environment URL. You can specify it via:
+    - --environment flag with environment ID or full URL
+    - DTIAM_ENVIRONMENT_URL environment variable
+    """
+    import os
+    from dtiam.resources.apps import AppHandler
+    from dtiam.resources.environments import EnvironmentHandler
+
+    config = load_config()
+    client = create_client_from_config(config, get_context(), is_verbose())
+
+    fmt = output or get_output_format()
+    printer = Printer(format=fmt, plain=is_plain_mode())
+
+    try:
+        # Resolve environment URL
+        env_url = environment or os.environ.get("DTIAM_ENVIRONMENT_URL")
+
+        if not env_url:
+            console.print("[red]Error:[/red] Environment required. Specify with --environment or DTIAM_ENVIRONMENT_URL")
+            console.print("\nAvailable environments:")
+            env_handler = EnvironmentHandler(client)
+            envs = env_handler.list()
+            for env in envs[:10]:
+                console.print(f"  - {env.get('id')} ({env.get('name', 'unnamed')})")
+            if len(envs) > 10:
+                console.print(f"  ... and {len(envs) - 10} more")
+            raise typer.Exit(1)
+
+        # If just an environment ID, construct the full URL
+        if not env_url.startswith("http") and "." not in env_url:
+            env_url = f"https://{env_url}.apps.dynatrace.com"
+
+        handler = AppHandler(client, env_url)
+
+        if ids_only:
+            # Output just the IDs for easy copy-paste into policies
+            app_ids = handler.get_ids()
+            if fmt in (OutputFormat.JSON, OutputFormat.PLAIN):
+                printer.print(app_ids)
+            else:
+                for app_id in app_ids:
+                    console.print(app_id)
+        elif identifier:
+            # Try to resolve by ID or name
+            result = handler.get(identifier)
+            if not result:
+                result = handler.get_by_name(identifier)
+            if not result:
+                console.print(f"[red]Error:[/red] App '{identifier}' not found.")
+                raise typer.Exit(1)
+            printer.print(result)
+        else:
+            # List apps
+            results = handler.list()
+            printer.print(results, app_columns())
     finally:
         client.close()

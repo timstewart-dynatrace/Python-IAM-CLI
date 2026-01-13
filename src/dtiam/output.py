@@ -273,3 +273,17 @@ def boundary_columns() -> list[Column]:
         Column("description", "DESCRIPTION"),
         Column("createdAt", "CREATED", wide_only=True),
     ]
+
+
+def app_columns() -> list[Column]:
+    """Column definitions for App Engine Registry app resources.
+
+    App IDs can be used in policy statements like:
+        shared:app-id = '{app.id}';
+    """
+    return [
+        Column("id", "ID"),
+        Column("name", "NAME"),
+        Column("version", "VERSION"),
+        Column("description", "DESCRIPTION", wide_only=True),
+    ]
