@@ -535,19 +535,27 @@ def bulk_create_groups_with_policies(
                 if boundary_uuid:
                     binding_data["boundaries"] = [boundary_uuid]
 
+                level_desc = f"{level}" + (f":{level_id}" if level_id else "")
                 if is_dry_run():
-                    level_desc = f"{level}" + (f":{level_id}" if level_id else "")
                     console.print(f"[{i}/{len(records)}] [yellow]Would bind:[/yellow] {policy_name} to {group_name} at {level_desc}")
                 else:
-                    binding_handler.create(
+                    # Create binding handler for the specific level
+                    level_binding_handler = BindingHandler(
+                        client,
+                        level_type=level,
+                        level_id=level_id if level == 'environment' else client.account_uuid
+                    )
+                    _, action = level_binding_handler.create_or_update(
                         group_uuid=group_uuid,
                         policy_uuid=policy_uuid,
-                        level_type=level,
-                        level_id=level_id if level == 'environment' else None,
-                        boundary_uuids=[boundary_uuid] if boundary_uuid else None
+                        boundaries=[boundary_uuid] if boundary_uuid else None
                     )
-                    level_desc = f"{level}" + (f":{level_id}" if level_id else "")
-                    console.print(f"[{i}/{len(records)}] [green]Bound:[/green] {policy_name} to {group_name} at {level_desc}")
+                    if action == "created":
+                        console.print(f"[{i}/{len(records)}] [green]Bound:[/green] {policy_name} to {group_name} at {level_desc}")
+                    elif action == "updated":
+                        console.print(f"[{i}/{len(records)}] [blue]Updated:[/blue] {policy_name} to {group_name} at {level_desc}")
+                    else:
+                        console.print(f"[{i}/{len(records)}] [cyan]Unchanged:[/cyan] {policy_name} to {group_name} at {level_desc}")
 
                 results["success"].append({"row": i, "group": group_name, "policy": policy_name})
 

@@ -139,6 +139,8 @@ class BindingHandler(ResourceHandler[Any]):
     ) -> dict[str, Any]:
         """Create a new policy binding.
 
+        Uses: POST /iam/v1/repo/{levelType}/{levelId}/bindings/{policyUuid}
+
         Args:
             group_uuid: Group UUID to bind
             policy_uuid: Policy UUID to bind to the group
@@ -147,22 +149,66 @@ class BindingHandler(ResourceHandler[Any]):
         Returns:
             Created/updated binding dictionary
         """
+        # Payload contains groups and boundaries arrays
         data = {
-            "policyBindings": [
-                {
-                    "policyUuid": policy_uuid,
-                    "groups": [group_uuid],
-                    "boundaries": boundaries or [],
-                }
-            ]
+            "groups": [group_uuid],
+            "boundaries": boundaries or [],
         }
 
         try:
-            response = self.client.post(self.api_path, json=data)
+            # POST /iam/v1/repo/{levelType}/{levelId}/bindings/{policyUuid}
+            response = self.client.post(f"{self.api_path}/{policy_uuid}", json=data)
             return response.json()
         except APIError as e:
             self._handle_error("create", e)
             return {}
+
+    def create_or_update(
+        self,
+        group_uuid: str,
+        policy_uuid: str,
+        boundaries: list[str] | None = None,
+    ) -> tuple[dict[str, Any], str]:
+        """Create a binding or update if it exists.
+
+        First tries to create the binding. If it already exists, updates
+        the binding with the specified boundaries.
+
+        Args:
+            group_uuid: Group UUID to bind
+            policy_uuid: Policy UUID to bind to the group
+            boundaries: Optional list of boundary UUIDs
+
+        Returns:
+            Tuple of (binding dictionary, action) where action is "created", "updated", or "unchanged"
+        """
+        # First try to create
+        data = {
+            "groups": [group_uuid],
+            "boundaries": boundaries or [],
+        }
+
+        try:
+            # POST /iam/v1/repo/{levelType}/{levelId}/bindings/{policyUuid}
+            response = self.client.post(f"{self.api_path}/{policy_uuid}", json=data)
+            return response.json(), "created"
+        except APIError as e:
+            # Check if binding already exists (400 error)
+            if e.status_code == 400 and e.response_body and "already exists" in e.response_body.lower():
+                # Update existing binding with boundaries
+                if boundaries:
+                    try:
+                        # POST /iam/v1/repo/{levelType}/{levelId}/bindings/{policyUuid}/{groupUuid}
+                        response = self.client.post(
+                            f"{self.api_path}/{policy_uuid}/{group_uuid}",
+                            json={"boundaries": boundaries}
+                        )
+                        return response.json(), "updated"
+                    except APIError:
+                        pass
+                return {}, "unchanged"
+            self._handle_error("create", e)
+            return {}, "error"
 
     def delete(
         self,

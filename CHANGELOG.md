@@ -15,6 +15,9 @@ No unreleased changes yet.
 - Fixed `get environments` not returning data - API returns under `"data"` key
 - Fixed `get boundaries` not returning data - API returns under `"content"` key
 - Fixed `describe boundary` failing with 400 error when using boundary name instead of UUID
+- Fixed binding creation API endpoint (uses `POST /bindings/{policyUuid}` not `POST /bindings`)
+- Fixed `bulk create-groups-with-policies` to update existing bindings instead of failing
+- Added `create_or_update()` method to `BindingHandler` for idempotent binding creation
 
 ## [3.4.1] - 2026-01-13
 
