@@ -124,6 +124,11 @@ class BoundaryHandler(ResourceHandler[Any]):
             response = self.client.post(self.api_path, json=data)
             return response.json()
         except APIError as e:
+            # If boundary already exists, try to return the existing one
+            if e.status_code == 400 and e.response_body and "already exists" in e.response_body.lower():
+                existing = self.get_by_name(name)
+                if existing:
+                    return existing
             self._handle_error("create", e)
             return {}
 
