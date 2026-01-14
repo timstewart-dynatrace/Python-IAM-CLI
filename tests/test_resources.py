@@ -75,10 +75,44 @@ class TestGroupHandler:
             mock_post.return_value = mock_response(new_group)
 
             handler = GroupHandler(mock_client)
-            result = handler.create({"name": "New Group"})
+            result = handler.create(name="New Group")
 
             assert result["name"] == "New Group"
             mock_post.assert_called_once()
+
+    def test_create_group_with_all_params(self, mock_client, mock_response):
+        """Test creating a group with all parameters."""
+        new_group = {
+            "uuid": "new-uuid",
+            "name": "Full Group",
+            "description": "A full description",
+            "owner": "admin@example.com",
+        }
+        with patch.object(mock_client, "post") as mock_post:
+            mock_post.return_value = mock_response(new_group)
+
+            handler = GroupHandler(mock_client)
+            result = handler.create(
+                name="Full Group",
+                description="A full description",
+                owner="admin@example.com",
+            )
+
+            assert result["name"] == "Full Group"
+            assert result["description"] == "A full description"
+            # Verify the payload structure
+            call_args = mock_post.call_args
+            payload = call_args[1]["json"]
+            assert isinstance(payload, list)
+            assert payload[0]["name"] == "Full Group"
+            assert payload[0]["description"] == "A full description"
+            assert payload[0]["owner"] == "admin@example.com"
+
+    def test_create_group_name_required(self, mock_client):
+        """Test that group creation requires a name."""
+        handler = GroupHandler(mock_client)
+        with pytest.raises(ValueError, match="Group name is required"):
+            handler.create(name="")
 
     def test_delete_group(self, mock_client, mock_response):
         """Test deleting a group."""
@@ -426,6 +460,67 @@ class TestPolicyHandler:
             assert result["valid"] is True
             call_args = mock_post.call_args
             assert "/validation/policy-uuid" in call_args[0][0]
+
+    def test_create_policy(self, mock_client, mock_response):
+        """Test creating a policy."""
+        new_policy = {
+            "uuid": "new-policy-uuid",
+            "name": "Test Policy",
+            "statementQuery": "ALLOW settings:objects:read;",
+        }
+        with patch.object(mock_client, "post") as mock_post:
+            mock_post.return_value = mock_response(new_policy)
+
+            handler = PolicyHandler(mock_client, "account", "abc-123")
+            result = handler.create(
+                name="Test Policy",
+                statement_query="ALLOW settings:objects:read;",
+            )
+
+            assert result["name"] == "Test Policy"
+            assert result["statementQuery"] == "ALLOW settings:objects:read;"
+            # Verify the payload structure
+            call_args = mock_post.call_args
+            payload = call_args[1]["json"]
+            assert payload["name"] == "Test Policy"
+            assert payload["statementQuery"] == "ALLOW settings:objects:read;"
+
+    def test_create_policy_with_description(self, mock_client, mock_response):
+        """Test creating a policy with description."""
+        new_policy = {
+            "uuid": "new-policy-uuid",
+            "name": "Full Policy",
+            "statementQuery": "ALLOW settings:objects:read;",
+            "description": "A test policy description",
+        }
+        with patch.object(mock_client, "post") as mock_post:
+            mock_post.return_value = mock_response(new_policy)
+
+            handler = PolicyHandler(mock_client, "account", "abc-123")
+            result = handler.create(
+                name="Full Policy",
+                statement_query="ALLOW settings:objects:read;",
+                description="A test policy description",
+            )
+
+            assert result["name"] == "Full Policy"
+            assert result["description"] == "A test policy description"
+            # Verify the payload includes description
+            call_args = mock_post.call_args
+            payload = call_args[1]["json"]
+            assert payload["description"] == "A test policy description"
+
+    def test_create_policy_name_required(self, mock_client):
+        """Test that policy creation requires a name."""
+        handler = PolicyHandler(mock_client, "account", "abc-123")
+        with pytest.raises(ValueError, match="Policy name is required"):
+            handler.create(name="", statement_query="ALLOW settings:objects:read;")
+
+    def test_create_policy_statement_required(self, mock_client):
+        """Test that policy creation requires a statement query."""
+        handler = PolicyHandler(mock_client, "account", "abc-123")
+        with pytest.raises(ValueError, match="Policy statementQuery is required"):
+            handler.create(name="Test Policy", statement_query="")
 
 
 class TestBindingHandler:

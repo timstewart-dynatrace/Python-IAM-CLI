@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.9.0] - 2026-01-14
+
+### Changed
+- **Standardized create() method signatures across handlers** for better type safety
+  - `GroupHandler.create()` now uses named parameters: `create(name: str, description: str | None = None, owner: str | None = None)`
+  - `PolicyHandler.create()` now uses named parameters: `create(name: str, statement_query: str, description: str | None = None)`
+  - Updated internal callers (`clone()`, `setup_with_policy()`) to use new signatures
+  - Updated CLI command callers to use new signatures
+- User-Agent bumped to dtiam/3.9.0
+
+### Tests
+- Added 6 new tests for create() method signatures:
+  - `test_create_group_with_all_params` - Group creation with all parameters
+  - `test_create_group_name_required` - Group name validation
+  - `test_create_policy` - Basic policy creation
+  - `test_create_policy_with_description` - Policy creation with description
+  - `test_create_policy_name_required` - Policy name validation
+  - `test_create_policy_statement_required` - Policy statement validation
+- Total test count increased from 241 to 247
+
 ## [3.8.0] - 2026-01-14
 
 ### Fixed
@@ -250,7 +270,8 @@ No unreleased changes yet.
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.8.0...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.9.0...HEAD
+[3.9.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.8.0...v3.9.0
 [3.8.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.7.0...v3.8.0
 [3.7.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.5.0...v3.6.0

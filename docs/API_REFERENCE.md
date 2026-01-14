@@ -166,10 +166,10 @@ group = handler.get_by_name("DevOps Team")
 expanded = handler.get_expanded("uuid-here")
 
 # Create a group
-new_group = handler.create({
-    "name": "New Team",
-    "description": "A new team"
-})
+new_group = handler.create(
+    name="New Team",
+    description="A new team",
+)
 
 # Update a group
 updated = handler.update("uuid-here", {
@@ -313,11 +313,11 @@ policy = handler.get("policy-uuid")
 policy = handler.get_by_name("admin-policy")
 
 # Create a policy
-new_policy = handler.create({
-    "name": "viewer-policy",
-    "description": "Read-only access",
-    "statementQuery": "ALLOW settings:objects:read;"
-})
+new_policy = handler.create(
+    name="viewer-policy",
+    statement_query="ALLOW settings:objects:read;",
+    description="Read-only access",
+)
 
 # Update a policy
 updated = handler.update("policy-uuid", {
@@ -390,11 +390,11 @@ boundary = handler.create_from_zones(
 )
 
 # Create with custom query
-boundary = handler.create({
-    "name": "Custom Boundary",
-    "boundaryQuery": "environment.tag.equals('production')",
-    "description": "Custom boundary query"
-})
+boundary = handler.create(
+    name="Custom Boundary",
+    boundary_query="environment.tag.equals('production')",
+    description="Custom boundary query",
+)
 
 # Get attached policies
 attached = handler.get_attached_policies("boundary-uuid")
@@ -929,10 +929,10 @@ def main():
         binding_handler = BindingHandler(client)
 
         # Create a group
-        group = group_handler.create({
-            "name": "Platform Team",
-            "description": "Platform engineering team"
-        })
+        group = group_handler.create(
+            name="Platform Team",
+            description="Platform engineering team",
+        )
         print(f"Created group: {group['name']}")
 
         # Find a policy
