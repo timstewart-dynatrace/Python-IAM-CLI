@@ -160,7 +160,7 @@ groups = handler.list()
 group = handler.get("uuid-here")
 
 # Get by name
-group = handler.get_by_name("DevOps Team")
+group = handler.get_by_name("LOB5")
 
 # Get expanded (includes members and policies)
 expanded = handler.get_expanded("uuid-here")
@@ -655,7 +655,7 @@ user_perms = calculator.get_user_effective_permissions("user@example.com")
 # }
 
 # Group effective permissions
-group_perms = calculator.get_group_effective_permissions("DevOps Team")
+group_perms = calculator.get_group_effective_permissions("LOB5")
 ```
 
 ### Effective Permissions API (Direct)
@@ -684,7 +684,7 @@ result = api.get_user_effective_permissions(
 
 # Get effective permissions for a group (by name or UUID)
 result = api.get_group_effective_permissions(
-    group_id="DevOps Team",
+    group_id="LOB5",
     level_type="account",
 )
 
@@ -754,10 +754,10 @@ variables = manager.get_template_variables("group-team")
 
 # Render a template
 rendered = manager.render_template("group-team", {
-    "team_name": "Platform",
-    "description": "Platform team"
+    "team_name": "LOB5",
+    "description": "LOB5 team"
 })
-# {"kind": "Group", "spec": {"name": "Platform", ...}}
+# {"kind": "Group", "spec": {"name": "LOB5", ...}}
 ```
 
 ### Custom Templates
@@ -796,10 +796,10 @@ template = {
 }
 
 result = renderer.render(template, {
-    "team_name": "Platform",
+    "team_name": "LOB5",
     "lead_email": "lead@example.com"
 })
-# {"name": "Platform", "description": "No description", "members": ["lead@example.com"]}
+# {"name": "LOB5", "description": "No description", "members": ["lead@example.com"]}
 ```
 
 ## Authentication
@@ -930,8 +930,8 @@ def main():
 
         # Create a group
         group = group_handler.create(
-            name="Platform Team",
-            description="Platform engineering team",
+            name="LOB5",
+            description="LOB5 team with standard access",
         )
         print(f"Created group: {group['name']}")
 

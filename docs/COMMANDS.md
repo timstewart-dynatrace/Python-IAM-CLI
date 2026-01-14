@@ -572,7 +572,7 @@ dtiam create group [OPTIONS]
 **Example:**
 
 ```bash
-dtiam create group --name "DevOps Team" --description "Platform engineering"
+dtiam create group --name "LOB5" --description "LOB5 team"
 ```
 
 ### create policy
@@ -615,7 +615,7 @@ dtiam create binding [OPTIONS]
 **Example:**
 
 ```bash
-dtiam create binding --group "DevOps Team" --policy "admin-policy"
+dtiam create binding --group "LOB5" --policy "admin-policy"
 ```
 
 ### create boundary
@@ -722,7 +722,7 @@ dtiam user create [OPTIONS]
 ```bash
 dtiam user create --email user@example.com
 dtiam user create --email user@example.com --first-name John --last-name Doe
-dtiam user create --email user@example.com --groups "DevOps,Platform"
+dtiam user create --email user@example.com --groups "LOB5,LOB6"
 ```
 
 ### user delete
@@ -760,7 +760,7 @@ dtiam user add-to-group [OPTIONS]
 **Example:**
 
 ```bash
-dtiam user add-to-group --user admin@example.com --group "DevOps Team"
+dtiam user add-to-group --user admin@example.com --group "LOB5"
 ```
 
 ### user remove-from-group
@@ -812,7 +812,7 @@ dtiam user replace-groups [OPTIONS]
 **Example:**
 
 ```bash
-dtiam user replace-groups --user user@example.com --groups "DevOps,Platform"
+dtiam user replace-groups --user user@example.com --groups "LOB5,LOB6"
 ```
 
 ### user bulk-remove-groups
@@ -832,7 +832,7 @@ dtiam user bulk-remove-groups [OPTIONS]
 **Example:**
 
 ```bash
-dtiam user bulk-remove-groups --user user@example.com --groups "DevOps,Platform"
+dtiam user bulk-remove-groups --user user@example.com --groups "LOB5,LOB6"
 ```
 
 ### user bulk-add-groups
@@ -851,7 +851,7 @@ dtiam user bulk-add-groups [OPTIONS]
 **Example:**
 
 ```bash
-dtiam user bulk-add-groups --user user@example.com --groups "DevOps,Platform"
+dtiam user bulk-add-groups --user user@example.com --groups "LOB5,LOB6"
 ```
 
 ---
@@ -1052,7 +1052,7 @@ dtiam template render NAME [OPTIONS]
 **Example:**
 
 ```bash
-dtiam template render group-team --var team_name=platform --var description="Platform Team"
+dtiam template render group-team --var team_name=LOB5 --var description="LOB5"
 ```
 
 ### template apply
@@ -1071,7 +1071,7 @@ dtiam template apply NAME [OPTIONS]
 **Example:**
 
 ```bash
-dtiam template apply group-team --var team_name=platform
+dtiam template apply group-team --var team_name=LOB5
 ```
 
 ### template save
@@ -1288,8 +1288,8 @@ dtiam analyze effective-group GROUP [OPTIONS]
 **Examples:**
 
 ```bash
-dtiam analyze effective-group "DevOps Team"
-dtiam analyze effective-group "DevOps Team" -o json --export perms.json
+dtiam analyze effective-group "LOB5"
+dtiam analyze effective-group "LOB5" -o json --export perms.json
 ```
 
 ---
@@ -1401,7 +1401,7 @@ dtiam group setup [OPTIONS]
 **Example:**
 
 ```bash
-dtiam group setup --name "DevOps Team" --policy "devops-policy" --boundary "prod-boundary"
+dtiam group setup --name "LOB5" --policy "devops-policy" --boundary "prod-boundary"
 ```
 
 ### group list-bindings
@@ -1443,7 +1443,7 @@ dtiam boundary attach [OPTIONS]
 **Example:**
 
 ```bash
-dtiam boundary attach --group "DevOps" --policy "admin-policy" --boundary "prod-boundary"
+dtiam boundary attach --group "LOB5" --policy "admin-policy" --boundary "prod-boundary"
 ```
 
 ### boundary detach
@@ -1682,7 +1682,7 @@ dtiam service-user create [OPTIONS]
 
 ```bash
 dtiam service-user create --name "CI Pipeline"
-dtiam service-user create --name "CI Pipeline" --groups "DevOps,Automation"
+dtiam service-user create --name "CI Pipeline" --groups "LOB5,LOB6"
 dtiam service-user create --name "CI Pipeline" --save-credentials creds.json
 ```
 
@@ -1738,7 +1738,7 @@ dtiam service-user add-to-group [OPTIONS]
 **Example:**
 
 ```bash
-dtiam service-user add-to-group --user my-service-user --group DevOps
+dtiam service-user add-to-group --user my-service-user --group LOB5
 ```
 
 ### service-user remove-from-group
