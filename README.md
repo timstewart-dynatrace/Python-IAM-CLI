@@ -141,7 +141,7 @@ dtiam get environments
 
 ```bash
 # Describe a group (includes members and policies)
-dtiam describe group "DevOps Team"
+dtiam describe group "LOB5"
 
 # Describe a policy (includes statements)
 dtiam describe policy "admin-policy"
@@ -270,7 +270,7 @@ bash examples/scripts/example_common_workflows.sh
 
 ```bash
 # Add multiple users to a group from CSV
-dtiam bulk add-users-to-group --file examples/bulk/sample_users.csv --group "DevOps Team"
+dtiam bulk add-users-to-group --file examples/bulk/sample_users.csv --group "LOB5"
 
 # Create multiple groups from YAML
 dtiam bulk create-groups --file examples/bulk/sample_groups.yaml
@@ -290,12 +290,12 @@ dtiam template list
 
 # Render a template with variables
 dtiam template render team-setup \
-  --var team_name="Platform" \
+  --var team_name="LOB5" \
   --var policy_level="admin"
 
 # Apply rendered template
 dtiam template apply team-setup \
-  --var team_name="Platform" \
+  --var team_name="LOB5" \
   --var policy_level="admin"
 ```
 
@@ -306,7 +306,7 @@ dtiam template apply team-setup \
 dtiam analyze user-permissions user@example.com
 
 # Get effective permissions for a group
-dtiam analyze group-permissions "DevOps Team"
+dtiam analyze group-permissions "LOB5"
 
 # Generate permissions matrix
 dtiam analyze permissions-matrix -o json > matrix.json
@@ -319,7 +319,7 @@ dtiam analyze permissions-matrix -o json > matrix.json
 dtiam export all --output-dir ./backup
 
 # Export specific group with dependencies
-dtiam export group "DevOps Team" --include-policies --include-members
+dtiam export group "LOB5" --include-policies --include-members
 ```
 
 ### Management Zones (Legacy)

@@ -140,14 +140,14 @@ dtiam get groups -o json
 dtiam get groups -o wide
 
 # Filter by name (partial match)
-dtiam get groups --name "DevOps"
+dtiam get groups --name "LOB5"
 ```
 
 ### Viewing Resource Details
 
 ```bash
 # Describe a group (by name or UUID)
-dtiam describe group "DevOps Team"
+dtiam describe group "LOB5"
 
 # Describe shows:
 # - Basic info (UUID, name, description)
@@ -168,12 +168,12 @@ dtiam describe user admin@company.com
 
 ```bash
 # Simple group creation
-dtiam create group --name "Platform Team"
+dtiam create group --name "LOB5"
 
 # With description
 dtiam create group \
-  --name "Platform Team" \
-  --description "Platform engineering team"
+  --name "LOB5" \
+  --description "LOB5 team with standard access"
 
 # Preview without creating (dry-run)
 dtiam --dry-run create group --name "Test Group"
@@ -184,12 +184,12 @@ dtiam --dry-run create group --name "Test Group"
 ```bash
 # Assign a policy to a group
 dtiam create binding \
-  --group "Platform Team" \
+  --group "LOB5" \
   --policy "developer-policy"
 
 # With boundary restriction
 dtiam create binding \
-  --group "Platform Team" \
+  --group "LOB5" \
   --policy "admin-policy" \
   --boundary "production-boundary"
 ```
@@ -205,7 +205,7 @@ dtiam delete group "Test Group" --force
 
 # Delete a binding
 dtiam delete binding \
-  --group "Platform Team" \
+  --group "LOB5" \
   --policy "developer-policy"
 ```
 
@@ -220,7 +220,7 @@ dtiam user create \
   --email user@example.com \
   --first-name John \
   --last-name Doe \
-  --groups "DevOps Team,Platform Team"
+  --groups "LOB5,LOB6"
 
 # Delete a user
 dtiam user delete user@example.com
@@ -229,10 +229,10 @@ dtiam user delete user@example.com
 dtiam user delete user@example.com --force
 
 # Add a user to a group
-dtiam user add-to-group --user user@example.com --group "DevOps Team"
+dtiam user add-to-group --user user@example.com --group "LOB5"
 
 # Remove from group
-dtiam user remove-from-group --user user@example.com --group "DevOps Team"
+dtiam user remove-from-group --user user@example.com --group "LOB5"
 
 # List user's groups
 dtiam user list-groups user@example.com
@@ -256,7 +256,7 @@ dtiam service-user create --name "CI Pipeline"
 dtiam service-user create \
   --name "CI Pipeline" \
   --description "CI/CD automation" \
-  --groups "DevOps,Automation" \
+  --groups "LOB5,LOB6" \
   --save-credentials creds.json
 
 # View service user details
@@ -266,10 +266,10 @@ dtiam service-user get "CI Pipeline"
 dtiam service-user update "CI Pipeline" --description "Updated description"
 
 # Add to group
-dtiam service-user add-to-group --user "CI Pipeline" --group DevOps
+dtiam service-user add-to-group --user "CI Pipeline" --group LOB5
 
 # Remove from group
-dtiam service-user remove-from-group --user "CI Pipeline" --group DevOps
+dtiam service-user remove-from-group --user "CI Pipeline" --group LOB5
 
 # List groups
 dtiam service-user list-groups "CI Pipeline"
@@ -318,7 +318,7 @@ user3@example.com
 ```
 
 ```bash
-dtiam bulk add-users --group "DevOps Team" --file users.csv
+dtiam bulk add-users --group "LOB5" --file users.csv
 ```
 
 #### Create Multiple Resources
@@ -379,12 +379,12 @@ resources:
 ```bash
 # Preview the rendered template
 dtiam template render team-onboard \
-  --var team_name="Platform" \
+  --var team_name="LOB5" \
   --var team_lead="lead@example.com"
 
 # Apply the template
 dtiam template apply team-onboard \
-  --var team_name="Platform" \
+  --var team_name="LOB5" \
   --var team_lead="lead@example.com"
 ```
 
@@ -399,7 +399,7 @@ Query the Dynatrace resolution API for effective permissions:
 dtiam analyze effective-user admin@example.com
 
 # Get effective permissions for a group
-dtiam analyze effective-group "DevOps Team"
+dtiam analyze effective-group "LOB5"
 
 # Filter by services
 dtiam analyze effective-user admin@example.com --services "settings,automation"
@@ -429,7 +429,7 @@ dtiam analyze user-permissions admin@example.com -o json
 #### Group Effective Permissions
 
 ```bash
-dtiam analyze group-permissions "DevOps Team"
+dtiam analyze group-permissions "LOB5"
 ```
 
 #### Permissions Matrix
@@ -479,7 +479,7 @@ dtiam export all --output-dir ./iam-backup
 
 ```bash
 # Export a single group with dependencies
-dtiam export group "DevOps Team" \
+dtiam export group "LOB5" \
   --include-policies \
   --include-members \
   -o yaml > devops-team.yaml
@@ -491,12 +491,12 @@ dtiam export group "DevOps Team" \
 
 ```bash
 # Clone with policies but not members
-dtiam group clone "DevOps Team" \
-  --new-name "DevOps Team - Staging"
+dtiam group clone "LOB5" \
+  --new-name "LOB5 - Staging"
 
 # Clone with members
-dtiam group clone "DevOps Team" \
-  --new-name "DevOps Team - Copy" \
+dtiam group clone "LOB5" \
+  --new-name "LOB5 - Copy" \
   --include-members
 ```
 
@@ -514,13 +514,13 @@ dtiam group setup "New Team" \
 ```bash
 # Attach a boundary to a binding
 dtiam boundary attach \
-  --group "DevOps Team" \
+  --group "LOB5" \
   --policy "admin-policy" \
   --boundary "production-boundary"
 
 # Detach a boundary
 dtiam boundary detach \
-  --group "DevOps Team" \
+  --group "LOB5" \
   --policy "admin-policy" \
   --boundary "production-boundary"
 

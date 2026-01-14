@@ -83,7 +83,7 @@ Sample files for bulk CLI operations:
 
 ```bash
 # Add multiple users to a group
-dtiam bulk add-users-to-group --file examples/bulk/sample_users.csv --group "DevOps Team"
+dtiam bulk add-users-to-group --file examples/bulk/sample_users.csv --group "LOB5"
 
 # Create multiple groups
 dtiam bulk create-groups --file examples/bulk/sample_groups.yaml
@@ -222,7 +222,7 @@ dtiam template list
 dtiam template save my-template --kind Group --file examples/templates/group-team.yaml
 
 # Apply template with variables
-dtiam template apply group-team --var team_name=platform --var description="Platform Team"
+dtiam template apply group-team --var team_name=LOB5 --var description="LOB5 team"
 ```
 
 ### `scripts/` - Shell Script Examples
