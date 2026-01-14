@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.8.0] - 2026-01-14
+
+### Fixed
+- **SubscriptionHandler now properly inherits from ResourceHandler** (was standalone class)
+  - Now uses `_handle_error()` for consistent error handling
+  - Uses `api_path` property pattern consistent with other handlers
+  - Added `resource_name`, `id_field` properties
+
+### Added
+- New column definitions in output.py for table formatting:
+  - `service_user_columns()` for service user resources
+  - `limit_columns()` for account limit resources
+  - `subscription_columns()` for subscription resources
+  - `zone_columns()` for management zone resources (legacy)
+
+### Tests
+- Added comprehensive test coverage for ZoneHandler (6 tests):
+  - list, get, get_by_name, get_by_name_not_found
+  - list_requires_environment_url, compare_with_groups
+- Extended EnvironmentHandler tests (3 new tests)
+- Extended ServiceUserHandler tests (4 new tests):
+  - get, update, delete, add_to_group
+- Extended SubscriptionHandler tests (4 new tests):
+  - get, get_forecast, get_usage, get_capabilities
+- Extended BindingHandler tests (3 new tests):
+  - create_or_update, add_boundary, remove_boundary
+- Total test count increased from 221 to 241
+
+### Changed
+- User-Agent bumped to dtiam/3.8.0
+
 ## [3.7.0] - 2026-01-14
 
 ### Added
@@ -219,7 +250,8 @@ No unreleased changes yet.
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.7.0...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.8.0...HEAD
+[3.8.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.7.0...v3.8.0
 [3.7.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.4...v3.5.0

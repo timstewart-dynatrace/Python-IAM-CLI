@@ -300,3 +300,55 @@ def schema_columns() -> list[Column]:
         Column("displayName", "DISPLAY NAME"),
         Column("latestSchemaVersion", "VERSION", wide_only=True),
     ]
+
+
+def service_user_columns() -> list[Column]:
+    """Column definitions for IAM service user (OAuth client) resources."""
+    return [
+        Column("uid", "UID"),
+        Column("name", "NAME"),
+        Column("description", "DESCRIPTION"),
+        Column(
+            "groups",
+            "GROUPS",
+            wide_only=True,
+            formatter=lambda x: str(len(x)) if x else "0",
+        ),
+    ]
+
+
+def limit_columns() -> list[Column]:
+    """Column definitions for account limit resources."""
+    return [
+        Column("name", "NAME"),
+        Column("current", "CURRENT"),
+        Column("max", "MAX"),
+        Column(
+            "usage_percent",
+            "USAGE %",
+            wide_only=True,
+            formatter=lambda x: f"{x}%" if x is not None else "-",
+        ),
+    ]
+
+
+def subscription_columns() -> list[Column]:
+    """Column definitions for subscription resources."""
+    return [
+        Column("uuid", "UUID"),
+        Column("name", "NAME"),
+        Column("type", "TYPE"),
+        Column("status", "STATUS"),
+        Column("startTime", "START", wide_only=True),
+        Column("endTime", "END", wide_only=True),
+    ]
+
+
+def zone_columns() -> list[Column]:
+    """Column definitions for management zone resources (legacy)."""
+    return [
+        Column("id", "ID"),
+        Column("name", "NAME"),
+        Column("environmentId", "ENV ID", wide_only=True),
+        Column("environmentName", "ENV NAME", wide_only=True),
+    ]

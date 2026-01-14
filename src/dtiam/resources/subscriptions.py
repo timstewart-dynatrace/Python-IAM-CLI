@@ -7,10 +7,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from dtiam.client import APIError, Client
+from dtiam.client import APIError
+from dtiam.resources.base import ResourceHandler
 
 
-class SubscriptionHandler:
+class SubscriptionHandler(ResourceHandler[Any]):
     """Handler for subscription resources.
 
     Subscriptions provide information about account billing,
@@ -19,13 +20,18 @@ class SubscriptionHandler:
     Note: Uses a different base URL than IAM resources.
     """
 
-    def __init__(self, client: Client):
-        self.client = client
+    @property
+    def resource_name(self) -> str:
+        return "subscription"
 
     @property
-    def base_url(self) -> str:
+    def api_path(self) -> str:
         """Subscription API base URL."""
-        return f"https://api.dynatrace.com/sub/v2/accounts/{self.client.account_uuid}"
+        return f"https://api.dynatrace.com/sub/v2/accounts/{self.client.account_uuid}/subscriptions"
+
+    @property
+    def id_field(self) -> str:
+        return "uuid"
 
     def list(self, **params: Any) -> list[dict[str, Any]]:
         """List all subscriptions for the account.
@@ -34,7 +40,7 @@ class SubscriptionHandler:
             List of subscription dictionaries
         """
         try:
-            response = self.client.request("GET", f"{self.base_url}/subscriptions", params=params)
+            response = self.client.request("GET", self.api_path, params=params)
             data = response.json()
 
             if isinstance(data, dict):
@@ -42,8 +48,7 @@ class SubscriptionHandler:
             return data if isinstance(data, list) else []
 
         except APIError as e:
-            if self.client.verbose:
-                print(f"Error listing subscriptions: {e}")
+            self._handle_error("list", e)
             return []
 
     def get(self, subscription_uuid: str) -> dict[str, Any]:
@@ -56,14 +61,10 @@ class SubscriptionHandler:
             Subscription dictionary
         """
         try:
-            response = self.client.request(
-                "GET",
-                f"{self.base_url}/subscriptions/{subscription_uuid}"
-            )
+            response = self.client.request("GET", f"{self.api_path}/{subscription_uuid}")
             return response.json()
         except APIError as e:
-            if self.client.verbose:
-                print(f"Error getting subscription: {e}")
+            self._handle_error("get", e)
             return {}
 
     def get_by_name(self, name: str) -> dict[str, Any] | None:
@@ -92,15 +93,14 @@ class SubscriptionHandler:
         """
         try:
             if subscription_uuid:
-                path = f"{self.base_url}/subscriptions/{subscription_uuid}/forecast"
+                path = f"{self.api_path}/{subscription_uuid}/forecast"
             else:
-                path = f"{self.base_url}/subscriptions/forecast"
+                path = f"{self.api_path}/forecast"
 
             response = self.client.request("GET", path)
             return response.json()
         except APIError as e:
-            if self.client.verbose:
-                print(f"Error getting forecast: {e}")
+            self._handle_error("get_forecast", e)
             return {}
 
     def get_usage(self, subscription_uuid: str) -> dict[str, Any]:

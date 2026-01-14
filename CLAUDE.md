@@ -112,7 +112,7 @@ git push
 
 **ALL merges to main that add features or fixes MUST increment the version number.**
 
-Current version: **3.7.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
+Current version: **3.8.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
 
 #### Semantic Versioning (SemVer)
 
