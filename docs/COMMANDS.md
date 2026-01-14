@@ -329,7 +329,7 @@ dtiam get policies --level account
 dtiam get policies --level global
 
 # List policies for a specific environment
-dtiam get policies --level yhu28601
+dtiam get policies --level abc12345
 ```
 
 Aliases: `get policy`
@@ -371,7 +371,7 @@ dtiam get bindings --level account
 dtiam get bindings --group 12345678-1234-1234-1234-123456789abc
 
 # List bindings for a specific environment
-dtiam get bindings --level yhu28601
+dtiam get bindings --level abc12345
 ```
 
 Aliases: `get binding`
@@ -952,10 +952,10 @@ dtiam bulk create-groups-with-policies [OPTIONS]
 
 ```csv
 group_name,policy_name,level,level_id,management_zones,boundary_name,description
-LOB5-TEST,Standard User - Config,account,,,,LOB5 test team - global read access
-LOB5-TEST,ALL SETTINGS DUDE,environment,yhu28601,LOB5,LOB5-TEST-Boundary,LOB5 restricted write
-LOB6-TEST,Standard User - Config,account,,,,LOB6 test team - global read access
-LOB6-TEST,ALL SETTINGS DUDE,environment,yhu28601,LOB6,LOB6-TEST-Boundary,LOB6 restricted write
+LOB5,Standard User - Config,account,,,,LOB5 team - global read access (account level)
+LOB5,Pro User,environment,abc12345,LOB5,LOB5-Boundary,LOB5 team - restricted write access (environment level)
+LOB6,Standard User - Config,account,,,,LOB6 team - global read access (account level)
+LOB6,Pro User,environment,abc12345,LOB6,LOB6-Boundary,LOB6 team - restricted write access (environment level)
 ```
 
 **Example Usage:**
