@@ -290,6 +290,52 @@ class BoundaryHandler(ResourceHandler[Any]):
         operator = "NOT IN" if exclude else "IN"
         return f'shared:app-id {operator} ({app_list});'
 
+    def _build_schema_query(self, schema_ids: list[str], exclude: bool = False) -> str:
+        """Build a boundary query from schema IDs.
+
+        Creates a settings:schemaId condition to restrict access to specific schemas.
+
+        Args:
+            schema_ids: List of schema IDs (e.g., "builtin:alerting.profile")
+            exclude: If True, use NOT IN instead of IN
+
+        Returns:
+            Boundary query string like: settings:schemaId IN ("schema1", "schema2");
+        """
+        if not schema_ids:
+            raise ValueError("At least one schema ID is required")
+
+        schema_list = ', '.join(f'"{schema_id}"' for schema_id in schema_ids)
+        operator = "NOT IN" if exclude else "IN"
+        return f'settings:schemaId {operator} ({schema_list});'
+
+    def create_from_schemas(
+        self,
+        name: str,
+        schema_ids: list[str],
+        exclude: bool = False,
+        description: str | None = None,
+    ) -> dict[str, Any]:
+        """Create a boundary from schema IDs.
+
+        Convenience method that builds the settings:schemaId boundary query.
+
+        Args:
+            name: Boundary name
+            schema_ids: List of schema IDs (e.g., "builtin:alerting.profile")
+            exclude: If True, use NOT IN instead of IN
+            description: Optional description
+
+        Returns:
+            Created boundary dictionary
+        """
+        query = self._build_schema_query(schema_ids, exclude)
+        return self.create(
+            name=name,
+            boundary_query=query,
+            description=description,
+        )
+
     def get_attached_policies(self, boundary_id: str) -> list[dict[str, Any]]:
         """Get policies that use this boundary.
 

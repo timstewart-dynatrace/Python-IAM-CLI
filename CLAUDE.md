@@ -112,7 +112,7 @@ git push
 
 **ALL merges to main that add features or fixes MUST increment the version number.**
 
-Current version: **3.6.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
+Current version: **3.7.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
 
 #### Semantic Versioning (SemVer)
 
@@ -583,6 +583,23 @@ Create app boundaries with validation:
 dtiam boundary create-app-boundary "AppBoundary" \
   --app-id "dynatrace.dashboards" \
   --app-id "dynatrace.logs" \
+  -e "$DTIAM_ENVIRONMENT_URL"
+```
+
+**Schema ID Boundaries:**
+```python
+# Allow specific schemas only (IN)
+settings:schemaId IN ("builtin:alerting.profile", "builtin:alerting.maintenance-window");
+
+# Exclude specific schemas (NOT IN)
+settings:schemaId NOT IN ("builtin:span-attribute", "builtin:span-capture-rule");
+```
+
+Create schema boundaries with validation:
+```bash
+dtiam boundary create-schema-boundary "SchemaBoundary" \
+  --schema-id "builtin:alerting.profile" \
+  --schema-id "builtin:alerting.maintenance-window" \
   -e "$DTIAM_ENVIRONMENT_URL"
 ```
 

@@ -287,3 +287,16 @@ def app_columns() -> list[Column]:
         Column("version", "VERSION"),
         Column("description", "DESCRIPTION", wide_only=True),
     ]
+
+
+def schema_columns() -> list[Column]:
+    """Column definitions for Settings 2.0 schema resources.
+
+    Schema IDs can be used in boundary conditions like:
+        settings:schemaId = "builtin:alerting.profile";
+    """
+    return [
+        Column("schemaId", "SCHEMA ID"),
+        Column("displayName", "DISPLAY NAME"),
+        Column("latestSchemaVersion", "VERSION", wide_only=True),
+    ]

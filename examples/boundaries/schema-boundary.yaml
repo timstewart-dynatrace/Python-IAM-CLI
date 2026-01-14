@@ -1,0 +1,78 @@
+# Schema Boundary Example
+# Creates a boundary restricting access to specific Settings 2.0 schemas
+#
+# Use with: dtiam boundary create-schema-boundary
+#
+# This example shows how to create boundaries using settings:schemaId conditions
+# to control which settings schemas users can access/modify.
+
+# Example 1: Allow only alerting schemas (IN condition)
+# This restricts settings access to only the listed schemas
+name: alerting-only
+description: Access to alerting-related settings only
+schema_ids:
+  - builtin:alerting.profile
+  - builtin:alerting.maintenance-window
+  - builtin:problem.notifications
+operator: IN
+
+# Command to create:
+# dtiam boundary create-schema-boundary "alerting-only" \
+#   --schema-id "builtin:alerting.profile" \
+#   --schema-id "builtin:alerting.maintenance-window" \
+#   --schema-id "builtin:problem.notifications" \
+#   -e "$DTIAM_ENVIRONMENT_URL" \
+#   --description "Access to alerting-related settings only"
+
+---
+
+# Example 2: Exclude span/trace settings (NOT IN condition)
+# This allows access to all schemas EXCEPT the listed ones
+name: no-span-settings
+description: Exclude access to span and trace configuration settings
+schema_ids:
+  - builtin:span-attribute
+  - builtin:span-capture-rule
+  - builtin:span-entry-points
+  - builtin:span-event-attribute
+operator: NOT IN
+
+# Command to create:
+# dtiam boundary create-schema-boundary "no-span-settings" \
+#   --schema-id "builtin:span-attribute" \
+#   --schema-id "builtin:span-capture-rule" \
+#   --schema-id "builtin:span-entry-points" \
+#   --schema-id "builtin:span-event-attribute" \
+#   --not-in \
+#   -e "$DTIAM_ENVIRONMENT_URL" \
+#   --description "Exclude access to span and trace configuration settings"
+
+---
+
+# Example 3: Using a file for schema IDs
+# Create a file with schema IDs (one per line) and reference it
+#
+# File: schema-ids.txt
+# builtin:alerting.profile
+# builtin:alerting.maintenance-window
+# # Comments are supported
+# builtin:problem.notifications
+#
+# Command:
+# dtiam boundary create-schema-boundary "from-file" \
+#   --file schema-ids.txt \
+#   -e "$DTIAM_ENVIRONMENT_URL"
+
+---
+
+# Example 4: Searching for schemas first
+# Use 'get schemas' to find schema IDs before creating a boundary
+#
+# # Search for all alerting-related schemas
+# dtiam get schemas -e "$DTIAM_ENVIRONMENT_URL" --search alerting
+#
+# # Get all builtin schema IDs
+# dtiam get schemas -e "$DTIAM_ENVIRONMENT_URL" --ids --builtin
+#
+# # Get specific schema details
+# dtiam get schemas builtin:alerting.profile -e "$DTIAM_ENVIRONMENT_URL"

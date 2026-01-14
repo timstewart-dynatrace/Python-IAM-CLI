@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.7.0] - 2026-01-14
+
+### Added
+- New `get schemas` command for listing Settings 2.0 schemas from Environment API
+  - Supports `--ids` flag to output only schema IDs
+  - Supports `--builtin` flag to filter to builtin schemas only
+  - Supports `--search` pattern to filter by schema ID or display name
+  - Requires environment URL via `--environment` or stored in context
+  - Requires environment token with `settings.read` scope
+- New `boundary create-schema-boundary` command for creating schema-id based boundaries
+  - Creates boundaries with `settings:schemaId IN (...)` or `settings:schemaId NOT IN (...)` conditions
+  - Validates schema IDs against the Settings API before creating
+  - Supports `--schema-id` flag (repeatable) for specifying schema IDs
+  - Supports `--file` option for loading schema IDs from a file
+  - Supports `--not-in` flag to use NOT IN instead of IN (exclude schemas)
+  - Supports `--skip-validation` to bypass schema ID validation
+- New `SchemaHandler` resource handler for Settings 2.0 schemas
+  - `validate_schema_ids()` method for validating schema IDs against environment
+  - `get_builtin_ids()` method for filtering to builtin schemas
+  - `search()` method for pattern-based schema filtering
+- Added `_build_schema_query()` method to `BoundaryHandler` for building schema-id boundary queries
+- Added `create_from_schemas()` convenience method to `BoundaryHandler`
+- Added `schema_columns()` function to output.py for table formatting
+
+### Documentation
+- Added schema boundary examples to `examples/boundaries/schema-boundary.yaml`
+- Updated COMMANDS.md with `get schemas` and `boundary create-schema-boundary` reference
+- Updated CLAUDE.md with schema-id boundary query format and Settings API endpoint
+
+### Changed
+- User-Agent bumped to dtiam/3.7.0
+
 ## [3.6.0] - 2026-01-14
 
 ### Added
@@ -187,7 +219,9 @@ No unreleased changes yet.
 - Comprehensive documentation and examples
 - Automated installation scripts for macOS/Linux/Windows
 
-[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.5.0...HEAD
+[Unreleased]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.7.0...HEAD
+[3.7.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.6.0...v3.7.0
+[3.6.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.4...v3.5.0
 [3.4.4]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.3...v3.4.4
 [3.4.3]: https://github.com/timstewart-dynatrace/Python-IAM-CLI/compare/v3.4.2...v3.4.3

@@ -447,6 +447,47 @@ export DTIAM_ENVIRONMENT_URL=abc12345.apps.dynatrace.com
 dtiam get apps
 ```
 
+### get schemas
+
+List or get Settings 2.0 schemas from the Environment API.
+
+```bash
+dtiam get schemas [IDENTIFIER] [OPTIONS]
+```
+
+| Argument/Option   | Short | Description                                     |
+| ----------------- | ----- | ----------------------------------------------- |
+| `IDENTIFIER`      |       | Schema ID or display name (optional)            |
+| `--environment`   | `-e`  | Environment ID or URL (required)                |
+| `--ids`           |       | Output only schema IDs (for use in boundaries)  |
+| `--builtin`       |       | Show only builtin schemas                       |
+| `--search`        | `-s`  | Search by schema ID or display name             |
+| `--output`        | `-o`  | Output format                                   |
+
+Aliases: `get schema`
+
+**Notes:**
+- Requires an environment URL via `--environment` or `DTIAM_ENVIRONMENT_URL`
+- Requires an environment API token via `DTIAM_ENVIRONMENT_TOKEN` with `settings.read` scope
+- Schema IDs can be used in boundary conditions: `settings:schemaId = "builtin:alerting.profile";`
+- Environment can be specified as ID (e.g., `abc12345`) or full URL (e.g., `abc12345.live.dynatrace.com`)
+
+**Examples:**
+
+```bash
+# List all schemas in an environment
+dtiam get schemas -e abc12345.live.dynatrace.com
+
+# Get only builtin schema IDs
+dtiam get schemas -e abc12345 --ids --builtin
+
+# Search for alerting-related schemas
+dtiam get schemas -e abc12345 --search alerting
+
+# Get specific schema details
+dtiam get schemas builtin:alerting.profile -e abc12345
+```
+
 ---
 
 ## describe
@@ -1475,6 +1516,50 @@ dtiam boundary create-app-boundary "Custom" \
 The generated boundary query format:
 - **IN**: `shared:app-id IN ("app1", "app2");`
 - **NOT IN**: `shared:app-id NOT IN ("app1", "app2");`
+
+### boundary create-schema-boundary
+
+Create a boundary restricting access to specific settings schemas using `settings:schemaId` conditions.
+
+```bash
+dtiam boundary create-schema-boundary NAME [OPTIONS]
+```
+
+| Option              | Short | Description                                          |
+| ------------------- | ----- | ---------------------------------------------------- |
+| `--schema-id`       | `-s`  | Schema ID to include (repeatable)                    |
+| `--file`            | `-f`  | File with schema IDs (one per line)                  |
+| `--not-in`          |       | Use NOT IN instead of IN (exclude schemas)           |
+| `--environment`     | `-e`  | Environment URL for schema validation                |
+| `--description`     | `-d`  | Boundary description                                 |
+| `--skip-validation` |       | Skip schema ID validation against environment        |
+| `--output`          | `-o`  | Output format                                        |
+
+**Examples:**
+
+```bash
+# Allow access to specific schemas only
+dtiam boundary create-schema-boundary "AlertingOnly" \
+  --schema-id "builtin:alerting.profile" \
+  --schema-id "builtin:alerting.maintenance-window" \
+  -e "abc12345.live.dynatrace.com"
+
+# Exclude specific schemas (NOT IN)
+dtiam boundary create-schema-boundary "NoSpanSettings" \
+  --schema-id "builtin:span-attribute" \
+  --schema-id "builtin:span-capture-rule" \
+  --not-in \
+  -e "abc12345.live.dynatrace.com"
+
+# Load schema IDs from file
+dtiam boundary create-schema-boundary "FromFile" \
+  --file schema-ids.txt \
+  -e "abc12345.live.dynatrace.com"
+```
+
+The generated boundary query format:
+- **IN**: `settings:schemaId IN ("builtin:alerting.profile", "builtin:span-attribute");`
+- **NOT IN**: `settings:schemaId NOT IN ("builtin:span-attribute");`
 
 ---
 
