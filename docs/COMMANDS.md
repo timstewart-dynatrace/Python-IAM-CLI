@@ -384,10 +384,18 @@ List or get Dynatrace environments.
 dtiam get environments [IDENTIFIER] [OPTIONS]
 ```
 
-| Argument/Option | Short | Description                       |
-| --------------- | ----- | --------------------------------- |
-| `IDENTIFIER`    |       | Environment ID or name (optional) |
-| `--output`      | `-o`  | Output format                     |
+| Argument/Option | Short | Description                           |
+| --------------- | ----- | ------------------------------------- |
+| `IDENTIFIER`    |       | Environment ID or name (optional)     |
+| `--name`        | `-n`  | Filter by name (partial match)        |
+| `--output`      | `-o`  | Output format                         |
+
+**Examples:**
+
+```bash
+# Filter environments by name
+dtiam get environments --name Prod
+```
 
 Aliases: `get envs`, `get env`
 
@@ -418,6 +426,7 @@ dtiam get apps [IDENTIFIER] [OPTIONS]
 | Argument/Option   | Short | Description                                     |
 | ----------------- | ----- | ----------------------------------------------- |
 | `IDENTIFIER`      |       | App ID or name (optional)                       |
+| `--name`          | `-n`  | Filter by name (partial match)                  |
 | `--environment`   | `-e`  | Environment ID or URL (required)                |
 | `--ids`           |       | Output only app IDs (for use in policies)       |
 | `--output`        | `-o`  | Output format                                   |
@@ -458,10 +467,11 @@ dtiam get schemas [IDENTIFIER] [OPTIONS]
 | Argument/Option   | Short | Description                                     |
 | ----------------- | ----- | ----------------------------------------------- |
 | `IDENTIFIER`      |       | Schema ID or display name (optional)            |
+| `--name`          | `-n`  | Filter by name (partial match on ID or name)    |
 | `--environment`   | `-e`  | Environment ID or URL (required)                |
 | `--ids`           |       | Output only schema IDs (for use in boundaries)  |
 | `--builtin`       |       | Show only builtin schemas                       |
-| `--search`        | `-s`  | Search by schema ID or display name             |
+| `--search`        | `-s`  | Alias for `--name` (backward compatibility)     |
 | `--output`        | `-o`  | Output format                                   |
 
 Aliases: `get schema`
@@ -487,6 +497,35 @@ dtiam get schemas -e abc12345 --search alerting
 # Get specific schema details
 dtiam get schemas builtin:alerting.profile -e abc12345
 ```
+
+### get service-users
+
+List or get IAM service users (OAuth clients).
+
+```bash
+dtiam get service-users [IDENTIFIER] [OPTIONS]
+```
+
+| Argument/Option | Short | Description                              |
+| --------------- | ----- | ---------------------------------------- |
+| `IDENTIFIER`    |       | Service user UUID or name (optional)     |
+| `--name`        | `-n`  | Filter by name (partial match)           |
+| `--output`      | `-o`  | Output format                            |
+
+**Examples:**
+
+```bash
+# List all service users
+dtiam get service-users
+
+# Filter service users by name
+dtiam get service-users --name pipeline
+
+# Get specific service user details
+dtiam get service-users my-service-user
+```
+
+Aliases: `get service-user`
 
 ---
 

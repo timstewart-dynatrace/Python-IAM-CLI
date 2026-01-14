@@ -19,6 +19,7 @@ from dtiam.output import (
     environment_columns,
     boundary_columns,
     app_columns,
+    service_user_columns,
 )
 
 app = typer.Typer(no_args_is_help=True)
@@ -347,6 +348,7 @@ def get_bindings(
 @app.command("env")
 def get_environments(
     identifier: Optional[str] = typer.Argument(None, help="Environment ID or name"),
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name (partial match)"),
     output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List or get Dynatrace environments (tenants)."""
@@ -372,6 +374,8 @@ def get_environments(
         else:
             # List environments
             results = handler.list()
+            if name:
+                results = [e for e in results if name.lower() in e.get("name", "").lower()]
             printer.print(results, environment_columns())
     finally:
         client.close()
@@ -418,6 +422,7 @@ def get_boundaries(
 @app.command("app")
 def get_apps(
     identifier: Optional[str] = typer.Argument(None, help="App ID or name"),
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name (partial match)"),
     environment: Optional[str] = typer.Option(
         None, "--environment", "-e", help="Environment ID or URL (e.g., abc12345 or abc12345.apps.dynatrace.com)"
     ),
@@ -484,6 +489,8 @@ def get_apps(
         else:
             # List apps
             results = handler.list()
+            if name:
+                results = [a for a in results if name.lower() in a.get("name", "").lower()]
             printer.print(results, app_columns())
     finally:
         client.close()
@@ -493,12 +500,13 @@ def get_apps(
 @app.command("schema")
 def get_schemas(
     identifier: Optional[str] = typer.Argument(None, help="Schema ID or display name"),
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name (partial match on ID or display name)"),
     environment: Optional[str] = typer.Option(
         None, "--environment", "-e", help="Environment ID or URL (e.g., abc12345 or abc12345.live.dynatrace.com)"
     ),
     ids_only: bool = typer.Option(False, "--ids", help="Output only schema IDs (for use in boundaries)"),
     builtin_only: bool = typer.Option(False, "--builtin", help="Show only builtin schemas"),
-    search: Optional[str] = typer.Option(None, "--search", "-s", help="Search by schema ID or display name"),
+    search: Optional[str] = typer.Option(None, "--search", "-s", help="Search by schema ID or display name (alias for --name)"),
     output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List or get Settings 2.0 schemas from the Environment API.
@@ -543,6 +551,9 @@ def get_schemas(
 
         handler = SchemaHandler(client, env_url)
 
+        # Use name or search (search is alias for backward compatibility)
+        filter_term = name or search
+
         if ids_only:
             # Output just the IDs for easy copy-paste into boundaries
             if builtin_only:
@@ -554,13 +565,6 @@ def get_schemas(
             else:
                 for schema_id in schema_ids:
                     console.print(schema_id)
-        elif search:
-            # Search schemas
-            results = handler.search(search)
-            if not results:
-                console.print(f"[yellow]No schemas found matching '{search}'[/yellow]")
-                raise typer.Exit(0)
-            printer.print(results, schema_columns())
         elif identifier:
             # Try to resolve by ID or name
             result = handler.get(identifier)
@@ -575,6 +579,49 @@ def get_schemas(
             results = handler.list()
             if builtin_only:
                 results = [s for s in results if s.get("schemaId", "").startswith("builtin:")]
+            if filter_term:
+                # Filter by schema ID or display name
+                results = handler.search(filter_term)
             printer.print(results, schema_columns())
+    finally:
+        client.close()
+
+
+@app.command("service-users")
+@app.command("service-user")
+def get_service_users(
+    identifier: Optional[str] = typer.Argument(None, help="Service user UUID or name"),
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name (partial match)"),
+    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+) -> None:
+    """List or get IAM service users (OAuth clients).
+
+    Service users are used for automation and API access.
+    """
+    from dtiam.resources.service_users import ServiceUserHandler
+
+    config = load_config()
+    client = create_client_from_config(config, get_context(), is_verbose())
+    handler = ServiceUserHandler(client)
+
+    fmt = output or get_output_format()
+    printer = Printer(format=fmt, plain=is_plain_mode())
+
+    try:
+        if identifier:
+            # Try to resolve by UUID or name
+            result = handler.get(identifier)
+            if not result:
+                result = handler.get_by_name(identifier)
+            if not result:
+                console.print(f"[red]Error:[/red] Service user '{identifier}' not found.")
+                raise typer.Exit(1)
+            printer.print(result)
+        else:
+            # List service users
+            results = handler.list()
+            if name:
+                results = [s for s in results if name.lower() in s.get("name", "").lower()]
+            printer.print(results, service_user_columns())
     finally:
         client.close()
