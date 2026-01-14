@@ -5,7 +5,7 @@
 #
 # Usage:
 #   dtiam template save boundary-zone --kind Boundary --file examples/templates/boundary-zone.yaml
-#   dtiam template apply boundary-zone --var boundary_name=prod-boundary --var zones="Production,Staging"
+#   dtiam template apply boundary-zone --var boundary_name=LOB5-Boundary --var zones="LOB5"
 
 kind: Boundary
 metadata:

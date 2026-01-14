@@ -5,7 +5,7 @@
 #
 # Usage:
 #   dtiam template save group-team --kind Group --file examples/templates/group-team.yaml
-#   dtiam template apply group-team --var team_name=Platform --var description="Platform Team"
+#   dtiam template apply group-team --var team_name=LOB5 --var description="LOB5 team"
 
 kind: Group
 metadata:
@@ -15,7 +15,7 @@ metadata:
 # Template variables (required when applying)
 variables:
   - name: team_name
-    description: Name of the team (e.g., Platform, Frontend, Backend)
+    description: Name of the team (e.g., LOB5, LOB6, LOB7)
     required: true
   - name: description
     description: Group description
@@ -24,5 +24,5 @@ variables:
 
 # Resource specification
 spec:
-  name: "{{ team_name }}-Team"
+  name: "{{ team_name }}"
   description: "{{ description }}"

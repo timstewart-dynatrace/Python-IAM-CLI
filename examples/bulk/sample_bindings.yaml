@@ -4,22 +4,22 @@
 # Note: Groups and policies must exist before creating bindings.
 # Use group/policy names or UUIDs.
 
-# Standard viewer access for all teams
-- group: "Frontend-Team"
-  policy: "Standard User"
+# Standard viewer access for LOB teams
+- group: "LOB5"
+  policy: "Standard User - Config"
 
-- group: "Backend-Team"
-  policy: "Standard User"
+- group: "LOB6"
+  policy: "Standard User - Config"
 
-# Pro access for SRE team
-- group: "SRE-Team"
+- group: "LOB7"
+  policy: "Standard User - Config"
+
+# Pro access for LOB8 (with boundary restriction)
+- group: "LOB8"
   policy: "Pro User"
+  boundary: "LOB8-Boundary"  # Optional: restrict to specific zones
 
-# Admin access for Platform team (with boundary restriction)
-- group: "Platform-Team"
-  policy: "Admin User"
-  boundary: "production-boundary"  # Optional: restrict to specific zones
-
-# Security team with read-only access
-- group: "Security-Team"
-  policy: "viewer-policy"
+# Pro access for LOB9 (with boundary restriction)
+- group: "LOB9"
+  policy: "Pro User"
+  boundary: "LOB9-Boundary"
