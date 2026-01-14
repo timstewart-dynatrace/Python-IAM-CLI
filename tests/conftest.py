@@ -250,3 +250,25 @@ def sample_subscriptions() -> list[dict[str, Any]]:
         },
     ]
 
+
+@pytest.fixture
+def sample_zones() -> list[dict[str, Any]]:
+    """Sample management zones response."""
+    return [
+        {
+            "id": "zone-1",
+            "name": "Production",
+            "rules": [],
+        },
+        {
+            "id": "zone-2",
+            "name": "Staging",
+            "rules": [],
+        },
+        {
+            "id": "zone-3",
+            "name": "Development",
+            "rules": [],
+        },
+    ]
+

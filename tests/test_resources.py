@@ -18,6 +18,7 @@ from dtiam.resources.limits import AccountLimitsHandler
 from dtiam.resources.subscriptions import SubscriptionHandler
 from dtiam.resources.apps import AppHandler
 from dtiam.resources.schemas import SchemaHandler
+from dtiam.resources.zones import ZoneHandler
 
 
 class TestGroupHandler:
@@ -854,3 +855,260 @@ class TestSchemaHandler:
 
             assert len(results) == 2
             assert all("alerting" in s["schemaId"] for s in results)
+
+
+class TestZoneHandler:
+    """Tests for ZoneHandler (legacy management zones)."""
+
+    def test_list_zones(self, mock_client, sample_zones, mock_response):
+        """Test listing management zones."""
+        with patch.object(mock_client, "request") as mock_request:
+            mock_request.return_value = mock_response({"values": sample_zones})
+
+            handler = ZoneHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            zones = handler.list()
+
+            assert len(zones) == 3
+            assert zones[0]["name"] == "Production"
+
+    def test_get_zone(self, mock_client, sample_zones, mock_response):
+        """Test getting a single zone."""
+        with patch.object(mock_client, "request") as mock_request:
+            mock_request.return_value = mock_response(sample_zones[0])
+
+            handler = ZoneHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            zone = handler.get("zone-1")
+
+            assert zone["name"] == "Production"
+            assert zone["id"] == "zone-1"
+
+    def test_get_by_name(self, mock_client, sample_zones, mock_response):
+        """Test getting zone by name."""
+        with patch.object(mock_client, "request") as mock_request:
+            mock_request.return_value = mock_response({"values": sample_zones})
+
+            handler = ZoneHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            zone = handler.get_by_name("Staging")
+
+            assert zone is not None
+            assert zone["name"] == "Staging"
+            assert zone["id"] == "zone-2"
+
+    def test_get_by_name_not_found(self, mock_client, sample_zones, mock_response):
+        """Test getting zone by name when not found."""
+        with patch.object(mock_client, "request") as mock_request:
+            mock_request.return_value = mock_response({"values": sample_zones})
+
+            handler = ZoneHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            zone = handler.get_by_name("Nonexistent")
+
+            assert zone is None
+
+    def test_list_requires_environment_url(self, mock_client):
+        """Test that listing zones without environment URL raises error."""
+        handler = ZoneHandler(mock_client, environment_url=None)
+
+        with pytest.raises(RuntimeError) as excinfo:
+            handler.list()
+
+        assert "environment URL" in str(excinfo.value)
+
+    def test_compare_with_groups(self, mock_client, sample_zones, sample_groups, mock_response):
+        """Test comparing zones with groups."""
+        with patch.object(mock_client, "request") as mock_request:
+            mock_request.return_value = mock_response({"values": sample_zones})
+
+            handler = ZoneHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            result = handler.compare_with_groups(sample_groups)
+
+            # No matches expected since zone names != group names
+            assert result["matched_count"] == 0
+            assert len(result["unmatched_zones"]) == 3
+            assert len(result["unmatched_groups"]) == 2
+
+
+class TestEnvironmentHandlerExtended:
+    """Extended tests for EnvironmentHandler."""
+
+    def test_get_environment(self, mock_client, sample_environments, mock_response):
+        """Test getting a single environment."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response(sample_environments[0])
+
+            handler = EnvironmentHandler(mock_client)
+            env = handler.get("env-id-1")
+
+            assert env["name"] == "Production"
+            assert env["id"] == "env-id-1"
+
+    def test_get_by_name(self, mock_client, sample_environments, mock_response):
+        """Test getting environment by name."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"tenants": sample_environments})
+
+            handler = EnvironmentHandler(mock_client)
+            env = handler.get_by_name("Staging")
+
+            assert env is not None
+            assert env["name"] == "Staging"
+
+    def test_get_by_name_not_found(self, mock_client, sample_environments, mock_response):
+        """Test getting environment by name when not found."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"tenants": sample_environments})
+
+            handler = EnvironmentHandler(mock_client)
+            env = handler.get_by_name("Nonexistent")
+
+            assert env is None
+
+
+class TestServiceUserHandlerExtended:
+    """Extended tests for ServiceUserHandler."""
+
+    def test_get_service_user(self, mock_client, sample_service_users, mock_response):
+        """Test getting a single service user."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response(sample_service_users[0])
+
+            handler = ServiceUserHandler(mock_client)
+            user = handler.get("service-user-uid-1")
+
+            assert user["name"] == "CI Pipeline"
+            assert user["uid"] == "service-user-uid-1"
+
+    def test_update_service_user(self, mock_client, mock_response):
+        """Test updating a service user."""
+        updated_user = {
+            "uid": "service-user-uid-1",
+            "name": "Updated Pipeline",
+            "description": "Updated description",
+        }
+        with patch.object(mock_client, "put") as mock_put:
+            mock_put.return_value = mock_response(updated_user)
+
+            handler = ServiceUserHandler(mock_client)
+            result = handler.update("service-user-uid-1", name="Updated Pipeline")
+
+            assert result["name"] == "Updated Pipeline"
+            mock_put.assert_called_once()
+
+    def test_delete_service_user(self, mock_client, mock_response):
+        """Test deleting a service user."""
+        with patch.object(mock_client, "delete") as mock_delete:
+            mock_delete.return_value = mock_response(None, status_code=204)
+
+            handler = ServiceUserHandler(mock_client)
+            result = handler.delete("service-user-uid-1")
+
+            assert result is True
+            mock_delete.assert_called_once()
+
+    def test_add_to_group(self, mock_client, sample_service_users, mock_response):
+        """Test adding service user to a group."""
+        with patch.object(mock_client, "get") as mock_get, \
+             patch.object(mock_client, "put") as mock_put:
+            mock_get.return_value = mock_response(sample_service_users[0])
+            mock_put.return_value = mock_response({"uid": "service-user-uid-1", "groups": ["group-uuid-1", "new-group"]})
+
+            handler = ServiceUserHandler(mock_client)
+            result = handler.add_to_group("service-user-uid-1", "new-group")
+
+            assert result is True
+
+
+class TestSubscriptionHandlerExtended:
+    """Extended tests for SubscriptionHandler."""
+
+    def test_get_subscription(self, mock_client, sample_subscriptions, mock_response):
+        """Test getting a single subscription."""
+        with patch.object(mock_client, "request") as mock_request:
+            mock_request.return_value = mock_response(sample_subscriptions[0])
+
+            handler = SubscriptionHandler(mock_client)
+            sub = handler.get("sub-uuid-1")
+
+            assert sub["name"] == "Enterprise"
+            assert sub["uuid"] == "sub-uuid-1"
+
+    def test_get_forecast(self, mock_client, mock_response):
+        """Test getting subscription forecast."""
+        forecast_data = {"forecast": {"projected_usage": 1000}}
+        with patch.object(mock_client, "request") as mock_request:
+            mock_request.return_value = mock_response(forecast_data)
+
+            handler = SubscriptionHandler(mock_client)
+            result = handler.get_forecast()
+
+            assert "forecast" in result
+            mock_request.assert_called_once()
+
+    def test_get_usage(self, mock_client, sample_subscriptions, mock_response):
+        """Test getting subscription usage."""
+        with patch.object(mock_client, "request") as mock_request:
+            mock_request.return_value = mock_response(sample_subscriptions[0])
+
+            handler = SubscriptionHandler(mock_client)
+            result = handler.get_usage("sub-uuid-1")
+
+            assert result["name"] == "Enterprise"
+            assert result["subscription_uuid"] == "sub-uuid-1"
+
+    def test_get_capabilities(self, mock_client, mock_response):
+        """Test getting subscription capabilities."""
+        sub_with_caps = {
+            "uuid": "sub-uuid-1",
+            "name": "Enterprise",
+            "capabilities": [{"name": "Log Analytics"}, {"name": "RUM"}]
+        }
+        with patch.object(mock_client, "request") as mock_request:
+            mock_request.return_value = mock_response(sub_with_caps)
+
+            handler = SubscriptionHandler(mock_client)
+            caps = handler.get_capabilities("sub-uuid-1")
+
+            assert len(caps) == 2
+            assert caps[0]["name"] == "Log Analytics"
+
+
+class TestBindingHandlerExtended:
+    """Extended tests for BindingHandler."""
+
+    def test_create_or_update_new(self, mock_client, mock_response):
+        """Test create_or_update when binding doesn't exist."""
+        with patch.object(mock_client, "get") as mock_get, \
+             patch.object(mock_client, "post") as mock_post:
+            # Simulate binding not found
+            mock_get.return_value = mock_response({"policyBindings": []})
+            mock_post.return_value = mock_response({"policyUuid": "policy-1", "groupUuid": "group-1"})
+
+            handler = BindingHandler(mock_client, "account", "abc-123")
+            result, action = handler.create_or_update("group-1", "policy-1", [])
+
+            assert result.get("policyUuid") == "policy-1"
+            assert action == "created"
+            mock_post.assert_called_once()
+
+    def test_add_boundary(self, mock_client, sample_bindings, mock_response):
+        """Test adding a boundary to a binding."""
+        with patch.object(mock_client, "get") as mock_get, \
+             patch.object(mock_client, "put") as mock_put:
+            mock_get.return_value = mock_response({"policyBindings": sample_bindings})
+            mock_put.return_value = mock_response(None, status_code=204)
+
+            handler = BindingHandler(mock_client, "account", "abc-123")
+            result = handler.add_boundary("group-uuid-1", "policy-uuid-1", "new-boundary")
+
+            assert result is True
+
+    def test_remove_boundary(self, mock_client, sample_bindings, mock_response):
+        """Test removing a boundary from a binding."""
+        with patch.object(mock_client, "get") as mock_get, \
+             patch.object(mock_client, "put") as mock_put:
+            mock_get.return_value = mock_response({"policyBindings": sample_bindings})
+            mock_put.return_value = mock_response(None, status_code=204)
+
+            handler = BindingHandler(mock_client, "account", "abc-123")
+            result = handler.remove_boundary("group-uuid-2", "policy-uuid-2", "boundary-uuid-1")
+
+            assert result is True
