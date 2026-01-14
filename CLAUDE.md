@@ -494,8 +494,8 @@ dtiam bulk create-groups-with-policies --file examples/bulk/sample_bulk_groups.c
 CSV format:
 ```csv
 group_name,policy_name,level,level_id,management_zones,boundary_name,description
-LOB5-TEST,Standard User,account,,,,LOB5 global read
-LOB5-TEST,Pro User,environment,yhu28601,LOB5,LOB5-Boundary,LOB5 restricted write
+LOB5,Standard User - Config,account,,,,LOB5 team - global read access (account level)
+LOB5,Pro User,environment,abc12345,LOB5,LOB5-Boundary,LOB5 team - restricted write access (environment level)
 ```
 
 **Features:**
