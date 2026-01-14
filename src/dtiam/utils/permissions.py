@@ -118,7 +118,8 @@ class PermissionsCalculator:
 
         for group in groups:
             group_id = group.get("uuid", "")
-            group_name = group.get("name", "")
+            # API returns 'groupName' from user endpoint, 'name' from groups endpoint
+            group_name = group.get("name") or group.get("groupName", "")
 
             # Get bindings for this group
             bindings = binding_handler.get_for_group(group_id)
@@ -169,7 +170,7 @@ class PermissionsCalculator:
                 "uid": user_uid,
                 "email": user_email,
             },
-            "groups": [{"uuid": g.get("uuid"), "name": g.get("name")} for g in groups],
+            "groups": [{"uuid": g.get("uuid"), "name": g.get("name") or g.get("groupName")} for g in groups],
             "group_count": len(groups),
             "bindings": all_bindings,
             "binding_count": len(all_bindings),

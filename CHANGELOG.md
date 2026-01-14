@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.9.1] - 2026-01-14
+
+### Fixed
+- **UserHandler API path fix** - Dynatrace IAM API expects email in path, not UID
+  - `UserHandler.get()` now handles both email and UID identifiers correctly
+  - `UserHandler.get_groups()` now resolves UID to email before API call
+  - Fixed `describe user` and `analyze user-permissions` commands failing with 400 Bad Request
+- **Group name field inconsistency** - Handle both `name` and `groupName` fields
+  - User endpoint returns `groupName`, groups endpoint returns `name`
+  - `PermissionsCalculator` now handles both field names correctly
+
 ## [3.9.0] - 2026-01-14
 
 ### Changed
