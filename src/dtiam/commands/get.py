@@ -487,3 +487,94 @@ def get_apps(
             printer.print(results, app_columns())
     finally:
         client.close()
+
+
+@app.command("schemas")
+@app.command("schema")
+def get_schemas(
+    identifier: Optional[str] = typer.Argument(None, help="Schema ID or display name"),
+    environment: Optional[str] = typer.Option(
+        None, "--environment", "-e", help="Environment ID or URL (e.g., abc12345 or abc12345.live.dynatrace.com)"
+    ),
+    ids_only: bool = typer.Option(False, "--ids", help="Output only schema IDs (for use in boundaries)"),
+    builtin_only: bool = typer.Option(False, "--builtin", help="Show only builtin schemas"),
+    search: Optional[str] = typer.Option(None, "--search", "-s", help="Search by schema ID or display name"),
+    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+) -> None:
+    """List or get Settings 2.0 schemas from the Environment API.
+
+    Schema IDs can be used in boundary conditions like:
+        settings:schemaId = "builtin:alerting.profile";
+
+    Requires an environment URL and environment API token. You can specify via:
+    - --environment flag with environment ID or full URL
+    - DTIAM_ENVIRONMENT_URL environment variable
+    - DTIAM_ENVIRONMENT_TOKEN environment variable (with settings.read scope)
+    """
+    import os
+    from dtiam.resources.schemas import SchemaHandler
+    from dtiam.resources.environments import EnvironmentHandler
+    from dtiam.output import schema_columns
+
+    config = load_config()
+    client = create_client_from_config(config, get_context(), is_verbose())
+
+    fmt = output or get_output_format()
+    printer = Printer(format=fmt, plain=is_plain_mode())
+
+    try:
+        # Resolve environment URL
+        env_url = environment or os.environ.get("DTIAM_ENVIRONMENT_URL")
+
+        if not env_url:
+            console.print("[red]Error:[/red] Environment required. Specify with --environment or DTIAM_ENVIRONMENT_URL")
+            console.print("\nAvailable environments:")
+            env_handler = EnvironmentHandler(client)
+            envs = env_handler.list()
+            for env in envs[:10]:
+                console.print(f"  - {env.get('id')} ({env.get('name', 'unnamed')})")
+            if len(envs) > 10:
+                console.print(f"  ... and {len(envs) - 10} more")
+            raise typer.Exit(1)
+
+        # If just an environment ID, construct the full URL
+        if not env_url.startswith("http") and "." not in env_url:
+            env_url = f"https://{env_url}.live.dynatrace.com"
+
+        handler = SchemaHandler(client, env_url)
+
+        if ids_only:
+            # Output just the IDs for easy copy-paste into boundaries
+            if builtin_only:
+                schema_ids = handler.get_builtin_ids()
+            else:
+                schema_ids = handler.get_ids()
+            if fmt in (OutputFormat.JSON, OutputFormat.PLAIN):
+                printer.print(schema_ids)
+            else:
+                for schema_id in schema_ids:
+                    console.print(schema_id)
+        elif search:
+            # Search schemas
+            results = handler.search(search)
+            if not results:
+                console.print(f"[yellow]No schemas found matching '{search}'[/yellow]")
+                raise typer.Exit(0)
+            printer.print(results, schema_columns())
+        elif identifier:
+            # Try to resolve by ID or name
+            result = handler.get(identifier)
+            if not result:
+                result = handler.get_by_name(identifier)
+            if not result:
+                console.print(f"[red]Error:[/red] Schema '{identifier}' not found.")
+                raise typer.Exit(1)
+            printer.print(result)
+        else:
+            # List schemas
+            results = handler.list()
+            if builtin_only:
+                results = [s for s in results if s.get("schemaId", "").startswith("builtin:")]
+            printer.print(results, schema_columns())
+    finally:
+        client.close()

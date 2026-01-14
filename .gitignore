@@ -241,3 +241,5 @@ tmp/
 cmdb_config_local.py
 exports/
 .env.alt
+tests/create-release-v3.1.0.sh
+examples/bulk/example_bulk_groups.csv

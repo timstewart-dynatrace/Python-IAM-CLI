@@ -17,6 +17,7 @@ from dtiam.resources.service_users import ServiceUserHandler
 from dtiam.resources.limits import AccountLimitsHandler
 from dtiam.resources.subscriptions import SubscriptionHandler
 from dtiam.resources.apps import AppHandler
+from dtiam.resources.schemas import SchemaHandler
 
 
 class TestGroupHandler:
@@ -300,6 +301,62 @@ class TestBoundaryHandler:
             call_args = mock_post.call_args
             assert "boundaryQuery" in call_args[1]["json"]
             assert 'shared:app-id IN ("dynatrace.dashboards", "dynatrace.logs");' in call_args[1]["json"]["boundaryQuery"]
+
+    def test_build_schema_query_single_schema(self, mock_client):
+        """Test building schema boundary query with single schema ID."""
+        handler = BoundaryHandler(mock_client)
+        query = handler._build_schema_query(["builtin:alerting.profile"])
+
+        expected = 'settings:schemaId IN ("builtin:alerting.profile");'
+        assert query == expected
+
+    def test_build_schema_query_multiple_schemas(self, mock_client):
+        """Test building schema boundary query with multiple schema IDs."""
+        handler = BoundaryHandler(mock_client)
+        query = handler._build_schema_query([
+            "builtin:alerting.profile",
+            "builtin:alerting.maintenance-window",
+            "builtin:span-attribute"
+        ])
+
+        expected = 'settings:schemaId IN ("builtin:alerting.profile", "builtin:alerting.maintenance-window", "builtin:span-attribute");'
+        assert query == expected
+
+    def test_build_schema_query_not_in(self, mock_client):
+        """Test building schema boundary query with NOT IN operator."""
+        handler = BoundaryHandler(mock_client)
+        query = handler._build_schema_query(
+            ["builtin:span-attribute", "builtin:span-capture-rule"],
+            exclude=True
+        )
+
+        expected = 'settings:schemaId NOT IN ("builtin:span-attribute", "builtin:span-capture-rule");'
+        assert query == expected
+
+    def test_build_schema_query_empty_raises(self, mock_client):
+        """Test that empty schema ID list raises ValueError."""
+        handler = BoundaryHandler(mock_client)
+        with pytest.raises(ValueError, match="At least one schema ID is required"):
+            handler._build_schema_query([])
+
+    def test_create_from_schemas(self, mock_client, mock_response):
+        """Test creating boundary from schema IDs."""
+        new_boundary = {"uuid": "schema-boundary-uuid", "name": "Schema Boundary"}
+        with patch.object(mock_client, "post") as mock_post:
+            mock_post.return_value = mock_response(new_boundary)
+
+            handler = BoundaryHandler(mock_client)
+            result = handler.create_from_schemas(
+                name="Schema Boundary",
+                schema_ids=["builtin:alerting.profile", "builtin:alerting.maintenance-window"],
+                exclude=False,
+            )
+
+            assert result["name"] == "Schema Boundary"
+            # Verify the boundary query was built correctly
+            call_args = mock_post.call_args
+            assert "boundaryQuery" in call_args[1]["json"]
+            assert 'settings:schemaId IN ("builtin:alerting.profile", "builtin:alerting.maintenance-window");' in call_args[1]["json"]["boundaryQuery"]
 
 
 class TestPolicyHandler:
@@ -707,3 +764,93 @@ class TestAppHandler:
             # Order should match input order for valid/invalid respectively
             assert valid == ["dynatrace.notebooks", "dynatrace.dashboards", "dynatrace.logs"]
             assert invalid == ["invalid.one", "invalid.two"]
+
+
+class TestSchemaHandler:
+    """Tests for SchemaHandler."""
+
+    @pytest.fixture
+    def sample_schemas(self) -> list[dict[str, Any]]:
+        """Sample schema data for testing."""
+        return [
+            {"schemaId": "builtin:alerting.profile", "displayName": "Alerting profile"},
+            {"schemaId": "builtin:alerting.maintenance-window", "displayName": "Maintenance window"},
+            {"schemaId": "builtin:span-attribute", "displayName": "Span attribute"},
+            {"schemaId": "custom:my.schema", "displayName": "Custom schema"},
+        ]
+
+    def test_list_schemas(self, mock_client, mock_response, sample_schemas):
+        """Test listing schemas."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"items": sample_schemas})
+
+            handler = SchemaHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            result = handler.list()
+
+            assert len(result) == 4
+            assert result[0]["schemaId"] == "builtin:alerting.profile"
+
+    def test_get_ids(self, mock_client, mock_response, sample_schemas):
+        """Test getting schema IDs."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"items": sample_schemas})
+
+            handler = SchemaHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            ids = handler.get_ids()
+
+            assert len(ids) == 4
+            assert "builtin:alerting.profile" in ids
+            assert "custom:my.schema" in ids
+
+    def test_get_builtin_ids(self, mock_client, mock_response, sample_schemas):
+        """Test getting only builtin schema IDs."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"items": sample_schemas})
+
+            handler = SchemaHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            ids = handler.get_builtin_ids()
+
+            assert len(ids) == 3
+            assert "builtin:alerting.profile" in ids
+            assert "custom:my.schema" not in ids
+
+    def test_validate_schema_ids_all_valid(self, mock_client, mock_response, sample_schemas):
+        """Test validating schema IDs when all are valid."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"items": sample_schemas})
+
+            handler = SchemaHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            valid, invalid = handler.validate_schema_ids([
+                "builtin:alerting.profile",
+                "builtin:span-attribute"
+            ])
+
+            assert valid == ["builtin:alerting.profile", "builtin:span-attribute"]
+            assert invalid == []
+
+    def test_validate_schema_ids_some_invalid(self, mock_client, mock_response, sample_schemas):
+        """Test validating schema IDs when some are invalid."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"items": sample_schemas})
+
+            handler = SchemaHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            valid, invalid = handler.validate_schema_ids([
+                "builtin:alerting.profile",
+                "invalid:schema.one",
+                "builtin:span-attribute",
+                "invalid:schema.two"
+            ])
+
+            assert valid == ["builtin:alerting.profile", "builtin:span-attribute"]
+            assert invalid == ["invalid:schema.one", "invalid:schema.two"]
+
+    def test_search_schemas(self, mock_client, mock_response, sample_schemas):
+        """Test searching schemas by pattern."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"items": sample_schemas})
+
+            handler = SchemaHandler(mock_client, "https://abc12345.live.dynatrace.com")
+            results = handler.search("alerting")
+
+            assert len(results) == 2
+            assert all("alerting" in s["schemaId"] for s in results)

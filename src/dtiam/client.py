@@ -85,7 +85,7 @@ class Client:
             timeout=timeout,
             headers={
                 "Content-Type": "application/json",
-                "User-Agent": "dtiam/3.6.0",
+                "User-Agent": "dtiam/3.7.0",
             },
         )
 

@@ -447,3 +447,165 @@ def create_app_boundary(
 
     finally:
         client.close()
+
+
+@app.command("create-schema-boundary")
+def create_schema_boundary(
+    name: str = typer.Argument(..., help="Boundary name"),
+    schema_ids: Optional[list[str]] = typer.Option(
+        None, "--schema-id", "-s", help="Schema ID to include (repeatable)"
+    ),
+    file: Optional[Path] = typer.Option(
+        None, "--file", "-f", help="File with schema IDs (one per line)"
+    ),
+    not_in: bool = typer.Option(
+        False, "--not-in", help="Use NOT IN instead of IN (exclude schemas)"
+    ),
+    environment: Optional[str] = typer.Option(
+        None, "--environment", "-e", help="Environment URL for schema validation"
+    ),
+    description: Optional[str] = typer.Option(
+        None, "--description", "-d", help="Boundary description"
+    ),
+    skip_validation: bool = typer.Option(
+        False, "--skip-validation", help="Skip schema ID validation against environment"
+    ),
+    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+) -> None:
+    """Create a boundary restricting access to specific settings schemas.
+
+    Creates a boundary with settings:schemaId IN or NOT IN conditions.
+    Validates schema IDs against the Settings API before creating.
+
+    Examples:
+        # Allow access to specific schemas only
+        dtiam boundary create-schema-boundary "AlertingOnly" \\
+          --schema-id "builtin:alerting.profile" \\
+          --schema-id "builtin:alerting.maintenance-window" \\
+          -e "abc12345.live.dynatrace.com"
+
+        # Exclude specific schemas (NOT IN)
+        dtiam boundary create-schema-boundary "NoSpanSettings" \\
+          --schema-id "builtin:span-attribute" \\
+          --schema-id "builtin:span-capture-rule" \\
+          --not-in \\
+          -e "abc12345.live.dynatrace.com"
+
+        # Load schema IDs from file
+        dtiam boundary create-schema-boundary "FromFile" \\
+          --file schema-ids.txt \\
+          -e "abc12345.live.dynatrace.com"
+    """
+    from dtiam.resources.boundaries import BoundaryHandler
+    from dtiam.resources.schemas import SchemaHandler
+
+    # Collect schema IDs from options and file
+    all_schema_ids: list[str] = []
+
+    if schema_ids:
+        all_schema_ids.extend(schema_ids)
+
+    if file:
+        if not file.exists():
+            console.print(f"[red]Error:[/red] File not found: {file}")
+            raise typer.Exit(1)
+        with open(file) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    all_schema_ids.append(line)
+
+    if not all_schema_ids:
+        console.print("[red]Error:[/red] No schema IDs provided. Use --schema-id or --file.")
+        raise typer.Exit(1)
+
+    # Remove duplicates while preserving order
+    seen: set[str] = set()
+    unique_schema_ids: list[str] = []
+    for sid in all_schema_ids:
+        if sid not in seen:
+            seen.add(sid)
+            unique_schema_ids.append(sid)
+
+    config = load_config()
+    client = create_client_from_config(config, get_context(), is_verbose())
+
+    try:
+        # Validate schema IDs unless skipped
+        if not skip_validation:
+            env_url = environment or os.environ.get("DTIAM_ENVIRONMENT_URL")
+            if not env_url:
+                console.print(
+                    "[red]Error:[/red] Environment URL required for validation.\n"
+                    "Use --environment or set DTIAM_ENVIRONMENT_URL.\n"
+                    "Or use --skip-validation to skip schema ID validation."
+                )
+                raise typer.Exit(1)
+
+            # Normalize environment URL for Settings API
+            if not env_url.startswith("http") and "." not in env_url:
+                env_url = f"https://{env_url}.live.dynatrace.com"
+
+            schema_handler = SchemaHandler(client, env_url)
+            valid_ids, invalid_ids = schema_handler.validate_schema_ids(unique_schema_ids)
+
+            if invalid_ids:
+                console.print("[red]Error:[/red] The following schema IDs are not valid:")
+                for sid in invalid_ids:
+                    console.print(f"  - {sid}")
+                console.print()
+
+                # Show some valid schema IDs for reference
+                all_valid = schema_handler.get_builtin_ids()
+                if all_valid:
+                    console.print("[yellow]Sample valid schema IDs in this environment:[/yellow]")
+                    for sid in sorted(all_valid)[:20]:
+                        console.print(f"  - {sid}")
+                    if len(all_valid) > 20:
+                        console.print(f"  ... and {len(all_valid) - 20} more")
+                    console.print("\nUse 'dtiam get schemas --search <pattern>' to find schemas.")
+                console.print()
+                console.print("Use --skip-validation to create the boundary anyway.")
+                raise typer.Exit(1)
+
+        # Build the boundary
+        boundary_handler = BoundaryHandler(client)
+        operator = "NOT IN" if not_in else "IN"
+
+        if is_dry_run():
+            query = boundary_handler._build_schema_query(unique_schema_ids, exclude=not_in)
+            console.print(f"[yellow]Dry-run mode:[/yellow] Would create boundary '{name}'")
+            console.print(f"  Operator: {operator}")
+            console.print(f"  Schema IDs ({len(unique_schema_ids)}):")
+            for sid in unique_schema_ids:
+                console.print(f"    - {sid}")
+            console.print(f"\n  Boundary query:\n{query}")
+            return
+
+        result = boundary_handler.create_from_schemas(
+            name=name,
+            schema_ids=unique_schema_ids,
+            exclude=not_in,
+            description=description,
+        )
+
+        if not result:
+            console.print("[red]Error:[/red] Failed to create boundary.")
+            raise typer.Exit(1)
+
+        from dtiam.cli import state
+        fmt = output or state.output
+        printer = Printer(format=fmt, plain=state.plain)
+
+        if fmt in (OutputFormat.JSON, OutputFormat.YAML):
+            printer.print(result)
+        else:
+            console.print(f"[green]Created boundary:[/green] {result.get('name')}")
+            console.print(f"  UUID: {result.get('uuid')}")
+            console.print(f"  Operator: {operator}")
+            console.print(f"  Schema IDs: {len(unique_schema_ids)}")
+            if result.get("boundaryQuery"):
+                console.print(f"\n  Query:\n{result.get('boundaryQuery')}")
+
+    finally:
+        client.close()
