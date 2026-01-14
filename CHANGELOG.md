@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.10.0] - 2026-01-14
+
+### Added
+- **Consistent `--name` filter for all `get` commands**
+  - `get environments --name` - Filter environments by name (partial match)
+  - `get apps --name` - Filter apps by name (partial match)
+  - `get schemas --name` - Filter schemas by ID or display name (partial match)
+    - `--search` kept as alias for backward compatibility
+  - `get service-users` - New command to list/get service users (OAuth clients)
+    - Includes `--name` filter for partial matching
+
+### Summary of `--name` filter support
+All list commands now consistently support partial text matching:
+- `get groups --name` ✓
+- `get users --email` ✓ (domain-specific filter)
+- `get policies --name` ✓
+- `get boundaries --name` ✓
+- `get environments --name` ✓ (new)
+- `get apps --name` ✓ (new)
+- `get schemas --name` ✓ (new, `--search` alias)
+- `get service-users --name` ✓ (new command)
+
 ## [3.9.1] - 2026-01-14
 
 ### Fixed
