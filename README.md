@@ -454,7 +454,11 @@ Your OAuth2 client needs specific scopes for each operation. Create your client 
 | `account subscriptions` | Subscriptions | Bearer token (auto) |
 | **Environments** | | |
 | `get environments` | List environments | `account-env-read` |
-| `zones list` | Management zones | `account-env-read` |
+| `zones list` | Management zones | `account-env-read` + `DTIAM_ENVIRONMENT_TOKEN` |
+| **Apps** | | |
+| `get apps` | List/get apps | `app-engine:apps:run` |
+| **Schemas** | | |
+| `get schemas` | List/get schemas | `DTIAM_ENVIRONMENT_TOKEN` with `settings.read` |
 
 ### Recommended Scope Sets
 
@@ -466,6 +470,7 @@ iam:policies:read
 iam:bindings:read
 iam:boundaries:read
 iam:effective-permissions:read
+app-engine:apps:run
 ```
 
 **Full IAM Management:**
@@ -475,7 +480,28 @@ account-idm-write
 account-env-read
 iam-policies-management
 iam:effective-permissions:read
+app-engine:apps:run
 ```
+
+### Detecting Missing Scopes
+
+When a required scope is missing, dtiam will return a **Permission denied** error. The error message indicates which operation failed but doesn't specify the missing scope directly (this is a Dynatrace API limitation).
+
+**Common permission errors and their causes:**
+
+| Error Message | Likely Missing Scope |
+|---------------|---------------------|
+| `Permission denied for list on groups` | `account-idm-read` |
+| `Permission denied for create on groups` | `account-idm-write` |
+| `Permission denied for list on policies` | `iam-policies-management` or `iam:policies:read` |
+| `Permission denied for list on bindings` | `iam-policies-management` or `iam:bindings:read` |
+| `Permission denied for list on apps` | `app-engine:apps:run` |
+| `Request failed: 403 Forbidden` | Check scopes for the specific resource |
+
+**To debug scope issues:**
+1. Run with verbose mode: `dtiam -v get groups`
+2. Check your OAuth2 client configuration in Dynatrace Account Management
+3. Verify the client has the required scopes listed in the table above
 
 ## Environment Variables
 

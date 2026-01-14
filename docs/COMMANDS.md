@@ -560,6 +560,19 @@ dtiam describe group IDENTIFIER [--output FORMAT]
 
 Displays: UUID, name, description, member count, members list, policy bindings.
 
+**Examples:**
+
+```bash
+# Describe a group by name
+dtiam describe group "LOB5"
+
+# Describe a group by UUID
+dtiam describe group 12345678-1234-1234-1234-123456789abc
+
+# Output as JSON
+dtiam describe group "LOB5" -o json
+```
+
 ### describe user
 
 Show detailed information about an IAM user.
@@ -569,6 +582,19 @@ dtiam describe user IDENTIFIER [--output FORMAT]
 ```
 
 Displays: UID, email, status, creation date, group memberships.
+
+**Examples:**
+
+```bash
+# Describe a user by email
+dtiam describe user user@example.com
+
+# Describe a user by UID
+dtiam describe user 12345678-1234-1234-1234-123456789abc
+
+# Output as YAML
+dtiam describe user user@example.com -o yaml
+```
 
 ### describe policy
 
@@ -585,6 +611,19 @@ dtiam describe policy IDENTIFIER [OPTIONS]
 
 Displays: UUID, name, description, statement query, parsed permissions.
 
+**Examples:**
+
+```bash
+# Describe a policy by name
+dtiam describe policy "Standard User - Config"
+
+# Describe a global (built-in) policy
+dtiam describe policy "Monitoring Viewer" --level global
+
+# Output as JSON for scripting
+dtiam describe policy "admin-policy" -o json
+```
+
 ### describe environment
 
 Show detailed information about a Dynatrace environment.
@@ -595,6 +634,19 @@ dtiam describe environment IDENTIFIER [--output FORMAT]
 
 Aliases: `describe env`
 
+**Examples:**
+
+```bash
+# Describe an environment by ID
+dtiam describe environment abc12345
+
+# Describe an environment by name
+dtiam describe env "Production"
+
+# Output as JSON
+dtiam describe environment abc12345 -o json
+```
+
 ### describe boundary
 
 Show detailed information about an IAM policy boundary.
@@ -604,6 +656,19 @@ dtiam describe boundary IDENTIFIER [--output FORMAT]
 ```
 
 Displays: UUID, name, description, boundary query, attached policies count.
+
+**Examples:**
+
+```bash
+# Describe a boundary by name
+dtiam describe boundary "LOB5-Boundary"
+
+# Describe a boundary by UUID
+dtiam describe boundary 12345678-1234-1234-1234-123456789abc
+
+# Output as YAML
+dtiam describe boundary "Production-Only" -o yaml
+```
 
 ---
 
@@ -833,6 +898,16 @@ dtiam user remove-from-group [OPTIONS]
 | `--group` | `-g`  | Group UUID or name (required) |
 | `--force` | `-f`  | Skip confirmation             |
 
+**Examples:**
+
+```bash
+# Remove user from a group
+dtiam user remove-from-group --user user@example.com --group "LOB5"
+
+# Remove with force (skip confirmation)
+dtiam user remove-from-group -u user@example.com -g "LOB5" --force
+```
+
 ### user list-groups
 
 List all groups a user belongs to.
@@ -841,12 +916,35 @@ List all groups a user belongs to.
 dtiam user list-groups USER [--output FORMAT]
 ```
 
+**Examples:**
+
+```bash
+# List groups for a user
+dtiam user list-groups user@example.com
+
+# Output as JSON
+dtiam user list-groups user@example.com -o json
+```
+
 ### user info
 
 Show detailed information about a user.
 
 ```bash
 dtiam user info USER [--output FORMAT]
+```
+
+**Examples:**
+
+```bash
+# Get user info by email
+dtiam user info user@example.com
+
+# Get user info by UID
+dtiam user info 12345678-1234-1234-1234-123456789abc
+
+# Output as YAML
+dtiam user info user@example.com -o yaml
 ```
 
 ### user replace-groups
@@ -1181,12 +1279,38 @@ dtiam zones list [OPTIONS]
 | `--name`   | `-n`  | Filter by name |
 | `--output` | `-o`  | Output format  |
 
+**Examples:**
+
+```bash
+# List all management zones
+dtiam zones list
+
+# Filter zones by name
+dtiam zones list --name Production
+
+# Output as JSON
+dtiam zones list -o json
+```
+
 ### zones get
 
 Get a management zone by ID or name.
 
 ```bash
 dtiam zones get IDENTIFIER [--output FORMAT]
+```
+
+**Examples:**
+
+```bash
+# Get a zone by name
+dtiam zones get "Production"
+
+# Get a zone by ID
+dtiam zones get 12345678901234567890
+
+# Output as YAML
+dtiam zones get "Production" -o yaml
 ```
 
 ### zones export
@@ -1202,6 +1326,19 @@ dtiam zones export [OPTIONS]
 | `--output` | `-o`  | Output file path                               |
 | `--format` | `-f`  | Output format: yaml, json, csv (default: yaml) |
 
+**Examples:**
+
+```bash
+# Export all zones to YAML
+dtiam zones export -o zones.yaml
+
+# Export as CSV
+dtiam zones export -o zones.csv --format csv
+
+# Export as JSON
+dtiam zones export -o zones.json -f json
+```
+
 ### zones compare-groups
 
 Compare zone names with group names to find matches.
@@ -1214,6 +1351,19 @@ dtiam zones compare-groups [OPTIONS]
 | ------------------ | ----- | --------------------------- |
 | `--case-sensitive` | `-c`  | Use case-sensitive matching |
 | `--output`         | `-o`  | Output format               |
+
+**Examples:**
+
+```bash
+# Compare zones with groups (case-insensitive)
+dtiam zones compare-groups
+
+# Case-sensitive comparison
+dtiam zones compare-groups --case-sensitive
+
+# Output as JSON
+dtiam zones compare-groups -o json
+```
 
 ---
 
@@ -1253,6 +1403,19 @@ dtiam analyze group-permissions GROUP [OPTIONS]
 | `--output` | `-o`  | Output format  |
 | `--export` | `-e`  | Export to file |
 
+**Examples:**
+
+```bash
+# Analyze a group's permissions
+dtiam analyze group-permissions "LOB5"
+
+# Output as JSON
+dtiam analyze group-permissions "LOB5" -o json
+
+# Export to file
+dtiam analyze group-permissions "LOB5" --export permissions.json
+```
+
 ### analyze permissions-matrix
 
 Generate a permissions matrix.
@@ -1267,6 +1430,19 @@ dtiam analyze permissions-matrix [OPTIONS]
 | `--output` | `-o`  | Output format                                 |
 | `--export` | `-e`  | Export to CSV file                            |
 
+**Examples:**
+
+```bash
+# Generate matrix for policies
+dtiam analyze permissions-matrix
+
+# Generate matrix for groups
+dtiam analyze permissions-matrix --scope groups
+
+# Export to CSV
+dtiam analyze permissions-matrix --export matrix.csv -o csv
+```
+
 ### analyze policy
 
 Analyze a policy's permissions and bindings.
@@ -1276,6 +1452,19 @@ dtiam analyze policy IDENTIFIER [--output FORMAT]
 ```
 
 Shows: parsed permissions, bound groups, boundary restrictions.
+
+**Examples:**
+
+```bash
+# Analyze a policy by name
+dtiam analyze policy "Standard User - Config"
+
+# Analyze by UUID
+dtiam analyze policy 12345678-1234-1234-1234-123456789abc
+
+# Output as JSON
+dtiam analyze policy "admin-policy" -o json
+```
 
 ### analyze least-privilege
 
@@ -1296,6 +1485,19 @@ Identifies policies with:
 - Resource wildcards
 - Write/manage/delete/admin access
 - No conditions (unrestricted)
+
+**Examples:**
+
+```bash
+# Analyze all policies
+dtiam analyze least-privilege
+
+# Export findings
+dtiam analyze least-privilege --export findings.json
+
+# Output as JSON
+dtiam analyze least-privilege -o json
+```
 
 ### analyze effective-user
 
@@ -1468,12 +1670,38 @@ List all policy bindings for a group.
 dtiam group list-bindings GROUP [--output FORMAT]
 ```
 
+**Examples:**
+
+```bash
+# List bindings for a group by name
+dtiam group list-bindings "LOB5"
+
+# List bindings by UUID
+dtiam group list-bindings 12345678-1234-1234-1234-123456789abc
+
+# Output as JSON
+dtiam group list-bindings "LOB5" -o json
+```
+
 ### group list-members
 
 List all members of a group.
 
 ```bash
 dtiam group list-members GROUP [--output FORMAT]
+```
+
+**Examples:**
+
+```bash
+# List members of a group
+dtiam group list-members "LOB5"
+
+# Output as JSON for scripting
+dtiam group list-members "LOB5" -o json
+
+# List members as CSV
+dtiam group list-members "LOB5" -o csv
 ```
 
 ---
@@ -1523,6 +1751,19 @@ List all bindings that use a boundary.
 
 ```bash
 dtiam boundary list-attached BOUNDARY [--output FORMAT]
+```
+
+**Examples:**
+
+```bash
+# List bindings using a boundary
+dtiam boundary list-attached "LOB5-Boundary"
+
+# List by UUID
+dtiam boundary list-attached 12345678-1234-1234-1234-123456789abc
+
+# Output as JSON
+dtiam boundary list-attached "Production-Only" -o json
 ```
 
 ### boundary create-app-boundary
@@ -1676,6 +1917,13 @@ Reset cache hit/miss statistics.
 dtiam cache reset-stats
 ```
 
+**Example:**
+
+```bash
+# Reset hit/miss counters
+dtiam cache reset-stats
+```
+
 ### cache set-ttl
 
 Set the default cache TTL.
@@ -1687,6 +1935,19 @@ dtiam cache set-ttl SECONDS
 | Argument  | Description            |
 | --------- | ---------------------- |
 | `SECONDS` | Default TTL in seconds |
+
+**Examples:**
+
+```bash
+# Set TTL to 5 minutes
+dtiam cache set-ttl 300
+
+# Set TTL to 1 hour
+dtiam cache set-ttl 3600
+
+# Disable caching (set TTL to 0)
+dtiam cache set-ttl 0
+```
 
 ---
 
@@ -1811,6 +2072,16 @@ dtiam service-user remove-from-group [OPTIONS]
 | `--group` | `-g`  | Group UUID or name (required)        |
 | `--force` | `-f`  | Skip confirmation                    |
 
+**Examples:**
+
+```bash
+# Remove service user from group
+dtiam service-user remove-from-group --user "CI Pipeline" --group "LOB5"
+
+# Remove with force (skip confirmation)
+dtiam service-user remove-from-group -u "CI Pipeline" -g "LOB5" --force
+```
+
 ### service-user list-groups
 
 List all groups a service user belongs to.
@@ -1822,6 +2093,16 @@ dtiam service-user list-groups USER [--output FORMAT]
 | Argument | Description               |
 | -------- | ------------------------- |
 | `USER`   | Service user UUID or name |
+
+**Examples:**
+
+```bash
+# List groups for a service user
+dtiam service-user list-groups "CI Pipeline"
+
+# Output as JSON
+dtiam service-user list-groups "CI Pipeline" -o json
+```
 
 ---
 
