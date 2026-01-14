@@ -240,3 +240,4 @@ tmp/
 # Project-specific
 cmdb_config_local.py
 exports/
+.env.alt
