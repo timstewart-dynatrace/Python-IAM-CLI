@@ -108,21 +108,33 @@ class UserHandler(ResourceHandler[Any]):
             self._handle_error("delete", e)
             return False
 
-    def get(self, user_id: str) -> dict[str, Any]:
-        """Get a single user by UID.
+    def get(self, identifier: str) -> dict[str, Any]:
+        """Get a single user by email or UID.
+
+        Note: The Dynatrace API expects email in the path, not UID.
+        If a UID is provided, we look up the user from the list.
 
         Args:
-            user_id: User UID
+            identifier: User email or UID
 
         Returns:
             User dictionary
         """
-        try:
-            response = self.client.get(f"{self.api_path}/{user_id}")
-            return response.json()
-        except APIError as e:
-            self._handle_error("get", e)
-            return {}
+        # If it looks like an email, try the API directly
+        if "@" in identifier:
+            try:
+                response = self.client.get(f"{self.api_path}/{identifier}")
+                return response.json()
+            except APIError as e:
+                self._handle_error("get", e)
+                return {}
+
+        # If it's a UID, find from list (API doesn't support UID lookup)
+        users = self.list()
+        for user in users:
+            if user.get("uid") == identifier:
+                return user
+        return {}
 
     def get_by_email(self, email: str) -> dict[str, Any] | None:
         """Get a user by email address.
@@ -139,26 +151,38 @@ class UserHandler(ResourceHandler[Any]):
                 return user
         return None
 
-    def get_groups(self, user_id: str) -> list[dict[str, Any]]:
+    def get_groups(self, identifier: str) -> list[dict[str, Any]]:
         """Get the groups a user belongs to.
 
+        Note: The Dynatrace API expects email in the path, not UID.
+        If a UID is provided, we resolve it to email first.
+
         Args:
-            user_id: User UID
+            identifier: User email or UID
 
         Returns:
             List of group dictionaries
         """
+        # Resolve UID to email if needed (API expects email)
+        email = identifier
+        if "@" not in identifier:
+            user = self.get(identifier)
+            if user:
+                email = user.get("email", identifier)
+            else:
+                return []
+
         try:
-            response = self.client.get(f"{self.api_path}/{user_id}/groups")
+            response = self.client.get(f"{self.api_path}/{email}/groups")
             data = response.json()
 
             if isinstance(data, dict):
                 return data.get("items", data.get("groups", []))
             return data if isinstance(data, list) else []
 
-        except APIError as e:
+        except APIError:
             # If the endpoint doesn't exist, try to get groups from user details
-            user = self.get(user_id)
+            user = self.get(email)
             if user:
                 return user.get("groups", [])
             return []
