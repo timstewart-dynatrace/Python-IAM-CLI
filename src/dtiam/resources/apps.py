@@ -105,3 +105,19 @@ class AppHandler(ResourceHandler[Any]):
         """
         apps = self.list()
         return [app["id"] for app in apps if "id" in app]
+
+    def validate_app_ids(self, app_ids: list[str]) -> tuple[list[str], list[str]]:
+        """Validate app IDs against the registry.
+
+        Checks if the provided app IDs exist in the App Engine Registry.
+
+        Args:
+            app_ids: List of app IDs to validate
+
+        Returns:
+            Tuple of (valid_ids, invalid_ids) preserving original order
+        """
+        known_ids = set(self.get_ids())
+        valid = [aid for aid in app_ids if aid in known_ids]
+        invalid = [aid for aid in app_ids if aid not in known_ids]
+        return valid, invalid

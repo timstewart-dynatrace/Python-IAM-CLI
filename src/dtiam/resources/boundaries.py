@@ -156,6 +156,33 @@ class BoundaryHandler(ResourceHandler[Any]):
             description=description,
         )
 
+    def create_from_apps(
+        self,
+        name: str,
+        app_ids: list[str],
+        exclude: bool = False,
+        description: str | None = None,
+    ) -> dict[str, Any]:
+        """Create a boundary from app IDs.
+
+        Convenience method that builds the shared:app-id boundary query.
+
+        Args:
+            name: Boundary name
+            app_ids: List of app IDs (e.g., "dynatrace.dashboards")
+            exclude: If True, use NOT IN instead of IN
+            description: Optional description
+
+        Returns:
+            Created boundary dictionary
+        """
+        query = self._build_app_query(app_ids, exclude)
+        return self.create(
+            name=name,
+            boundary_query=query,
+            description=description,
+        )
+
     def update(
         self,
         boundary_id: str,
@@ -243,6 +270,25 @@ class BoundaryHandler(ResourceHandler[Any]):
         ]
 
         return "\n".join(query_parts)
+
+    def _build_app_query(self, app_ids: list[str], exclude: bool = False) -> str:
+        """Build a boundary query from app IDs.
+
+        Creates a shared:app-id condition to restrict access to specific apps.
+
+        Args:
+            app_ids: List of app IDs (e.g., "dynatrace.dashboards")
+            exclude: If True, use NOT IN instead of IN
+
+        Returns:
+            Boundary query string like: shared:app-id IN ("app1", "app2");
+        """
+        if not app_ids:
+            raise ValueError("At least one app ID is required")
+
+        app_list = ', '.join(f'"{app_id}"' for app_id in app_ids)
+        operator = "NOT IN" if exclude else "IN"
+        return f'shared:app-id {operator} ({app_list});'
 
     def get_attached_policies(self, boundary_id: str) -> list[dict[str, Any]]:
         """Get policies that use this boundary.

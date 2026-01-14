@@ -112,7 +112,7 @@ git push
 
 **ALL merges to main that add features or fixes MUST increment the version number.**
 
-Current version: **3.1.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
+Current version: **3.6.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
 
 #### Semantic Versioning (SemVer)
 
@@ -556,6 +556,7 @@ app.add_typer(new_cmd.app, name="new-feature", help="New feature operations")
 
 Boundaries use the following Dynatrace-compliant format:
 
+**Management Zone Boundaries:**
 ```python
 # Single zone
 environment:management-zone IN ("Production");
@@ -566,6 +567,23 @@ settings:dt.security_context IN ("Production")
 environment:management-zone IN ("Production", "Staging");
 storage:dt.security_context IN ("Production", "Staging");
 settings:dt.security_context IN ("Production", "Staging")
+```
+
+**App ID Boundaries:**
+```python
+# Allow specific apps only (IN)
+shared:app-id IN ("dynatrace.dashboards", "dynatrace.logs", "dynatrace.notebooks");
+
+# Exclude specific apps (NOT IN)
+shared:app-id NOT IN ("dynatrace.classic.smartscape", "dynatrace.classic.custom.applications");
+```
+
+Create app boundaries with validation:
+```bash
+dtiam boundary create-app-boundary "AppBoundary" \
+  --app-id "dynatrace.dashboards" \
+  --app-id "dynatrace.logs" \
+  -e "$DTIAM_ENVIRONMENT_URL"
 ```
 
 ### Adding a New Resource Handler

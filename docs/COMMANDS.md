@@ -1428,6 +1428,54 @@ List all bindings that use a boundary.
 dtiam boundary list-attached BOUNDARY [--output FORMAT]
 ```
 
+### boundary create-app-boundary
+
+Create a boundary restricting access to specific apps using `shared:app-id` conditions.
+
+```bash
+dtiam boundary create-app-boundary NAME [OPTIONS]
+```
+
+| Option              | Short | Description                                          |
+| ------------------- | ----- | ---------------------------------------------------- |
+| `--app-id`          | `-a`  | App ID to include (repeatable)                       |
+| `--file`            | `-f`  | File with app IDs (one per line)                     |
+| `--not-in`          |       | Use NOT IN instead of IN (exclude apps)              |
+| `--environment`     | `-e`  | Environment URL for app validation                   |
+| `--description`     | `-d`  | Boundary description                                 |
+| `--skip-validation` |       | Skip app ID validation against registry              |
+| `--output`          | `-o`  | Output format                                        |
+
+**Examples:**
+
+```bash
+# Create boundary allowing specific apps
+dtiam boundary create-app-boundary "DashboardAccess" \
+  --app-id "dynatrace.dashboards" \
+  --app-id "dynatrace.notebooks" \
+  -e "abc12345.apps.dynatrace.com"
+
+# Create boundary excluding specific apps (NOT IN)
+dtiam boundary create-app-boundary "NoLegacyApps" \
+  --app-id "dynatrace.classic.smartscape" \
+  --not-in \
+  -e "abc12345.apps.dynatrace.com"
+
+# Load app IDs from file
+dtiam boundary create-app-boundary "FromFile" \
+  --file app-ids.txt \
+  -e "abc12345.apps.dynatrace.com"
+
+# Skip validation (use with caution)
+dtiam boundary create-app-boundary "Custom" \
+  --app-id "custom.app.id" \
+  --skip-validation
+```
+
+The generated boundary query format:
+- **IN**: `shared:app-id IN ("app1", "app2");`
+- **NOT IN**: `shared:app-id NOT IN ("app1", "app2");`
+
 ---
 
 ## cache

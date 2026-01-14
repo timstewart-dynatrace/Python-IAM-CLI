@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.6.0] - 2026-01-14
+
+### Added
+- New `boundary create-app-boundary` command for creating app-id based boundaries
+  - Creates boundaries with `shared:app-id IN (...)` or `shared:app-id NOT IN (...)` conditions
+  - Validates app IDs against the App Engine Registry API before creating
+  - Supports `--app-id` flag (repeatable) for specifying app IDs
+  - Supports `--file` option for loading app IDs from a file
+  - Supports `--not-in` flag to use NOT IN instead of IN (exclude apps)
+  - Supports `--skip-validation` to bypass app ID validation
+  - Requires environment URL via `--environment` or `DTIAM_ENVIRONMENT_URL`
+- Added `_build_app_query()` method to `BoundaryHandler` for building app-id boundary queries
+- Added `create_from_apps()` convenience method to `BoundaryHandler`
+- Added `validate_app_ids()` method to `AppHandler` for validating app IDs against registry
+
+### Documentation
+- Added app boundary examples to `examples/boundaries/app-boundary.yaml`
+- Updated COMMANDS.md with `boundary create-app-boundary` reference
+- Updated CLAUDE.md with app-id boundary query format
+
 ## [3.5.0] - 2026-01-13
 
 ### Added
