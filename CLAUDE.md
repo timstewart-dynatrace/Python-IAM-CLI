@@ -477,6 +477,42 @@ dtiam supports two authentication methods:
 
 ## Key Patterns
 
+### Filtering Resources
+
+All `get` commands support **partial text matching** via `--name` (or `--email` for users).
+
+**Filter Implementation Pattern:**
+
+```python
+# In get.py commands, apply client-side filtering after fetching list
+results = handler.list()
+if name:
+    results = [r for r in results if name.lower() in r.get("name", "").lower()]
+printer.print(results, columns())
+```
+
+**Filter Options by Command:**
+
+| Command | Filter | Description |
+|---------|--------|-------------|
+| `get groups` | `--name` | Filter by group name |
+| `get users` | `--email` | Filter by email address |
+| `get policies` | `--name` | Filter by policy name |
+| `get boundaries` | `--name` | Filter by boundary name |
+| `get environments` | `--name` | Filter by environment name |
+| `get apps` | `--name` | Filter by app name |
+| `get schemas` | `--name` | Filter by schema ID or display name |
+| `get service-users` | `--name` | Filter by service user name |
+
+**Filter Behavior:**
+- **Case-insensitive**: `--name prod` matches "Production", "NonProd"
+- **Substring match**: `--name LOB` matches "LOB5", "LOB6", "MyLOBTeam"
+- **Client-side**: Filters are applied after fetching full list from API
+
+**Identifier vs Filter:**
+- Identifier argument (positional): Exact match via `handler.get()` or `handler.get_by_name()`
+- Filter option (`--name`): Partial match via list comprehension
+
 ### Bulk Operations
 
 **Integrated Bulk Creation:**

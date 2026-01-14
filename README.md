@@ -121,20 +121,23 @@ dtiam config use-context prod
 dtiam config view
 ```
 
-### 2. List resources
+### 2. List and filter resources
 
 ```bash
 # List all groups
 dtiam get groups
 
-# List policies
-dtiam get policies
+# Filter groups by name (partial match, case-insensitive)
+dtiam get groups --name LOB
 
-# List users
-dtiam get users
+# List and filter policies
+dtiam get policies --name Admin
 
-# List environments
-dtiam get environments
+# Filter users by email
+dtiam get users --email @example.com
+
+# Filter environments
+dtiam get environments --name Prod
 ```
 
 ### 3. Get detailed information
@@ -210,6 +213,56 @@ Options:
   -V, --version         Show version and exit
   --help                Show help and exit
 ```
+
+## Filtering Resources
+
+All `get` commands support **partial text matching** via filter options. Filters are:
+- **Case-insensitive** - `--name prod` matches "Production", "NonProd", "prod-test"
+- **Substring match** - `--name LOB` matches "LOB5", "LOB6", "MyLOBTeam"
+
+### Filter Options by Resource
+
+| Command | Filter Option | Example |
+|---------|---------------|---------|
+| `get groups` | `--name` | `dtiam get groups --name LOB` |
+| `get users` | `--email` | `dtiam get users --email @example.com` |
+| `get policies` | `--name` | `dtiam get policies --name Admin` |
+| `get boundaries` | `--name` | `dtiam get boundaries --name Prod` |
+| `get environments` | `--name` | `dtiam get environments --name Prod` |
+| `get apps` | `--name` | `dtiam get apps --name dashboard -e ENV_ID` |
+| `get schemas` | `--name` | `dtiam get schemas --name alerting -e ENV_ID` |
+| `get service-users` | `--name` | `dtiam get service-users --name pipeline` |
+
+### Filter Examples
+
+```bash
+# Find all groups containing "LOB" in their name
+dtiam get groups --name LOB
+
+# Find users with emails from a specific domain
+dtiam get users --email @dynatrace.com
+
+# Find production-related environments
+dtiam get environments --name Prod
+
+# Find admin policies
+dtiam get policies --name admin
+
+# Combine with output formats
+dtiam get groups --name LOB -o json
+dtiam get policies --name User -o yaml
+```
+
+### Identifier vs Filter
+
+- **Identifier (positional argument)**: Exact match for UUID or name
+  ```bash
+  dtiam get groups "LOB5"           # Exact match - returns LOB5 or error
+  ```
+- **Filter option**: Partial match across all results
+  ```bash
+  dtiam get groups --name LOB       # Partial match - returns LOB5, LOB6, LOB7, etc.
+  ```
 
 ## Configuration
 
