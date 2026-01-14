@@ -259,6 +259,23 @@ dtiam config path
 
 List or retrieve IAM resources.
 
+### Filtering
+
+All `get` commands support **partial text matching** via filter options:
+
+| Command | Filter | Behavior |
+|---------|--------|----------|
+| `get groups` | `--name` | Case-insensitive substring match |
+| `get users` | `--email` | Case-insensitive substring match |
+| `get policies` | `--name` | Case-insensitive substring match |
+| `get boundaries` | `--name` | Case-insensitive substring match |
+| `get environments` | `--name` | Case-insensitive substring match |
+| `get apps` | `--name` | Case-insensitive substring match |
+| `get schemas` | `--name` | Case-insensitive substring match (on ID or display name) |
+| `get service-users` | `--name` | Case-insensitive substring match |
+
+**Example:** `dtiam get groups --name LOB` returns groups named "LOB5", "LOB6", "MyLOBTeam", etc.
+
 ### get groups
 
 List or get IAM groups.
