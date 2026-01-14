@@ -16,6 +16,7 @@ from dtiam.resources.environments import EnvironmentHandler
 from dtiam.resources.service_users import ServiceUserHandler
 from dtiam.resources.limits import AccountLimitsHandler
 from dtiam.resources.subscriptions import SubscriptionHandler
+from dtiam.resources.apps import AppHandler
 
 
 class TestGroupHandler:
@@ -243,6 +244,62 @@ class TestBoundaryHandler:
 
             assert len(boundaries) == 1
             assert boundaries[0]["name"] == "production-boundary"
+
+    def test_build_app_query_single_app(self, mock_client):
+        """Test building app boundary query with single app ID."""
+        handler = BoundaryHandler(mock_client)
+        query = handler._build_app_query(["dynatrace.dashboards"])
+
+        expected = 'shared:app-id IN ("dynatrace.dashboards");'
+        assert query == expected
+
+    def test_build_app_query_multiple_apps(self, mock_client):
+        """Test building app boundary query with multiple app IDs."""
+        handler = BoundaryHandler(mock_client)
+        query = handler._build_app_query([
+            "dynatrace.dashboards",
+            "dynatrace.logs",
+            "dynatrace.notebooks"
+        ])
+
+        expected = 'shared:app-id IN ("dynatrace.dashboards", "dynatrace.logs", "dynatrace.notebooks");'
+        assert query == expected
+
+    def test_build_app_query_not_in(self, mock_client):
+        """Test building app boundary query with NOT IN operator."""
+        handler = BoundaryHandler(mock_client)
+        query = handler._build_app_query(
+            ["dynatrace.classic.smartscape", "dynatrace.classic.custom.applications"],
+            exclude=True
+        )
+
+        expected = 'shared:app-id NOT IN ("dynatrace.classic.smartscape", "dynatrace.classic.custom.applications");'
+        assert query == expected
+
+    def test_build_app_query_empty_raises(self, mock_client):
+        """Test that empty app ID list raises ValueError."""
+        handler = BoundaryHandler(mock_client)
+        with pytest.raises(ValueError, match="At least one app ID is required"):
+            handler._build_app_query([])
+
+    def test_create_from_apps(self, mock_client, mock_response):
+        """Test creating boundary from app IDs."""
+        new_boundary = {"uuid": "app-boundary-uuid", "name": "App Boundary"}
+        with patch.object(mock_client, "post") as mock_post:
+            mock_post.return_value = mock_response(new_boundary)
+
+            handler = BoundaryHandler(mock_client)
+            result = handler.create_from_apps(
+                name="App Boundary",
+                app_ids=["dynatrace.dashboards", "dynatrace.logs"],
+                exclude=False,
+            )
+
+            assert result["name"] == "App Boundary"
+            # Verify the boundary query was built correctly
+            call_args = mock_post.call_args
+            assert "boundaryQuery" in call_args[1]["json"]
+            assert 'shared:app-id IN ("dynatrace.dashboards", "dynatrace.logs");' in call_args[1]["json"]["boundaryQuery"]
 
 
 class TestPolicyHandler:
@@ -547,3 +604,106 @@ class TestSubscriptionHandler:
 
             assert sub is not None
             assert sub["name"] == "Enterprise"
+
+
+class TestAppHandler:
+    """Tests for AppHandler."""
+
+    @pytest.fixture
+    def sample_apps(self) -> list[dict[str, Any]]:
+        """Sample app data for testing."""
+        return [
+            {"id": "dynatrace.dashboards", "name": "Dashboards"},
+            {"id": "dynatrace.logs", "name": "Logs"},
+            {"id": "dynatrace.notebooks", "name": "Notebooks"},
+            {"id": "dynatrace.classic.smartscape", "name": "Smartscape"},
+        ]
+
+    def test_list_apps(self, mock_client, mock_response):
+        """Test listing apps."""
+        apps = [
+            {"id": "dynatrace.dashboards", "name": "Dashboards"},
+            {"id": "dynatrace.logs", "name": "Logs"},
+        ]
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"apps": apps})
+
+            handler = AppHandler(mock_client, "https://abc12345.apps.dynatrace.com")
+            result = handler.list()
+
+            assert len(result) == 2
+            assert result[0]["id"] == "dynatrace.dashboards"
+
+    def test_get_ids(self, mock_client, mock_response, sample_apps):
+        """Test getting app IDs."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"apps": sample_apps})
+
+            handler = AppHandler(mock_client, "https://abc12345.apps.dynatrace.com")
+            ids = handler.get_ids()
+
+            assert len(ids) == 4
+            assert "dynatrace.dashboards" in ids
+            assert "dynatrace.logs" in ids
+
+    def test_validate_app_ids_all_valid(self, mock_client, mock_response, sample_apps):
+        """Test validating app IDs when all are valid."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"apps": sample_apps})
+
+            handler = AppHandler(mock_client, "https://abc12345.apps.dynatrace.com")
+            valid, invalid = handler.validate_app_ids([
+                "dynatrace.dashboards",
+                "dynatrace.logs"
+            ])
+
+            assert valid == ["dynatrace.dashboards", "dynatrace.logs"]
+            assert invalid == []
+
+    def test_validate_app_ids_some_invalid(self, mock_client, mock_response, sample_apps):
+        """Test validating app IDs when some are invalid."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"apps": sample_apps})
+
+            handler = AppHandler(mock_client, "https://abc12345.apps.dynatrace.com")
+            valid, invalid = handler.validate_app_ids([
+                "dynatrace.dashboards",
+                "invalid.app.one",
+                "dynatrace.logs",
+                "invalid.app.two"
+            ])
+
+            assert valid == ["dynatrace.dashboards", "dynatrace.logs"]
+            assert invalid == ["invalid.app.one", "invalid.app.two"]
+
+    def test_validate_app_ids_all_invalid(self, mock_client, mock_response, sample_apps):
+        """Test validating app IDs when all are invalid."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"apps": sample_apps})
+
+            handler = AppHandler(mock_client, "https://abc12345.apps.dynatrace.com")
+            valid, invalid = handler.validate_app_ids([
+                "totally.fake.app",
+                "another.fake.app"
+            ])
+
+            assert valid == []
+            assert invalid == ["totally.fake.app", "another.fake.app"]
+
+    def test_validate_app_ids_preserves_order(self, mock_client, mock_response, sample_apps):
+        """Test that validation preserves original order."""
+        with patch.object(mock_client, "get") as mock_get:
+            mock_get.return_value = mock_response({"apps": sample_apps})
+
+            handler = AppHandler(mock_client, "https://abc12345.apps.dynatrace.com")
+            valid, invalid = handler.validate_app_ids([
+                "dynatrace.notebooks",
+                "invalid.one",
+                "dynatrace.dashboards",
+                "invalid.two",
+                "dynatrace.logs"
+            ])
+
+            # Order should match input order for valid/invalid respectively
+            assert valid == ["dynatrace.notebooks", "dynatrace.dashboards", "dynatrace.logs"]
+            assert invalid == ["invalid.one", "invalid.two"]

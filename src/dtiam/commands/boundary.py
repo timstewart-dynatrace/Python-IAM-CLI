@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import Optional
 
 import typer
@@ -285,6 +287,163 @@ def list_attached(
             table.add_row(item["policy_name"], groups_str)
 
         console.print(table)
+
+    finally:
+        client.close()
+
+
+@app.command("create-app-boundary")
+def create_app_boundary(
+    name: str = typer.Argument(..., help="Boundary name"),
+    app_ids: Optional[list[str]] = typer.Option(
+        None, "--app-id", "-a", help="App ID to include (repeatable)"
+    ),
+    file: Optional[Path] = typer.Option(
+        None, "--file", "-f", help="File with app IDs (one per line)"
+    ),
+    not_in: bool = typer.Option(
+        False, "--not-in", help="Use NOT IN instead of IN (exclude apps)"
+    ),
+    environment: Optional[str] = typer.Option(
+        None, "--environment", "-e", help="Environment URL for app validation"
+    ),
+    description: Optional[str] = typer.Option(
+        None, "--description", "-d", help="Boundary description"
+    ),
+    skip_validation: bool = typer.Option(
+        False, "--skip-validation", help="Skip app ID validation against registry"
+    ),
+    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+) -> None:
+    """Create a boundary restricting access to specific apps.
+
+    Creates a boundary with shared:app-id IN or NOT IN conditions.
+    Validates app IDs against the App Engine Registry API before creating.
+
+    Examples:
+        # Allow specific apps only
+        dtiam boundary create-app-boundary "DashboardAccess" \\
+          --app-id "dynatrace.dashboards" \\
+          --app-id "dynatrace.notebooks" \\
+          -e "abc12345.apps.dynatrace.com"
+
+        # Exclude specific apps (NOT IN)
+        dtiam boundary create-app-boundary "NoLegacyApps" \\
+          --app-id "dynatrace.classic.smartscape" \\
+          --not-in \\
+          -e "abc12345.apps.dynatrace.com"
+
+        # Load app IDs from file
+        dtiam boundary create-app-boundary "FromFile" \\
+          --file app-ids.txt \\
+          -e "abc12345.apps.dynatrace.com"
+    """
+    from dtiam.resources.boundaries import BoundaryHandler
+    from dtiam.resources.apps import AppHandler
+    from dtiam.output import boundary_columns
+
+    # Collect app IDs from options and file
+    all_app_ids: list[str] = []
+
+    if app_ids:
+        all_app_ids.extend(app_ids)
+
+    if file:
+        if not file.exists():
+            console.print(f"[red]Error:[/red] File not found: {file}")
+            raise typer.Exit(1)
+        with open(file) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    all_app_ids.append(line)
+
+    if not all_app_ids:
+        console.print("[red]Error:[/red] No app IDs provided. Use --app-id or --file.")
+        raise typer.Exit(1)
+
+    # Remove duplicates while preserving order
+    seen: set[str] = set()
+    unique_app_ids: list[str] = []
+    for aid in all_app_ids:
+        if aid not in seen:
+            seen.add(aid)
+            unique_app_ids.append(aid)
+
+    config = load_config()
+    client = create_client_from_config(config, get_context(), is_verbose())
+
+    try:
+        # Validate app IDs unless skipped
+        if not skip_validation:
+            env_url = environment or os.environ.get("DTIAM_ENVIRONMENT_URL")
+            if not env_url:
+                console.print(
+                    "[red]Error:[/red] Environment URL required for validation.\n"
+                    "Use --environment or set DTIAM_ENVIRONMENT_URL.\n"
+                    "Or use --skip-validation to skip app ID validation."
+                )
+                raise typer.Exit(1)
+
+            app_handler = AppHandler(client, env_url)
+            valid_ids, invalid_ids = app_handler.validate_app_ids(unique_app_ids)
+
+            if invalid_ids:
+                console.print("[red]Error:[/red] The following app IDs are not valid:")
+                for aid in invalid_ids:
+                    console.print(f"  - {aid}")
+                console.print()
+
+                # Show valid app IDs for reference
+                all_valid = app_handler.get_ids()
+                if all_valid:
+                    console.print("[yellow]Valid app IDs in this environment:[/yellow]")
+                    for aid in sorted(all_valid)[:20]:
+                        console.print(f"  - {aid}")
+                    if len(all_valid) > 20:
+                        console.print(f"  ... and {len(all_valid) - 20} more")
+                console.print()
+                console.print("Use --skip-validation to create the boundary anyway.")
+                raise typer.Exit(1)
+
+        # Build the boundary
+        boundary_handler = BoundaryHandler(client)
+        operator = "NOT IN" if not_in else "IN"
+
+        if is_dry_run():
+            query = boundary_handler._build_app_query(unique_app_ids, exclude=not_in)
+            console.print(f"[yellow]Dry-run mode:[/yellow] Would create boundary '{name}'")
+            console.print(f"  Operator: {operator}")
+            console.print(f"  App IDs ({len(unique_app_ids)}):")
+            for aid in unique_app_ids:
+                console.print(f"    - {aid}")
+            console.print(f"\n  Boundary query:\n{query}")
+            return
+
+        result = boundary_handler.create_from_apps(
+            name=name,
+            app_ids=unique_app_ids,
+            exclude=not_in,
+            description=description,
+        )
+
+        if not result:
+            console.print("[red]Error:[/red] Failed to create boundary.")
+            raise typer.Exit(1)
+
+        from dtiam.cli import state
+        fmt = output or state.output
+        printer = Printer(format=fmt, plain=state.plain)
+
+        if fmt in (OutputFormat.JSON, OutputFormat.YAML):
+            printer.print(result)
+        else:
+            console.print(f"[green]Created boundary:[/green] {result.get('name')}")
+            console.print(f"  UUID: {result.get('uuid')}")
+            console.print(f"  Operator: {operator}")
+            console.print(f"  App IDs: {len(unique_app_ids)}")
+            if result.get("boundaryQuery"):
+                console.print(f"\n  Query:\n{result.get('boundaryQuery')}")
 
     finally:
         client.close()

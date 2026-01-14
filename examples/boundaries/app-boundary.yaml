@@ -1,0 +1,64 @@
+# App Boundary Example
+# Creates a boundary restricting access to specific Dynatrace apps
+#
+# Use with: dtiam boundary create-app-boundary
+#
+# This example shows how to create boundaries using shared:app-id conditions
+# to control which apps users can access.
+
+# Example 1: Allow only specific apps (IN condition)
+# This restricts access to only the listed apps
+name: core-apps-only
+description: Access to core Dynatrace apps only
+app_ids:
+  - dynatrace.dashboards
+  - dynatrace.logs
+  - dynatrace.notebooks
+  - dynatrace.davis.problems
+operator: IN
+
+# Command to create:
+# dtiam boundary create-app-boundary "core-apps-only" \
+#   --app-id "dynatrace.dashboards" \
+#   --app-id "dynatrace.logs" \
+#   --app-id "dynatrace.notebooks" \
+#   --app-id "dynatrace.davis.problems" \
+#   -e "$DTIAM_ENVIRONMENT_URL" \
+#   --description "Access to core Dynatrace apps only"
+
+---
+
+# Example 2: Exclude legacy apps (NOT IN condition)
+# This allows access to all apps EXCEPT the listed ones
+name: no-legacy-apps
+description: Exclude access to legacy/classic apps
+app_ids:
+  - dynatrace.classic.smartscape
+  - dynatrace.classic.custom.applications
+  - dynatrace.classic.services
+operator: NOT IN
+
+# Command to create:
+# dtiam boundary create-app-boundary "no-legacy-apps" \
+#   --app-id "dynatrace.classic.smartscape" \
+#   --app-id "dynatrace.classic.custom.applications" \
+#   --app-id "dynatrace.classic.services" \
+#   --not-in \
+#   -e "$DTIAM_ENVIRONMENT_URL" \
+#   --description "Exclude access to legacy/classic apps"
+
+---
+
+# Example 3: Using a file for app IDs
+# Create a file with app IDs (one per line) and reference it
+#
+# File: app-ids.txt
+# dynatrace.dashboards
+# dynatrace.logs
+# # Comments are supported
+# dynatrace.notebooks
+#
+# Command:
+# dtiam boundary create-app-boundary "from-file" \
+#   --file app-ids.txt \
+#   -e "$DTIAM_ENVIRONMENT_URL"
