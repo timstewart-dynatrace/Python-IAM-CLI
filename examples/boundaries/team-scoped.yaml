@@ -3,56 +3,54 @@
 # Restricts access to a specific team's management zones.
 # Use to implement team-based access control.
 
-name: "${TEAM_NAME}-boundary"
+name: "${TEAM_NAME}-Boundary"
 description: "Restrict access to ${TEAM_NAME} team's management zones"
 
 # Placeholders:
-#   ${TEAM_NAME} - Replace with your team name
+#   ${TEAM_NAME} - Replace with your team name (e.g., LOB5, LOB6, LOB7)
 
 # Management zones to include (team-specific)
 zones:
   - "${TEAM_NAME}"
-  - "${TEAM_NAME}-Dev"
-  - "${TEAM_NAME}-Staging"
 
 # CLI commands:
 cli_commands:
   # Create team boundary
   create: |
-    dtiam create boundary --name "platform-boundary" \
-      --description "Restrict access to Platform team's management zones" \
-      --zones "Platform,Platform-Dev,Platform-Staging"
+    dtiam create boundary --name "LOB5-Boundary" \
+      --description "Restrict access to LOB5 team's management zones" \
+      --zones "LOB5"
 
   # Create binding with boundary
   create_binding_with_boundary: |
-    dtiam create binding --group "Platform-Team" --policy "Pro User" --boundary "platform-boundary"
+    dtiam create binding --group "LOB5" --policy "Pro User" --boundary "LOB5-Boundary"
 
 # Multi-team setup example:
 multi_team_setup: |
-  # Team 1: Platform
-  dtiam create group --name "Platform-Team" --description "Platform engineering team"
-  dtiam create boundary --name "platform-boundary" --zones "Platform,Platform-Dev"
-  dtiam create binding --group "Platform-Team" --policy "Pro User" --boundary "platform-boundary"
+  # Team 1: LOB5
+  dtiam create group --name "LOB5" --description "LOB5 team with standard access"
+  dtiam create boundary --name "LOB5-Boundary" --zones "LOB5"
+  dtiam create binding --group "LOB5" --policy "Pro User" --boundary "LOB5-Boundary"
 
-  # Team 2: Frontend
-  dtiam create group --name "Frontend-Team" --description "Frontend development team"
-  dtiam create boundary --name "frontend-boundary" --zones "Frontend,Frontend-Dev"
-  dtiam create binding --group "Frontend-Team" --policy "Pro User" --boundary "frontend-boundary"
+  # Team 2: LOB6
+  dtiam create group --name "LOB6" --description "LOB6 team with standard access"
+  dtiam create boundary --name "LOB6-Boundary" --zones "LOB6"
+  dtiam create binding --group "LOB6" --policy "Pro User" --boundary "LOB6-Boundary"
 
-  # Team 3: Backend
-  dtiam create group --name "Backend-Team" --description "Backend services team"
-  dtiam create boundary --name "backend-boundary" --zones "Backend,Backend-Dev"
-  dtiam create binding --group "Backend-Team" --policy "Pro User" --boundary "backend-boundary"
+  # Team 3: LOB7
+  dtiam create group --name "LOB7" --description "LOB7 team with standard access"
+  dtiam create boundary --name "LOB7-Boundary" --zones "LOB7"
+  dtiam create binding --group "LOB7" --policy "Pro User" --boundary "LOB7-Boundary"
 
   # Result: Each team has write access only to their zones
 
 # Common pattern: Global read + scoped write
 global_read_scoped_write: |
-  # Give global read access (no boundary)
-  dtiam create binding --group "Platform-Team" --policy "viewer-policy"
+  # Give global read access (no boundary) at account level
+  dtiam create binding --group "LOB5" --policy "Standard User - Config"
 
-  # Give scoped write access (with boundary)
-  dtiam create binding --group "Platform-Team" --policy "settings-writer" --boundary "platform-boundary"
+  # Give scoped write access (with boundary) at environment level
+  dtiam create binding --group "LOB5" --policy "Pro User" --boundary "LOB5-Boundary"
 
   # Result: Team can read everything, but only write to their zones
 

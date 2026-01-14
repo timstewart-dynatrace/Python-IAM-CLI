@@ -1,17 +1,17 @@
 # Sample groups for bulk creation
 # Usage: dtiam bulk create-groups --file examples/bulk/sample_groups.yaml
 
-- name: "Platform-Team"
-  description: "Platform engineering team with infrastructure access"
+- name: "LOB5"
+  description: "LOB5 team with standard access"
 
-- name: "Frontend-Team"
-  description: "Frontend development team"
+- name: "LOB6"
+  description: "LOB6 team with standard access"
 
-- name: "Backend-Team"
-  description: "Backend services development team"
+- name: "LOB7"
+  description: "LOB7 team with standard access"
 
-- name: "SRE-Team"
-  description: "Site Reliability Engineering team"
+- name: "LOB8"
+  description: "LOB8 team with standard access"
 
-- name: "Security-Team"
-  description: "Security and compliance team"
+- name: "LOB9"
+  description: "LOB9 team with standard access"

@@ -6,11 +6,11 @@
 # Usage:
 #   dtiam create group --name "My-Team" --description "My team description"
 
-name: "${TEAM_NAME}-Team"
+name: "${TEAM_NAME}"
 description: "${TEAM_NAME} team with standard access"
 
 # Placeholders:
-#   ${TEAM_NAME} - Replace with your team name (e.g., Platform, Frontend, Backend)
+#   ${TEAM_NAME} - Replace with your team name (e.g., LOB5, LOB6, LOB7)
 
 # Recommended workflow:
 #   1. Create the group
@@ -22,25 +22,25 @@ description: "${TEAM_NAME} team with standard access"
 # CLI commands:
 cli_commands:
   create_group: |
-    dtiam create group --name "Platform-Team" --description "Platform engineering team"
+    dtiam create group --name "LOB5" --description "LOB5 team with standard access"
 
   bind_policy: |
-    dtiam create binding --group "Platform-Team" --policy "Standard User"
+    dtiam create binding --group "LOB5" --policy "Standard User - Config"
 
   add_user: |
-    dtiam user add-to-group --user user@example.com --group "Platform-Team"
+    dtiam user add-to-group --user user@example.com --group "LOB5"
 
 # Example complete setup:
 example_setup: |
   # 1. Create the group
-  dtiam create group --name "Platform-Team" --description "Platform engineering team"
+  dtiam create group --name "LOB5" --description "LOB5 team with standard access"
 
-  # 2. Bind a policy (using built-in Standard User policy)
-  dtiam create binding --group "Platform-Team" --policy "Standard User"
+  # 2. Bind a policy (using built-in Standard User - Config policy)
+  dtiam create binding --group "LOB5" --policy "Standard User - Config"
 
   # 3. Add users
-  dtiam user add-to-group --user admin@example.com --group "Platform-Team"
-  dtiam user add-to-group --user developer@example.com --group "Platform-Team"
+  dtiam user add-to-group --user admin@example.com --group "LOB5"
+  dtiam user add-to-group --user developer@example.com --group "LOB5"
 
   # 4. Verify
-  dtiam describe group "Platform-Team"
+  dtiam describe group "LOB5"
