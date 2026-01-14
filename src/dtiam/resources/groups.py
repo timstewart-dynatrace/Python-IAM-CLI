@@ -30,15 +30,20 @@ class GroupHandler(CRUDHandler[Any]):
     def id_field(self) -> str:
         return "uuid"
 
-    def create(self, data: dict[str, Any]) -> dict[str, Any]:
+    def create(
+        self,
+        name: str,
+        description: str | None = None,
+        owner: str | None = None,
+    ) -> dict[str, Any]:
         """Create a new group.
 
         The IAM API expects group creation data as an array of objects.
 
         Args:
-            data: Group data with required fields:
-                - name: Group name
-                - description: Optional description
+            name: Group name (required)
+            description: Optional group description
+            owner: Optional owner identifier
 
         Returns:
             Created group dictionary
@@ -46,9 +51,14 @@ class GroupHandler(CRUDHandler[Any]):
         Raises:
             ValueError: If name is not provided
         """
-        # Ensure required fields
-        if "name" not in data:
+        if not name:
             raise ValueError("Group name is required")
+
+        data: dict[str, Any] = {"name": name}
+        if description:
+            data["description"] = description
+        if owner:
+            data["owner"] = owner
 
         try:
             # API expects array of groups
@@ -220,10 +230,10 @@ class GroupHandler(CRUDHandler[Any]):
             raise ValueError(f"Source group not found: {source_group_id}")
 
         # Create new group
-        new_group = self.create({
-            "name": new_name,
-            "description": new_description or source.get("description", ""),
-        })
+        new_group = self.create(
+            name=new_name,
+            description=new_description or source.get("description", ""),
+        )
 
         new_group_id = new_group.get("uuid", "")
 
@@ -272,10 +282,10 @@ class GroupHandler(CRUDHandler[Any]):
         from dtiam.resources.bindings import BindingHandler
 
         # Create group
-        group = self.create({
-            "name": group_name,
-            "description": description,
-        })
+        group = self.create(
+            name=group_name,
+            description=description,
+        )
 
         group_uuid = group.get("uuid", "")
 

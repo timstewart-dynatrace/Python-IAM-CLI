@@ -200,7 +200,7 @@ def create_boundary(
             zone_list = [z.strip() for z in zones.split(",") if z.strip()]
             result = handler.create_from_zones(name=name, management_zones=zone_list, description=description)
         else:
-            result = handler.create({"name": name, "boundaryQuery": query, "description": description})
+            result = handler.create(name=name, boundary_query=query, description=description)
 
         if is_dry_run():
             console.print("[yellow]Dry-run mode:[/yellow] Would create boundary:")

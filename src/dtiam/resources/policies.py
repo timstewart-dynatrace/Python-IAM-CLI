@@ -88,21 +88,36 @@ class PolicyHandler(ResourceHandler[Any]):
             self._handle_error("get", e)
             return {}
 
-    def create(self, data: dict[str, Any]) -> dict[str, Any]:
+    def create(
+        self,
+        name: str,
+        statement_query: str,
+        description: str | None = None,
+    ) -> dict[str, Any]:
         """Create a new policy.
 
         Args:
-            data: Policy data with required fields:
-                - name: Policy name
-                - statementQuery: Policy statement query
+            name: Policy name (required)
+            statement_query: Policy statement query (required)
+            description: Optional policy description
 
         Returns:
             Created policy dictionary
+
+        Raises:
+            ValueError: If name or statement_query is not provided
         """
-        if "name" not in data:
+        if not name:
             raise ValueError("Policy name is required")
-        if "statementQuery" not in data:
+        if not statement_query:
             raise ValueError("Policy statementQuery is required")
+
+        data: dict[str, Any] = {
+            "name": name,
+            "statementQuery": statement_query,
+        }
+        if description:
+            data["description"] = description
 
         try:
             response = self.client.post(self.api_path, json=data)
