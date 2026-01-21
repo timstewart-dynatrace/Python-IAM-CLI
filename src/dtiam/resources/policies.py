@@ -75,16 +75,26 @@ class PolicyHandler(ResourceHandler[Any]):
     def get(self, policy_id: str) -> dict[str, Any]:
         """Get a single policy by UUID.
 
+        Note: Falls back to filtering the list if the API doesn't support
+        direct GET by UUID (similar to groups endpoint).
+
         Args:
             policy_id: Policy UUID
 
         Returns:
-            Policy dictionary
+            Policy dictionary or empty dict if not found
         """
         try:
             response = self.client.get(f"{self.api_path}/{policy_id}")
             return response.json()
         except APIError as e:
+            if e.status_code == 404:
+                # Fall back to filtering the list
+                policies = self.list()
+                for policy in policies:
+                    if policy.get("uuid") == policy_id:
+                        return policy
+                return {}
             self._handle_error("get", e)
             return {}
 

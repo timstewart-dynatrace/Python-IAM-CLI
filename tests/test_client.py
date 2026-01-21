@@ -13,7 +13,7 @@ from dtiam.client import (
     Client,
     APIError,
     RetryConfig,
-    IAM_API_BASE,
+    DEFAULT_IAM_API_BASE,
     create_client_from_config,
 )
 from dtiam.config import Config, Context, Credential, NamedContext, NamedCredential
@@ -98,11 +98,11 @@ class TestClient:
         assert client.account_uuid == "my-account"
         assert client.timeout == 60.0
         assert client.verbose is True
-        assert f"{IAM_API_BASE}/accounts/my-account" == client.base_url
+        assert f"{DEFAULT_IAM_API_BASE}/accounts/my-account" == client.base_url
 
     def test_client_base_url(self, client):
         """Test client base URL construction."""
-        expected = f"{IAM_API_BASE}/accounts/test-account"
+        expected = f"{DEFAULT_IAM_API_BASE}/accounts/test-account"
         assert client.base_url == expected
 
     def test_client_context_manager(self, mock_token_manager):

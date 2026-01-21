@@ -57,16 +57,26 @@ class BoundaryHandler(ResourceHandler[Any]):
     def get(self, boundary_id: str) -> dict[str, Any]:
         """Get a single boundary by UUID.
 
+        Note: Falls back to filtering the list if the API doesn't support
+        direct GET by UUID (similar to groups endpoint).
+
         Args:
             boundary_id: Boundary UUID
 
         Returns:
-            Boundary dictionary
+            Boundary dictionary or empty dict if not found
         """
         try:
             response = self.client.get(f"{self.api_path}/{boundary_id}")
             return response.json()
         except APIError as e:
+            if e.status_code == 404:
+                # Fall back to filtering the list
+                boundaries = self.list()
+                for boundary in boundaries:
+                    if boundary.get("uuid") == boundary_id:
+                        return boundary
+                return {}
             self._handle_error("get", e)
             return {}
 

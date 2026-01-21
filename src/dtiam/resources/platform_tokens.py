@@ -55,16 +55,26 @@ class PlatformTokenHandler(ResourceHandler[Any]):
     def get(self, token_id: str) -> dict[str, Any]:
         """Get a platform token by ID.
 
+        Note: Falls back to filtering the list if the API doesn't support
+        direct GET by ID (similar to groups endpoint).
+
         Args:
             token_id: Platform token ID
 
         Returns:
-            Platform token dictionary
+            Platform token dictionary or empty dict if not found
         """
         try:
             response = self.client.get(f"{self.api_path}/{token_id}")
             return response.json()
         except APIError as e:
+            if e.status_code == 404:
+                # Fall back to filtering the list
+                tokens = self.list()
+                for token in tokens:
+                    if token.get("id") == token_id:
+                        return token
+                return {}
             self._handle_error("get", e)
             return {}
 
