@@ -352,3 +352,17 @@ def zone_columns() -> list[Column]:
         Column("environmentId", "ENV ID", wide_only=True),
         Column("environmentName", "ENV NAME", wide_only=True),
     ]
+
+
+def platform_token_columns() -> list[Column]:
+    """Column definitions for platform token resources.
+
+    Platform tokens require the `platform-token:tokens:manage` scope.
+    """
+    return [
+        Column("id", "ID"),
+        Column("name", "NAME"),
+        Column("createdAt", "CREATED"),
+        Column("expiresAt", "EXPIRES", wide_only=True),
+        Column("lastUsedAt", "LAST USED", wide_only=True),
+    ]

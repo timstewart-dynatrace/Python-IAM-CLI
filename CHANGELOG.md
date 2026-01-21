@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.11.0] - 2026-01-21
+
+### Added
+- **Platform Token Management** - New `platform-token` command for managing platform tokens
+  - `platform-token list` - List all platform tokens (supports `--name` filter)
+  - `platform-token get` - Get details of a platform token by ID or name
+  - `platform-token create` - Generate a new platform token
+    - `--name` - Token name/description (required)
+    - `--scopes` - Comma-separated list of scopes
+    - `--expires-in` - Token expiration (e.g., '30d', '1y')
+    - `--save-token` - Save token value to file
+  - `platform-token delete` - Delete a platform token (with confirmation)
+- New `PlatformTokenHandler` resource handler for platform token operations
+- New `platform_token_columns()` for table output formatting
+- Requires `platform-token:tokens:manage` scope
+
+### Documentation
+- Updated CLAUDE.md with platform token resource handler and API endpoints
+- Updated docs/COMMANDS.md with full platform-token command reference
+- Updated README.md with platform-token command and scope information
+
 ## [3.10.0] - 2026-01-14
 
 ### Added

@@ -24,6 +24,7 @@ Complete reference for all dtiam commands and their options.
 - [cache](#cache) - Cache management
 - [service-user](#service-user) - Service user (OAuth client) management
 - [account](#account) - Account limits and subscriptions
+- [platform-token](#platform-token) - Platform token management
 
 ---
 
@@ -2193,6 +2194,127 @@ dtiam account capabilities [SUBSCRIPTION] [--output FORMAT]
 | Argument       | Description                |
 | -------------- | -------------------------- |
 | `SUBSCRIPTION` | Optional subscription UUID |
+
+---
+
+## platform-token
+
+Platform token management.
+
+Platform tokens provide API access credentials for automation and programmatic access to Dynatrace APIs. Requires the `platform-token:tokens:manage` scope.
+
+### platform-token list
+
+List all platform tokens in the account.
+
+```bash
+dtiam platform-token list [OPTIONS]
+```
+
+| Option     | Short | Description                     |
+| ---------- | ----- | ------------------------------- |
+| `--name`   | `-n`  | Filter by name (partial match)  |
+| `--output` | `-o`  | Output format                   |
+
+**Examples:**
+
+```bash
+# List all platform tokens
+dtiam platform-token list
+
+# Filter by name
+dtiam platform-token list --name "CI"
+
+# Output as JSON
+dtiam platform-token list -o json
+```
+
+### platform-token get
+
+Get details of a platform token.
+
+```bash
+dtiam platform-token get TOKEN [--output FORMAT]
+```
+
+| Argument | Description                    |
+| -------- | ------------------------------ |
+| `TOKEN`  | Platform token ID or name      |
+
+**Examples:**
+
+```bash
+# Get by name
+dtiam platform-token get "CI Pipeline Token"
+
+# Get by ID
+dtiam platform-token get abc-123-def
+
+# Output as JSON
+dtiam platform-token get "CI Pipeline Token" -o json
+```
+
+### platform-token create
+
+Generate a new platform token.
+
+**IMPORTANT:** Save the token value immediately - it cannot be retrieved later!
+
+```bash
+dtiam platform-token create [OPTIONS]
+```
+
+| Option         | Short | Description                                    |
+| -------------- | ----- | ---------------------------------------------- |
+| `--name`       | `-n`  | Token name/description (required)              |
+| `--scopes`     | `-s`  | Comma-separated list of scopes for the token   |
+| `--expires-in` | `-e`  | Token expiration (e.g., '30d', '1y', '365d')   |
+| `--save-token` |       | Save token value to file                       |
+| `--output`     | `-o`  | Output format                                  |
+
+**Examples:**
+
+```bash
+# Create a token
+dtiam platform-token create --name "CI Pipeline Token"
+
+# Create with expiration
+dtiam platform-token create --name "Automation" --expires-in 30d
+
+# Save token to file
+dtiam platform-token create --name "CI Token" --save-token token.txt
+
+# Create with specific scopes
+dtiam platform-token create --name "Custom" --scopes "account-idm-read,account-env-read"
+```
+
+### platform-token delete
+
+Delete a platform token.
+
+**Warning:** This will immediately revoke the token. Applications using it will lose access.
+
+```bash
+dtiam platform-token delete TOKEN [--force]
+```
+
+| Argument/Option | Short | Description               |
+| --------------- | ----- | ------------------------- |
+| `TOKEN`         |       | Platform token ID or name |
+| `--force`       | `-f`  | Skip confirmation         |
+
+**Examples:**
+
+```bash
+# Delete by ID
+dtiam platform-token delete abc-123-def
+
+# Delete by name
+dtiam platform-token delete "CI Pipeline Token"
+
+# Delete without confirmation
+dtiam platform-token delete abc-123 --force
+```
 
 ---
 

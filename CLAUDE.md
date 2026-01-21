@@ -112,7 +112,7 @@ git push
 
 **ALL merges to main that add features or fixes MUST increment the version number.**
 
-Current version: **3.8.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
+Current version: **3.11.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
 
 #### Semantic Versioning (SemVer)
 
@@ -381,6 +381,7 @@ src/dtiam/
 │   ├── delete.py            # Delete resources
 │   ├── user.py              # User management
 │   ├── service_user.py      # Service user (OAuth client) management
+│   ├── platform_token.py    # Platform token management
 │   ├── account.py           # Account limits and subscriptions
 │   ├── bulk.py              # Bulk operations
 │   ├── template.py          # Template system
@@ -400,6 +401,7 @@ src/dtiam/
 │   ├── environments.py      # Environments API
 │   ├── zones.py             # Management zones API (legacy - will be removed)
 │   ├── service_users.py     # Service users (OAuth clients) API
+│   ├── platform_tokens.py   # Platform tokens API
 │   ├── limits.py            # Account limits API
 │   ├── subscriptions.py     # Subscriptions API
 │   └── apps.py              # App Engine Registry API
@@ -778,15 +780,15 @@ Level types: `account`, `environment`, `global`
 | `GET /bindings/{policyUuid}/{groupUuid}` | Get specific binding | `BindingHandler.get_policy_group_binding()` |
 | `GET /bindings/descendants/{policyUuid}` | Descendant bindings | `BindingHandler.get_descendants()` |
 | `PUT /bindings/groups/{groupUuid}` | Update group bindings | `BindingHandler.update_group_bindings()` |
+| `GET /platform-tokens` | List tokens | `PlatformTokenHandler.list()` |
+| `GET /platform-tokens/{id}` | Get token | `PlatformTokenHandler.get()` |
+| `POST /platform-tokens` | Generate token | `PlatformTokenHandler.create()` |
+| `DELETE /platform-tokens/{id}` | Delete token | `PlatformTokenHandler.delete()` |
 
 **Not yet implemented:**
 | Endpoint | Operation | Notes |
 |----------|-----------|-------|
 | `DELETE /bindings` | Delete all bindings | Level-wide deletion (dangerous) |
-| **Platform Tokens** | | Entire resource |
-| `GET /platform-tokens` | List tokens | `platform-token:tokens:manage` |
-| `POST /platform-tokens` | Generate token | `platform-token:tokens:manage` |
-| `DELETE /platform-tokens/{id}` | Delete token | `platform-token:tokens:manage` |
 | **Environment IP Allowlist** | | |
 | `GET /environments/{id}/ip-allowlist` | Get allowlist | Bearer token |
 | `PUT /environments/{id}/ip-allowlist` | Set allowlist | Bearer token |

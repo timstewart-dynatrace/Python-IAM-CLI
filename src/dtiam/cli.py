@@ -143,6 +143,7 @@ from dtiam.commands import boundary as boundary_cmd
 from dtiam.commands import cache as cache_cmd
 from dtiam.commands import service_user as service_user_cmd
 from dtiam.commands import account as account_cmd
+from dtiam.commands import platform_token as platform_token_cmd
 
 app.add_typer(get_cmd.app, name="get", help="Get/list resources")
 app.add_typer(describe_cmd.app, name="describe", help="Show detailed resource information")
@@ -159,6 +160,7 @@ app.add_typer(boundary_cmd.app, name="boundary", help="Boundary attach/detach op
 app.add_typer(cache_cmd.app, name="cache", help="Cache management")
 app.add_typer(service_user_cmd.app, name="service-user", help="Service user (OAuth client) management")
 app.add_typer(account_cmd.app, name="account", help="Account limits and subscriptions")
+app.add_typer(platform_token_cmd.app, name="platform-token", help="Platform token management")
 
 
 def main_cli() -> None:

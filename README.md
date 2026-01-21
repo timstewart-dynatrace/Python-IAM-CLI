@@ -174,6 +174,7 @@ dtiam create binding --group "New Team" --policy "viewer-policy"
 | `delete` | Delete resources |
 | `user` | User management operations |
 | `service-user` | Service user (OAuth client) management |
+| `platform-token` | Platform token management |
 | `account` | Account limits and subscriptions |
 | `bulk` | Bulk operations for multiple resources |
 | `template` | Template-based resource creation |
@@ -192,6 +193,7 @@ dtiam create binding --group "New Team" --policy "viewer-policy"
 | `policies` | Permission policies with statements |
 | `users` | User accounts |
 | `service-users` | Service users (OAuth clients) for automation |
+| `platform-tokens` | Platform tokens for API access |
 | `bindings` | Policy-to-group assignments |
 | `environments` | Dynatrace environments |
 | `boundaries` | Scope restrictions for bindings |
@@ -433,6 +435,10 @@ Your OAuth2 client needs specific scopes for each operation. Create your client 
 | `service-user create` | Create service user | `account-idm-write` |
 | `service-user update` | Update service user | `account-idm-write` |
 | `service-user delete` | Delete service user | `account-idm-write` |
+| **Platform Tokens** | | |
+| `platform-token list` | List tokens | `platform-token:tokens:manage` |
+| `platform-token create` | Generate token | `platform-token:tokens:manage` |
+| `platform-token delete` | Delete token | `platform-token:tokens:manage` |
 | **Policies** | | |
 | `get policies` | List/get policies | `iam-policies-management` or `iam:policies:read` |
 | `create policy` | Create policy | `iam-policies-management` or `iam:policies:write` |

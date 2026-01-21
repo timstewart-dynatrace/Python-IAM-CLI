@@ -19,13 +19,7 @@ import httpx
 from pydantic import BaseModel
 
 from dtiam.config import Config, load_config, get_env_override
-from dtiam.utils.auth import (
-    TokenManager,
-    StaticTokenManager,
-    BaseTokenManager,
-    OAuthError,
-    extract_client_id_from_secret,
-)
+from dtiam.utils.auth import TokenManager, StaticTokenManager, BaseTokenManager, OAuthError
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +79,7 @@ class Client:
             timeout=timeout,
             headers={
                 "Content-Type": "application/json",
-                "User-Agent": "dtiam/3.10.0",
+                "User-Agent": "dtiam/3.11.0",
             },
         )
 
@@ -175,14 +169,14 @@ class Client:
         if path.startswith("http"):
             url = path
             # Auto-detect environment API calls (for management zones)
-            # Note: .apps.dynatrace.com (App Engine Registry) uses OAuth2 Bearer tokens,
-            # NOT environment API tokens, so we don't include it here
-            if ".live.dynatrace.com" in url:
+            if ".live.dynatrace.com" in url or ".apps.dynatrace.com" in url:
                 use_environment_token = True
         elif path.startswith("/"):
             url = f"{self.base_url}{path}"
         else:
             url = f"{self.base_url}/{path}"
+
+        self._log_request(method, url, **kwargs)
 
         last_exception: Exception | None = None
         last_response: httpx.Response | None = None
@@ -191,12 +185,6 @@ class Client:
             try:
                 # Get fresh auth headers for each attempt
                 headers = {**self._get_auth_headers(use_environment_token), **kwargs.pop("headers", {})}
-                
-                # Log request with headers
-                if self.verbose:
-                    logger.debug(f"Request: {method} {url}")
-                    auth_header = headers.get("Authorization", "None")
-                    logger.debug(f"Auth: {auth_header[:30]}..." if len(auth_header) > 30 else f"Auth: {auth_header}")
 
                 response = self._client.request(method, url, headers=headers, **kwargs)
                 self._log_response(response)
@@ -268,11 +256,8 @@ def create_client_from_config(
 
     Authentication Priority (first match wins):
     1. DTIAM_BEARER_TOKEN + DTIAM_ACCOUNT_UUID (static bearer token)
-    2. DTIAM_CLIENT_SECRET + DTIAM_ACCOUNT_UUID (OAuth2 via env, client ID auto-extracted)
+    2. DTIAM_CLIENT_ID + DTIAM_CLIENT_SECRET + DTIAM_ACCOUNT_UUID (OAuth2 via env)
     3. Config file context with OAuth2 credentials
-
-    Note: DTIAM_CLIENT_ID is optional - if not set, it will be automatically
-    extracted from DTIAM_CLIENT_SECRET (format: dt0s01.CLIENTID.SECRETPART).
 
     Optional Environment Token for Management Zones (legacy):
     - DTIAM_ENVIRONMENT_TOKEN: Environment API token for management zone operations
@@ -314,12 +299,6 @@ def create_client_from_config(
     # Priority 2: OAuth2 via environment variables (auto-refresh)
     env_client_id = get_env_override("client_id")
     env_client_secret = get_env_override("client_secret")
-
-    # Auto-extract client ID from secret if not provided
-    if env_client_secret and not env_client_id:
-        env_client_id = extract_client_id_from_secret(env_client_secret)
-        if env_client_id:
-            logger.info(f"Auto-extracted client ID from DTIAM_CLIENT_SECRET")
 
     if env_client_id and env_client_secret and env_account_uuid:
         logger.info("Using OAuth2 authentication via environment variables")
