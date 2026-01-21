@@ -54,16 +54,26 @@ class ServiceUserHandler(ResourceHandler[Any]):
     def get(self, user_id: str) -> dict[str, Any]:
         """Get a service user by UUID.
 
+        Note: Falls back to filtering the list if the API doesn't support
+        direct GET by UUID (similar to groups endpoint).
+
         Args:
             user_id: Service user UUID
 
         Returns:
-            Service user dictionary
+            Service user dictionary or empty dict if not found
         """
         try:
             response = self.client.get(f"{self.api_path}/{user_id}")
             return response.json()
         except APIError as e:
+            if e.status_code == 404:
+                # Fall back to filtering the list
+                users = self.list()
+                for user in users:
+                    if user.get("uid") == user_id:
+                        return user
+                return {}
             self._handle_error("get", e)
             return {}
 

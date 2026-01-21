@@ -57,16 +57,26 @@ class EnvironmentHandler(ResourceHandler[Any]):
     def get(self, environment_id: str) -> dict[str, Any]:
         """Get a single environment by ID.
 
+        Note: Falls back to filtering the list if the API doesn't support
+        direct GET by ID (similar to groups endpoint).
+
         Args:
             environment_id: Environment ID
 
         Returns:
-            Environment dictionary
+            Environment dictionary or empty dict if not found
         """
         try:
             response = self.client.get(f"{self.api_path}/{environment_id}")
             return response.json()
         except APIError as e:
+            if e.status_code == 404:
+                # Fall back to filtering the list
+                environments = self.list()
+                for env in environments:
+                    if env.get("id") == environment_id:
+                        return env
+                return {}
             self._handle_error("get", e)
             return {}
 
