@@ -264,13 +264,27 @@ class TokenManager(BaseTokenManager):
             if not access_token:
                 raise OAuthError("No access_token in response")
 
+            granted_scope = token_data.get("scope", self.scope)
             self._token = TokenInfo(
                 access_token=access_token,
                 expires_at=time.time() + expires_in,
-                scope=token_data.get("scope", self.scope),
+                scope=granted_scope,
             )
 
             logger.info(f"OAuth2 token retrieved successfully (expires in {expires_in}s)")
+
+            # Check if granted scopes differ from requested
+            requested_scopes = set(self.scope.split())
+            granted_scopes = set(granted_scope.split())
+            missing_scopes = requested_scopes - granted_scopes
+            if missing_scopes:
+                logger.warning(
+                    f"Some requested scopes were not granted: {' '.join(sorted(missing_scopes))}"
+                )
+                logger.warning(
+                    "API calls requiring these scopes will fail. "
+                    "Check your OAuth client configuration in Dynatrace."
+                )
 
         except httpx.RequestError as e:
             raise OAuthError(f"Connection error: {e}") from e
@@ -318,3 +332,37 @@ class TokenManager(BaseTokenManager):
         """Clear the cached token."""
         self._token = None
         logger.debug("Token cache cleared")
+
+    def get_granted_scopes(self) -> set[str]:
+        """Get the set of scopes that were actually granted by the OAuth server.
+
+        Returns:
+            Set of granted scope strings. Empty set if no token has been acquired.
+        """
+        if self._token is None:
+            return set()
+        return set(self._token.scope.split())
+
+    def has_scope(self, scope: str) -> bool:
+        """Check if a specific scope was granted.
+
+        Args:
+            scope: The scope to check (e.g., "iam:users:read")
+
+        Returns:
+            True if the scope was granted, False otherwise.
+            Returns False if no token has been acquired yet.
+        """
+        return scope in self.get_granted_scopes()
+
+    def check_required_scopes(self, *scopes: str) -> list[str]:
+        """Check if required scopes are available.
+
+        Args:
+            *scopes: One or more scope strings to check
+
+        Returns:
+            List of missing scopes. Empty list if all scopes are available.
+        """
+        granted = self.get_granted_scopes()
+        return [s for s in scopes if s not in granted]

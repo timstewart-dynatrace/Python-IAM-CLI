@@ -40,6 +40,12 @@ def is_plain_mode() -> bool:
     return state.plain
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 # --- Limits Commands ---
 
 @app.command("limits")
@@ -58,7 +64,7 @@ def list_limits(
     from dtiam.resources.limits import AccountLimitsHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = AccountLimitsHandler(client)
 
     fmt = output or get_output_format()
@@ -139,7 +145,7 @@ def check_capacity(
     from dtiam.resources.limits import AccountLimitsHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = AccountLimitsHandler(client)
 
     fmt = output or get_output_format()
@@ -185,7 +191,7 @@ def list_subscriptions(
     from dtiam.resources.subscriptions import SubscriptionHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = SubscriptionHandler(client)
 
     fmt = output or get_output_format()
@@ -236,7 +242,7 @@ def get_subscription(
     from dtiam.commands.describe import print_detail_view
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = SubscriptionHandler(client)
 
     fmt = output or get_output_format()
@@ -277,7 +283,7 @@ def get_forecast(
     from dtiam.resources.subscriptions import SubscriptionHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = SubscriptionHandler(client)
 
     fmt = output or get_output_format()
@@ -312,7 +318,7 @@ def list_capabilities(
     from dtiam.resources.subscriptions import SubscriptionHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = SubscriptionHandler(client)
 
     fmt = output or get_output_format()

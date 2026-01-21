@@ -17,13 +17,13 @@ groups:
 cli_commands:
   # Create the service user
   create: |
-    dtiam service-user create --name "monitoring-bot" \
+    dtiam create service-user --name "monitoring-bot" \
       --description "Read-only service user for monitoring and reporting" \
       --save-credentials monitoring-bot-creds.json
 
   # Create with read-only group
   create_with_group: |
-    dtiam service-user create --name "monitoring-bot" \
+    dtiam create service-user --name "monitoring-bot" \
       --description "Read-only service user for monitoring and reporting" \
       --groups "Observers" \
       --save-credentials monitoring-bot-creds.json
@@ -41,7 +41,7 @@ setup_workflow: |
   dtiam create binding --group "Observers" --policy "viewer-policy"
 
   # 4. Create the service user with the group
-  dtiam service-user create --name "monitoring-bot" \
+  dtiam create service-user --name "monitoring-bot" \
     --description "Read-only service user for monitoring" \
     --groups "Observers" \
     --save-credentials monitoring-bot-creds.json

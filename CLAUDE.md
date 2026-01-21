@@ -112,7 +112,7 @@ git push
 
 **ALL merges to main that add features or fixes MUST increment the version number.**
 
-Current version: **3.8.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
+Current version: **3.12.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
 
 #### Semantic Versioning (SemVer)
 
@@ -381,6 +381,7 @@ src/dtiam/
 │   ├── delete.py            # Delete resources
 │   ├── user.py              # User management
 │   ├── service_user.py      # Service user (OAuth client) management
+│   ├── platform_token.py    # Platform token management
 │   ├── account.py           # Account limits and subscriptions
 │   ├── bulk.py              # Bulk operations
 │   ├── template.py          # Template system
@@ -400,6 +401,7 @@ src/dtiam/
 │   ├── environments.py      # Environments API
 │   ├── zones.py             # Management zones API (legacy - will be removed)
 │   ├── service_users.py     # Service users (OAuth clients) API
+│   ├── platform_tokens.py   # Platform tokens API
 │   ├── limits.py            # Account limits API
 │   ├── subscriptions.py     # Subscriptions API
 │   └── apps.py              # App Engine Registry API
@@ -471,9 +473,29 @@ dtiam supports two authentication methods:
 | `DTIAM_ACCOUNT_UUID` | Dynatrace account UUID |
 | `DTIAM_CONTEXT` | Override current context |
 | `DTIAM_ENVIRONMENT_URL` | Environment URL for App Engine Registry (e.g., abc12345.apps.dynatrace.com) |
+| `DTIAM_API_URL` | Custom IAM API base URL (e.g., for testing or different regions) |
 
 **Note:** `DTIAM_CLIENT_ID` is optional. If not set, it will be automatically extracted from
 `DTIAM_CLIENT_SECRET` since Dynatrace secrets follow the format `dt0s01.CLIENTID.SECRETPART`.
+
+### Credential Storage
+
+Credentials can store additional settings beyond client ID/secret:
+
+| Field | Description |
+|-------|-------------|
+| `client-id` | OAuth2 client ID |
+| `client-secret` | OAuth2 client secret |
+| `environment-url` | Dynatrace environment URL |
+| `environment-token` | Optional environment API token |
+| `api-url` | Custom IAM API base URL (stored per-credential) |
+| `scopes` | Custom OAuth2 scopes (space-separated, overrides defaults) |
+
+**API URL Priority:** CLI `--api-url` > `DTIAM_API_URL` env var > stored in credential
+
+**Scopes:** When custom scopes are stored, they replace the default scopes. The OAuth server
+will only grant scopes that the client is configured for. Warnings are logged if requested
+scopes aren't granted.
 
 ## Key Patterns
 
@@ -778,15 +800,15 @@ Level types: `account`, `environment`, `global`
 | `GET /bindings/{policyUuid}/{groupUuid}` | Get specific binding | `BindingHandler.get_policy_group_binding()` |
 | `GET /bindings/descendants/{policyUuid}` | Descendant bindings | `BindingHandler.get_descendants()` |
 | `PUT /bindings/groups/{groupUuid}` | Update group bindings | `BindingHandler.update_group_bindings()` |
+| `GET /platform-tokens` | List tokens | `PlatformTokenHandler.list()` |
+| `GET /platform-tokens/{id}` | Get token | `PlatformTokenHandler.get()` |
+| `POST /platform-tokens` | Generate token | `PlatformTokenHandler.create()` |
+| `DELETE /platform-tokens/{id}` | Delete token | `PlatformTokenHandler.delete()` |
 
 **Not yet implemented:**
 | Endpoint | Operation | Notes |
 |----------|-----------|-------|
 | `DELETE /bindings` | Delete all bindings | Level-wide deletion (dangerous) |
-| **Platform Tokens** | | Entire resource |
-| `GET /platform-tokens` | List tokens | `platform-token:tokens:manage` |
-| `POST /platform-tokens` | Generate token | `platform-token:tokens:manage` |
-| `DELETE /platform-tokens/{id}` | Delete token | `platform-token:tokens:manage` |
 | **Environment IP Allowlist** | | |
 | `GET /environments/{id}/ip-allowlist` | Get allowlist | Bearer token |
 | `PUT /environments/{id}/ip-allowlist` | Set allowlist | Bearer token |
@@ -812,6 +834,9 @@ credentials:
     credential:
       client-id: dt0s01.XXX
       client-secret: dt0s01.XXX.YYY
+      environment-url: https://abc123.live.dynatrace.com
+      api-url: https://api.dynatrace.com/iam/v1        # Optional: custom API URL
+      scopes: account-idm-read iam:users:read          # Optional: custom scopes
 ```
 
 Environment variable overrides:
@@ -821,6 +846,7 @@ Environment variable overrides:
 - `DTIAM_CLIENT_ID` - OAuth2 client ID
 - `DTIAM_CLIENT_SECRET` - OAuth2 client secret
 - `DTIAM_ACCOUNT_UUID` - account UUID
+- `DTIAM_API_URL` - custom IAM API base URL
 
 ## Common Tasks
 

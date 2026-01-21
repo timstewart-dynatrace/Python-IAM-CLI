@@ -48,6 +48,12 @@ def is_plain_mode() -> bool:
     return state.plain
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 def zone_columns() -> list[Column]:
     """Return column definitions for zones."""
     return [
@@ -66,7 +72,7 @@ def list_zones(
     from dtiam.resources.zones import ZoneHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     
     # Get environment URL from config, environment variable, or prompt
     environment_url = os.environ.get("DTIAM_ENVIRONMENT_URL")
@@ -104,7 +110,7 @@ def get_zone(
     from dtiam.resources.zones import ZoneHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     
     # Get environment URL from config, environment variable, or prompt
     environment_url = os.environ.get("DTIAM_ENVIRONMENT_URL")
@@ -145,7 +151,7 @@ def export_zones(
     from dtiam.resources.zones import ZoneHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     
     # Get environment URL from config, environment variable, or prompt
     environment_url = os.environ.get("DTIAM_ENVIRONMENT_URL")
@@ -201,7 +207,7 @@ def compare_zones_groups(
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     
     # Get environment URL from config, environment variable, or prompt
     environment_url = os.environ.get("DTIAM_ENVIRONMENT_URL")

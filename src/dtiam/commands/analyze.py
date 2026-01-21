@@ -55,6 +55,12 @@ def is_plain_mode() -> bool:
     return state.plain
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 @app.command("user-permissions")
 def analyze_user_permissions(
     user: str = typer.Argument(..., help="User email or UID"),
@@ -67,7 +73,7 @@ def analyze_user_permissions(
     and policy bindings.
     """
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     calculator = PermissionsCalculator(client)
 
     try:
@@ -146,7 +152,7 @@ def analyze_group_permissions(
     Shows all permissions granted to a group through its policy bindings.
     """
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     calculator = PermissionsCalculator(client)
 
     try:
@@ -217,7 +223,7 @@ def permissions_matrix(
     Useful for security audits and compliance reviews.
     """
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     matrix_gen = PermissionsMatrix(client)
 
     try:
@@ -304,7 +310,7 @@ def analyze_policy(
     from dtiam.utils.permissions import parse_statement_query
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     policy_handler = PolicyHandler(
         client, level_type="account", level_id=client.account_uuid
@@ -428,7 +434,7 @@ def analyze_least_privilege(
     from dtiam.utils.permissions import parse_statement_query
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     policy_handler = PolicyHandler(
         client, level_type="account", level_id=client.account_uuid
     )
@@ -551,7 +557,7 @@ def effective_user_permissions(
         dtiam analyze effective-user admin@example.com --services settings,entities
     """
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     api = EffectivePermissionsAPI(client)
 
     try:
@@ -643,7 +649,7 @@ def effective_group_permissions(
         dtiam analyze effective-group "DevOps Team" --level environment --level-id env123
     """
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     api = EffectivePermissionsAPI(client)
 
     try:

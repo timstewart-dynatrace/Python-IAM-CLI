@@ -45,6 +45,12 @@ def is_plain_mode() -> bool:
     return state.plain
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 @app.command("create")
 def create_user(
     email: str = typer.Option(..., "--email", "-e", help="User email address"),
@@ -66,7 +72,7 @@ def create_user(
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     user_handler = UserHandler(client)
 
     fmt = output or get_output_format()
@@ -132,7 +138,7 @@ def delete_user(
     from dtiam.resources.users import UserHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = UserHandler(client)
 
     try:
@@ -180,7 +186,7 @@ def add_user_to_group(
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = GroupHandler(client)
 
     try:
@@ -221,7 +227,7 @@ def remove_user_from_group(
     from dtiam.resources.users import UserHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     group_handler = GroupHandler(client)
     user_handler = UserHandler(client)
 
@@ -278,7 +284,7 @@ def list_user_groups(
     from dtiam.resources.users import UserHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = UserHandler(client)
 
     fmt = output or get_output_format()
@@ -318,7 +324,7 @@ def user_info(
     from dtiam.commands.describe import print_detail_view
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = UserHandler(client)
 
     fmt = output or get_output_format()
@@ -365,7 +371,7 @@ def replace_user_groups(
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     user_handler = UserHandler(client)
     group_handler = GroupHandler(client)
 
@@ -433,7 +439,7 @@ def bulk_remove_user_from_groups(
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     user_handler = UserHandler(client)
     group_handler = GroupHandler(client)
 
@@ -500,7 +506,7 @@ def bulk_add_user_to_groups(
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     user_handler = UserHandler(client)
     group_handler = GroupHandler(client)
 

@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -43,6 +42,7 @@ class State:
         self.verbose: bool = False
         self.plain: bool = False
         self.dry_run: bool = False
+        self.api_url: str | None = None
 
 
 state = State()
@@ -58,7 +58,7 @@ def version_callback(value: bool) -> None:
 @app.callback()
 def main(
     ctx: typer.Context,
-    context: Optional[str] = typer.Option(
+    context: str | None = typer.Option(
         None,
         "--context",
         "-c",
@@ -89,6 +89,12 @@ def main(
         "--dry-run",
         help="Preview changes without applying them",
     ),
+    api_url: str | None = typer.Option(
+        None,
+        "--api-url",
+        help="Override API base URL (e.g., for testing)",
+        envvar="DTIAM_API_URL",
+    ),
     version: bool = typer.Option(
         False,
         "--version",
@@ -116,6 +122,7 @@ def main(
     state.verbose = verbose
     state.plain = plain
     state.dry_run = dry_run
+    state.api_url = api_url
 
     # Configure logging
     if verbose:
@@ -128,21 +135,21 @@ def main(
 app.add_typer(config_cmd.app, name="config", help="Manage configuration contexts and credentials")
 
 # Import and register all commands
-from dtiam.commands import get as get_cmd
-from dtiam.commands import describe as describe_cmd
+from dtiam.commands import account as account_cmd
+from dtiam.commands import analyze as analyze_cmd
+from dtiam.commands import boundary as boundary_cmd
+from dtiam.commands import bulk as bulk_cmd
+from dtiam.commands import cache as cache_cmd
 from dtiam.commands import create as create_cmd
 from dtiam.commands import delete as delete_cmd
-from dtiam.commands import user as user_cmd
-from dtiam.commands import bulk as bulk_cmd
-from dtiam.commands import template as template_cmd
-from dtiam.commands import zones as zones_cmd
-from dtiam.commands import analyze as analyze_cmd
+from dtiam.commands import describe as describe_cmd
 from dtiam.commands import export as export_cmd
+from dtiam.commands import get as get_cmd
 from dtiam.commands import group as group_cmd
-from dtiam.commands import boundary as boundary_cmd
-from dtiam.commands import cache as cache_cmd
 from dtiam.commands import service_user as service_user_cmd
-from dtiam.commands import account as account_cmd
+from dtiam.commands import template as template_cmd
+from dtiam.commands import user as user_cmd
+from dtiam.commands import zones as zones_cmd
 
 app.add_typer(get_cmd.app, name="get", help="Get/list resources")
 app.add_typer(describe_cmd.app, name="describe", help="Show detailed resource information")
@@ -157,7 +164,7 @@ app.add_typer(export_cmd.app, name="export", help="Export resources and data")
 app.add_typer(group_cmd.app, name="group", help="Advanced group operations")
 app.add_typer(boundary_cmd.app, name="boundary", help="Boundary attach/detach operations")
 app.add_typer(cache_cmd.app, name="cache", help="Cache management")
-app.add_typer(service_user_cmd.app, name="service-user", help="Service user (OAuth client) management")
+app.add_typer(service_user_cmd.app, name="service-user", help="Service user (OAuth client) advanced operations")
 app.add_typer(account_cmd.app, name="account", help="Account limits and subscriptions")
 
 

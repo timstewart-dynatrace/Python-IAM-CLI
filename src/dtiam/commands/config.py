@@ -218,6 +218,16 @@ def set_credentials(
         "-t",
         help="Optional environment API token",
     ),
+    api_url: Optional[str] = typer.Option(
+        None,
+        "--api-url",
+        help="Custom IAM API base URL (e.g., for testing)",
+    ),
+    scopes: Optional[str] = typer.Option(
+        None,
+        "--scopes",
+        help="OAuth2 scopes (space-separated). Uses defaults if not set.",
+    ),
 ) -> None:
     """Store OAuth2 credentials and environment settings.
 
@@ -240,6 +250,12 @@ def set_credentials(
 
         # Update just the environment token (existing credential)
         dtiam config set-credentials prod-creds --environment-token dt0c01.XXX
+
+        # Store credentials with custom API URL (for testing)
+        dtiam config set-credentials test-creds \\
+          --client-secret dt0s01.XXX.YYY \\
+          --account-uuid abc-123 \\
+          --api-url https://custom-api.example.com/iam/v1
 
         # Interactive prompt for required values (new credential)
         dtiam config set-credentials dev-creds
@@ -271,10 +287,16 @@ def set_credentials(
         if environment_token:
             existing_cred.environment_token = environment_token
             updated = True
+        if api_url:
+            existing_cred.api_url = api_url
+            updated = True
+        if scopes:
+            existing_cred.scopes = scopes
+            updated = True
 
         if not updated:
             console.print(f"[yellow]Warning:[/yellow] No changes specified for '{name}'.")
-            console.print("Use --client-id, --client-secret, --environment-url, or --environment-token to update.")
+            console.print("Use --client-id, --client-secret, --environment-url, --environment-token, --api-url, or --scopes to update.")
             raise typer.Exit(1)
 
         # Update context environment-url if provided
@@ -321,13 +343,17 @@ def set_credentials(
             default="",
         ) or None
 
-    config.set_credential(name, client_id, client_secret, environment_url, environment_token)
+    config.set_credential(name, client_id, client_secret, environment_url, environment_token, api_url, scopes)
     config.set_context(name, account_uuid, name, environment_url)
     save_config(config)
     console.print(f"Stored credentials as '{name}'.")
     console.print(f"Created context '{name}' with account UUID {account_uuid}.")
     if environment_url:
         console.print(f"Environment URL: {environment_url}")
+    if api_url:
+        console.print(f"API URL: {api_url}")
+    if scopes:
+        console.print(f"Scopes: {scopes}")
 
 
 @app.command("delete-credentials")

@@ -35,6 +35,12 @@ def is_dry_run() -> bool:
     return state.dry_run
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 @app.command("attach")
 def attach_boundary(
     group: str = typer.Option(..., "--group", "-g", help="Group UUID or name"),
@@ -54,7 +60,7 @@ def attach_boundary(
     from dtiam.resources.bindings import BindingHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     group_handler = GroupHandler(client)
     policy_handler = PolicyHandler(client, level_type="account", level_id=client.account_uuid)
@@ -136,7 +142,7 @@ def detach_boundary(
     from dtiam.resources.bindings import BindingHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     group_handler = GroupHandler(client)
     policy_handler = PolicyHandler(client, level_type="account", level_id=client.account_uuid)
@@ -218,7 +224,7 @@ def list_attached(
     from dtiam.output import Printer
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     boundary_handler = BoundaryHandler(client)
     policy_handler = PolicyHandler(client, level_type="account", level_id=client.account_uuid)
@@ -371,7 +377,7 @@ def create_app_boundary(
             unique_app_ids.append(aid)
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     try:
         # Validate app IDs unless skipped
@@ -528,7 +534,7 @@ def create_schema_boundary(
             unique_schema_ids.append(sid)
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     try:
         # Validate schema IDs unless skipped

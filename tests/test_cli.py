@@ -189,11 +189,19 @@ class TestServiceUserCommands:
     """Tests for service-user subcommands."""
 
     def test_service_user_help(self):
-        """Test service-user command help."""
+        """Test service-user command help.
+
+        Note: Basic operations (list, create, delete) have moved to:
+        - dtiam get service-users
+        - dtiam create service-user
+        - dtiam delete service-user
+
+        The service-user subcommand now contains only advanced operations.
+        """
         result = runner.invoke(app, ["service-user", "--help"])
         assert result.exit_code == 0
-        assert "list" in result.output.lower()
-        assert "create" in result.output.lower()
+        assert "update" in result.output.lower()
+        assert "add-to-group" in result.output.lower()
 
 
 class TestAccountCommands:

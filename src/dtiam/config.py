@@ -21,6 +21,8 @@ class Credential(BaseModel):
     client_secret: str = Field(alias="client-secret", description="OAuth2 client secret")
     environment_url: str | None = Field(default=None, alias="environment-url", description="Dynatrace environment URL")
     environment_token: str | None = Field(default=None, alias="environment-token", description="Optional environment API token")
+    api_url: str | None = Field(default=None, alias="api-url", description="Custom IAM API base URL (e.g., for testing)")
+    scopes: str | None = Field(default=None, alias="scopes", description="OAuth2 scopes (space-separated, uses defaults if not set)")
 
     model_config = {"populate_by_name": True}
 
@@ -142,6 +144,8 @@ class Config(BaseModel):
         client_secret: str,
         environment_url: str | None = None,
         environment_token: str | None = None,
+        api_url: str | None = None,
+        scopes: str | None = None,
     ) -> None:
         """Create or update a credential."""
         for c in self.credentials:
@@ -152,6 +156,10 @@ class Config(BaseModel):
                     c.credential.environment_url = environment_url
                 if environment_token is not None:
                     c.credential.environment_token = environment_token
+                if api_url is not None:
+                    c.credential.api_url = api_url
+                if scopes is not None:
+                    c.credential.scopes = scopes
                 return
         self.credentials.append(
             NamedCredential(
@@ -162,6 +170,8 @@ class Config(BaseModel):
                         "client-secret": client_secret,
                         "environment-url": environment_url,
                         "environment-token": environment_token,
+                        "api-url": api_url,
+                        "scopes": scopes,
                     }
                 ),
             )

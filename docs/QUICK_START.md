@@ -247,20 +247,20 @@ Service users are OAuth clients used for programmatic API access.
 
 ```bash
 # List all service users
-dtiam service-user list
+dtiam get service-users
+
+# Get a specific service user
+dtiam get service-users "CI Pipeline"
 
 # Create a service user (SAVE THE CREDENTIALS!)
-dtiam service-user create --name "CI Pipeline"
+dtiam create service-user --name "CI Pipeline"
 
 # Create with groups and save credentials to file
-dtiam service-user create \
+dtiam create service-user \
   --name "CI Pipeline" \
   --description "CI/CD automation" \
   --groups "LOB5,LOB6" \
   --save-credentials creds.json
-
-# View service user details
-dtiam service-user get "CI Pipeline"
 
 # Update a service user
 dtiam service-user update "CI Pipeline" --description "Updated description"
@@ -275,7 +275,7 @@ dtiam service-user remove-from-group --user "CI Pipeline" --group LOB5
 dtiam service-user list-groups "CI Pipeline"
 
 # Delete a service user
-dtiam service-user delete "CI Pipeline"
+dtiam delete service-user "CI Pipeline"
 ```
 
 ### Account Information

@@ -282,17 +282,17 @@ show_service_users() {
     show_section "SERVICE USER (OAUTH CLIENT) WORKFLOWS"
 
     echo "# List all service users"
-    show_command "dtiam service-user list"
+    show_command "dtiam get service-users"
 
     echo "# Create a service user"
-    show_command "dtiam service-user create --name 'CI Pipeline'"
+    show_command "dtiam create service-user --name 'CI Pipeline'"
     show_note "Save the client secret immediately - it cannot be retrieved later!"
 
     echo "# Create service user and save credentials"
-    show_command "dtiam service-user create --name 'CI Pipeline' --save-credentials creds.json"
+    show_command "dtiam create service-user --name 'CI Pipeline' --save-credentials creds.json"
 
     echo "# Create service user with group membership"
-    show_command "dtiam service-user create --name 'CI Pipeline' --groups 'Automation,DevOps'"
+    show_command "dtiam create service-user --name 'CI Pipeline' --groups 'Automation,DevOps'"
 
     echo "# Add service user to group"
     show_command "dtiam service-user add-to-group --user 'CI Pipeline' --group 'DevOps'"
@@ -301,7 +301,7 @@ show_service_users() {
     show_command "dtiam service-user list-groups 'CI Pipeline'"
 
     echo "# Delete service user"
-    show_command "dtiam service-user delete 'CI Pipeline' --force"
+    show_command "dtiam delete service-user 'CI Pipeline' --force"
 }
 
 # ============================================================================

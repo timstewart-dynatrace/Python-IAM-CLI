@@ -45,6 +45,12 @@ def is_plain_mode() -> bool:
     return state.plain
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 @app.command("clone")
 def clone_group(
     source: str = typer.Argument(..., help="Source group UUID or name"),
@@ -66,7 +72,7 @@ def clone_group(
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = GroupHandler(client)
 
     fmt = output or get_output_format()
@@ -132,7 +138,7 @@ def setup_group(
     from dtiam.resources.boundaries import BoundaryHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     group_handler = GroupHandler(client)
     policy_handler = PolicyHandler(client, level_type="account", level_id=client.account_uuid)
@@ -211,7 +217,7 @@ def list_group_bindings(
     from dtiam.resources.boundaries import BoundaryHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     group_handler = GroupHandler(client)
     binding_handler = BindingHandler(client)
@@ -296,7 +302,7 @@ def list_group_members(
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = GroupHandler(client)
 
     fmt = output or get_output_format()

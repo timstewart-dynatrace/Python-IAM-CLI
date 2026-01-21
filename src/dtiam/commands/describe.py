@@ -42,6 +42,12 @@ def is_verbose() -> bool:
     return state.verbose
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 def print_detail_view(data: dict, title: str) -> None:
     """Print a detailed view of a resource."""
     fmt = get_output_format()
@@ -117,7 +123,7 @@ def describe_group(
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = GroupHandler(client)
 
     try:
@@ -151,7 +157,7 @@ def describe_user(
     from dtiam.resources.users import UserHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = UserHandler(client)
 
     try:
@@ -186,7 +192,7 @@ def describe_policy(
     from dtiam.resources.policies import PolicyHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     level_type = "global" if level == "global" else "account"
     level_id = "global" if level == "global" else client.account_uuid
@@ -227,7 +233,7 @@ def describe_environment(
     from dtiam.resources.environments import EnvironmentHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = EnvironmentHandler(client)
 
     try:
@@ -257,7 +263,7 @@ def describe_boundary(
     from dtiam.resources.boundaries import BoundaryHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = BoundaryHandler(client)
 
     try:

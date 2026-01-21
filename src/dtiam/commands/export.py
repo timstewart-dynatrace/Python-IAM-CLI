@@ -33,6 +33,12 @@ def is_verbose() -> bool:
     return state.verbose
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 def write_data(data: list[dict], path: Path, format: str) -> None:
     """Write data to file in specified format.
 
@@ -117,7 +123,7 @@ def export_all(
     export_dir.mkdir(parents=True, exist_ok=True)
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     # File extension
     ext = format if format in ["json", "yaml"] else "csv"
@@ -285,7 +291,7 @@ def export_group(
     from dtiam.resources.policies import PolicyHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     group_handler = GroupHandler(client)
     binding_handler = BindingHandler(client)
@@ -367,7 +373,7 @@ def export_policy(
     from dtiam.resources.policies import PolicyHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = PolicyHandler(client, level_type="account", level_id=client.account_uuid)
 
     try:

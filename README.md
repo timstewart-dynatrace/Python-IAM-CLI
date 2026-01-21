@@ -174,6 +174,7 @@ dtiam create binding --group "New Team" --policy "viewer-policy"
 | `delete` | Delete resources |
 | `user` | User management operations |
 | `service-user` | Service user (OAuth client) management |
+| `platform-token` | Platform token management |
 | `account` | Account limits and subscriptions |
 | `bulk` | Bulk operations for multiple resources |
 | `template` | Template-based resource creation |
@@ -192,6 +193,7 @@ dtiam create binding --group "New Team" --policy "viewer-policy"
 | `policies` | Permission policies with statements |
 | `users` | User accounts |
 | `service-users` | Service users (OAuth clients) for automation |
+| `platform-tokens` | Platform tokens for API access |
 | `bindings` | Policy-to-group assignments |
 | `environments` | Dynatrace environments |
 | `boundaries` | Scope restrictions for bindings |
@@ -429,10 +431,14 @@ Your OAuth2 client needs specific scopes for each operation. Create your client 
 | `user add-to-group` | Add to group | `account-idm-write` |
 | `user remove-from-group` | Remove from group | `account-idm-write` |
 | **Service Users** | | |
-| `service-user list` | List service users | `account-idm-read` |
-| `service-user create` | Create service user | `account-idm-write` |
+| `get service-users` | List service users | `account-idm-read` |
+| `create service-user` | Create service user | `account-idm-write` |
 | `service-user update` | Update service user | `account-idm-write` |
-| `service-user delete` | Delete service user | `account-idm-write` |
+| `delete service-user` | Delete service user | `account-idm-write` |
+| **Platform Tokens** | | |
+| `get platform-tokens` | List tokens | `platform-token:tokens:manage` |
+| `create platform-token` | Generate token | `platform-token:tokens:manage` |
+| `delete platform-token` | Delete token | `platform-token:tokens:manage` |
 | **Policies** | | |
 | `get policies` | List/get policies | `iam-policies-management` or `iam:policies:read` |
 | `create policy` | Create policy | `iam-policies-management` or `iam:policies:write` |
@@ -514,6 +520,7 @@ When a required scope is missing, dtiam will return a **Permission denied** erro
 | `DTIAM_CONTEXT` | Override current context name |
 | `DTIAM_OUTPUT` | Default output format |
 | `DTIAM_VERBOSE` | Enable verbose mode |
+| `DTIAM_API_URL` | Custom IAM API base URL (for testing or different regions) |
 
 ## Requirements
 

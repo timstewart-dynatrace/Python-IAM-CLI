@@ -2,24 +2,23 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import typer
 from rich.console import Console
 
 from dtiam.client import create_client_from_config
 from dtiam.config import load_config
 from dtiam.output import (
-    Printer,
     OutputFormat,
-    group_columns,
-    user_columns,
-    policy_columns,
-    binding_columns,
-    environment_columns,
-    boundary_columns,
+    Printer,
     app_columns,
+    binding_columns,
+    boundary_columns,
+    environment_columns,
+    group_columns,
+    platform_token_columns,
+    policy_columns,
     service_user_columns,
+    user_columns,
 )
 
 app = typer.Typer(no_args_is_help=True)
@@ -50,18 +49,24 @@ def is_verbose() -> bool:
     return state.verbose
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 @app.command("groups")
 @app.command("group")
 def get_groups(
-    identifier: Optional[str] = typer.Argument(None, help="Group UUID or name"),
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name"),
-    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+    identifier: str | None = typer.Argument(None, help="Group UUID or name"),
+    name: str | None = typer.Option(None, "--name", "-n", help="Filter by name"),
+    output: OutputFormat | None = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List or get IAM groups."""
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = GroupHandler(client)
 
     fmt = output or get_output_format()
@@ -90,15 +95,15 @@ def get_groups(
 @app.command("users")
 @app.command("user")
 def get_users(
-    identifier: Optional[str] = typer.Argument(None, help="User UID or email"),
-    email: Optional[str] = typer.Option(None, "--email", "-e", help="Filter by email"),
-    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+    identifier: str | None = typer.Argument(None, help="User UID or email"),
+    email: str | None = typer.Option(None, "--email", "-e", help="Filter by email"),
+    output: OutputFormat | None = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List or get IAM users."""
     from dtiam.resources.users import UserHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = UserHandler(client)
 
     fmt = output or get_output_format()
@@ -127,21 +132,21 @@ def get_users(
 @app.command("policies")
 @app.command("policy")
 def get_policies(
-    identifier: Optional[str] = typer.Argument(None, help="Policy UUID or name"),
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name"),
-    level: Optional[str] = typer.Option(None, "--level", "-l", help="Policy level (account, global, environment, or env ID). Default: all levels"),
-    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+    identifier: str | None = typer.Argument(None, help="Policy UUID or name"),
+    name: str | None = typer.Option(None, "--name", "-n", help="Filter by name"),
+    level: str | None = typer.Option(None, "--level", "-l", help="Policy level (account, global, environment, or env ID). Default: all levels"),
+    output: OutputFormat | None = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List or get IAM policies.
 
     By default, lists policies from all levels (account, global, and environments).
     Use --level to filter to a specific level.
     """
-    from dtiam.resources.policies import PolicyHandler
     from dtiam.resources.environments import EnvironmentHandler
+    from dtiam.resources.policies import PolicyHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     fmt = output or get_output_format()
     printer = Printer(format=fmt, plain=is_plain_mode())
@@ -243,9 +248,9 @@ def get_policies(
 @app.command("bindings")
 @app.command("binding")
 def get_bindings(
-    group_id: Optional[str] = typer.Option(None, "--group", "-g", help="Filter by group UUID"),
-    level: Optional[str] = typer.Option(None, "--level", "-l", help="Binding level (account, global, environment, or env ID). Default: all levels"),
-    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+    group_id: str | None = typer.Option(None, "--group", "-g", help="Filter by group UUID"),
+    level: str | None = typer.Option(None, "--level", "-l", help="Binding level (account, global, environment, or env ID). Default: all levels"),
+    output: OutputFormat | None = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List IAM policy bindings.
 
@@ -256,7 +261,7 @@ def get_bindings(
     from dtiam.resources.environments import EnvironmentHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     fmt = output or get_output_format()
     printer = Printer(format=fmt, plain=is_plain_mode())
@@ -347,15 +352,15 @@ def get_bindings(
 @app.command("envs")
 @app.command("env")
 def get_environments(
-    identifier: Optional[str] = typer.Argument(None, help="Environment ID or name"),
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name (partial match)"),
-    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+    identifier: str | None = typer.Argument(None, help="Environment ID or name"),
+    name: str | None = typer.Option(None, "--name", "-n", help="Filter by name (partial match)"),
+    output: OutputFormat | None = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List or get Dynatrace environments (tenants)."""
     from dtiam.resources.environments import EnvironmentHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = EnvironmentHandler(client)
 
     fmt = output or get_output_format()
@@ -384,15 +389,15 @@ def get_environments(
 @app.command("boundaries")
 @app.command("boundary")
 def get_boundaries(
-    identifier: Optional[str] = typer.Argument(None, help="Boundary UUID or name"),
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name"),
-    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+    identifier: str | None = typer.Argument(None, help="Boundary UUID or name"),
+    name: str | None = typer.Option(None, "--name", "-n", help="Filter by name"),
+    output: OutputFormat | None = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List or get IAM policy boundaries."""
     from dtiam.resources.boundaries import BoundaryHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = BoundaryHandler(client)
 
     fmt = output or get_output_format()
@@ -421,13 +426,13 @@ def get_boundaries(
 @app.command("apps")
 @app.command("app")
 def get_apps(
-    identifier: Optional[str] = typer.Argument(None, help="App ID or name"),
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name (partial match)"),
-    environment: Optional[str] = typer.Option(
+    identifier: str | None = typer.Argument(None, help="App ID or name"),
+    name: str | None = typer.Option(None, "--name", "-n", help="Filter by name (partial match)"),
+    environment: str | None = typer.Option(
         None, "--environment", "-e", help="Environment ID or URL (e.g., abc12345 or abc12345.apps.dynatrace.com)"
     ),
     ids_only: bool = typer.Option(False, "--ids", help="Output only app IDs (for use in policies)"),
-    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+    output: OutputFormat | None = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List or get Dynatrace Apps from the App Engine Registry.
 
@@ -439,11 +444,12 @@ def get_apps(
     - DTIAM_ENVIRONMENT_URL environment variable
     """
     import os
+
     from dtiam.resources.apps import AppHandler
     from dtiam.resources.environments import EnvironmentHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     fmt = output or get_output_format()
     printer = Printer(format=fmt, plain=is_plain_mode())
@@ -499,15 +505,15 @@ def get_apps(
 @app.command("schemas")
 @app.command("schema")
 def get_schemas(
-    identifier: Optional[str] = typer.Argument(None, help="Schema ID or display name"),
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name (partial match on ID or display name)"),
-    environment: Optional[str] = typer.Option(
+    identifier: str | None = typer.Argument(None, help="Schema ID or display name"),
+    name: str | None = typer.Option(None, "--name", "-n", help="Filter by name (partial match on ID or display name)"),
+    environment: str | None = typer.Option(
         None, "--environment", "-e", help="Environment ID or URL (e.g., abc12345 or abc12345.live.dynatrace.com)"
     ),
     ids_only: bool = typer.Option(False, "--ids", help="Output only schema IDs (for use in boundaries)"),
     builtin_only: bool = typer.Option(False, "--builtin", help="Show only builtin schemas"),
-    search: Optional[str] = typer.Option(None, "--search", "-s", help="Search by schema ID or display name (alias for --name)"),
-    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+    search: str | None = typer.Option(None, "--search", "-s", help="Search by schema ID or display name (alias for --name)"),
+    output: OutputFormat | None = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List or get Settings 2.0 schemas from the Environment API.
 
@@ -520,12 +526,13 @@ def get_schemas(
     - DTIAM_ENVIRONMENT_TOKEN environment variable (with settings.read scope)
     """
     import os
-    from dtiam.resources.schemas import SchemaHandler
-    from dtiam.resources.environments import EnvironmentHandler
+
     from dtiam.output import schema_columns
+    from dtiam.resources.environments import EnvironmentHandler
+    from dtiam.resources.schemas import SchemaHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     fmt = output or get_output_format()
     printer = Printer(format=fmt, plain=is_plain_mode())
@@ -590,9 +597,9 @@ def get_schemas(
 @app.command("service-users")
 @app.command("service-user")
 def get_service_users(
-    identifier: Optional[str] = typer.Argument(None, help="Service user UUID or name"),
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="Filter by name (partial match)"),
-    output: Optional[OutputFormat] = typer.Option(None, "-o", "--output"),
+    identifier: str | None = typer.Argument(None, help="Service user UUID or name"),
+    name: str | None = typer.Option(None, "--name", "-n", help="Filter by name (partial match)"),
+    output: OutputFormat | None = typer.Option(None, "-o", "--output"),
 ) -> None:
     """List or get IAM service users (OAuth clients).
 
@@ -601,7 +608,7 @@ def get_service_users(
     from dtiam.resources.service_users import ServiceUserHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = ServiceUserHandler(client)
 
     fmt = output or get_output_format()
@@ -623,5 +630,51 @@ def get_service_users(
             if name:
                 results = [s for s in results if name.lower() in s.get("name", "").lower()]
             printer.print(results, service_user_columns())
+    finally:
+        client.close()
+
+
+@app.command("platform-tokens")
+@app.command("platform-token")
+def get_platform_tokens(
+    identifier: str | None = typer.Argument(None, help="Platform token ID or name"),
+    name: str | None = typer.Option(None, "--name", "-n", help="Filter by name (partial match)"),
+    output: OutputFormat | None = typer.Option(None, "-o", "--output"),
+) -> None:
+    """List or get platform tokens.
+
+    Platform tokens provide API access credentials for automation.
+    Requires the `platform-token:tokens:manage` scope.
+
+    Example:
+        dtiam get platform-tokens
+        dtiam get platform-tokens --name "CI"
+        dtiam get platform-token my-token
+    """
+    from dtiam.resources.platform_tokens import PlatformTokenHandler
+
+    config = load_config()
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
+    handler = PlatformTokenHandler(client)
+
+    fmt = output or get_output_format()
+    printer = Printer(format=fmt, plain=is_plain_mode())
+
+    try:
+        if identifier:
+            # Try to resolve by ID or name
+            result = handler.get(identifier)
+            if not result:
+                result = handler.get_by_name(identifier)
+            if not result:
+                console.print(f"[red]Error:[/red] Platform token '{identifier}' not found.")
+                raise typer.Exit(1)
+            printer.print(result)
+        else:
+            # List platform tokens
+            results = handler.list()
+            if name:
+                results = [t for t in results if name.lower() in t.get("name", "").lower()]
+            printer.print(results, platform_token_columns())
     finally:
         client.close()

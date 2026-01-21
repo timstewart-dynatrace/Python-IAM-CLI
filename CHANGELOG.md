@@ -9,6 +9,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 No unreleased changes yet.
 
+## [3.12.0] - 2026-01-21
+
+### Added
+- **Custom API URL storage in credentials** - Store a custom IAM API base URL per credential
+  - `--api-url` option in `config set-credentials` command
+  - Useful for testing against different environments or regions
+  - Priority: CLI `--api-url` > `DTIAM_API_URL` env var > stored in credential
+- **Custom OAuth2 scopes storage in credentials** - Store custom scopes per credential
+  - `--scopes` option in `config set-credentials` command (space-separated)
+  - Overrides default scopes when set
+  - Useful for testing with limited permissions or matching client configuration
+- **OAuth2 scope validation** - Automatic validation of granted vs requested scopes
+  - Logs warning when OAuth server doesn't grant all requested scopes
+  - Helps identify permission issues early
+  - New `TokenManager` methods: `get_granted_scopes()`, `has_scope()`, `check_required_scopes()`
+- `DTIAM_API_URL` environment variable for API URL override
+
+### Documentation
+- Updated CLAUDE.md with credential storage fields and API URL documentation
+- Updated docs/COMMANDS.md with `--api-url` and `--scopes` options for set-credentials
+- Updated README.md with DTIAM_API_URL environment variable
+- Updated examples/auth/.env.example with DTIAM_API_URL example
+
+## [3.11.0] - 2026-01-21
+
+### Added
+- **Platform Token Management** - Commands for managing platform tokens (following kubectl-style pattern)
+  - `get platform-tokens` - List all platform tokens (supports `--name` filter)
+  - `get platform-tokens <id>` - Get details of a platform token by ID or name
+  - `create platform-token` - Generate a new platform token
+    - `--name` - Token name/description (required)
+    - `--scopes` - Comma-separated list of scopes
+    - `--expires-in` - Token expiration (e.g., '30d', '1y')
+    - `--save-token` - Save token value to file
+  - `delete platform-token` - Delete a platform token (with confirmation)
+- New `PlatformTokenHandler` resource handler for platform token operations
+- New `platform_token_columns()` for table output formatting
+- Requires `platform-token:tokens:manage` scope
+
+### Changed
+- **Command Pattern Consistency** - Refactored service-user and platform-token commands to follow kubectl-style `<action> <resource>` pattern:
+  - `get service-users` (was `service-user list`)
+  - `create service-user` (was `service-user create`)
+  - `delete service-user` (was `service-user delete`)
+  - `service-user` subcommand now only contains advanced operations: `update`, `add-to-group`, `remove-from-group`, `list-groups`
+
+### Documentation
+- Updated CLAUDE.md with platform token resource handler and API endpoints
+- Updated docs/COMMANDS.md with full command reference using new patterns
+- Updated README.md with updated command patterns and scope information
+- Updated docs/QUICK_START.md with new command examples
+
 ## [3.10.0] - 2026-01-14
 
 ### Added
