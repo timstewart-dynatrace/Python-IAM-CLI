@@ -112,7 +112,7 @@ git push
 
 **ALL merges to main that add features or fixes MUST increment the version number.**
 
-Current version: **3.11.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
+Current version: **3.12.0** (defined in `pyproject.toml` and `src/dtiam/__init__.py`)
 
 #### Semantic Versioning (SemVer)
 
@@ -473,9 +473,29 @@ dtiam supports two authentication methods:
 | `DTIAM_ACCOUNT_UUID` | Dynatrace account UUID |
 | `DTIAM_CONTEXT` | Override current context |
 | `DTIAM_ENVIRONMENT_URL` | Environment URL for App Engine Registry (e.g., abc12345.apps.dynatrace.com) |
+| `DTIAM_API_URL` | Custom IAM API base URL (e.g., for testing or different regions) |
 
 **Note:** `DTIAM_CLIENT_ID` is optional. If not set, it will be automatically extracted from
 `DTIAM_CLIENT_SECRET` since Dynatrace secrets follow the format `dt0s01.CLIENTID.SECRETPART`.
+
+### Credential Storage
+
+Credentials can store additional settings beyond client ID/secret:
+
+| Field | Description |
+|-------|-------------|
+| `client-id` | OAuth2 client ID |
+| `client-secret` | OAuth2 client secret |
+| `environment-url` | Dynatrace environment URL |
+| `environment-token` | Optional environment API token |
+| `api-url` | Custom IAM API base URL (stored per-credential) |
+| `scopes` | Custom OAuth2 scopes (space-separated, overrides defaults) |
+
+**API URL Priority:** CLI `--api-url` > `DTIAM_API_URL` env var > stored in credential
+
+**Scopes:** When custom scopes are stored, they replace the default scopes. The OAuth server
+will only grant scopes that the client is configured for. Warnings are logged if requested
+scopes aren't granted.
 
 ## Key Patterns
 
@@ -814,6 +834,9 @@ credentials:
     credential:
       client-id: dt0s01.XXX
       client-secret: dt0s01.XXX.YYY
+      environment-url: https://abc123.live.dynatrace.com
+      api-url: https://api.dynatrace.com/iam/v1        # Optional: custom API URL
+      scopes: account-idm-read iam:users:read          # Optional: custom scopes
 ```
 
 Environment variable overrides:
@@ -823,6 +846,7 @@ Environment variable overrides:
 - `DTIAM_CLIENT_ID` - OAuth2 client ID
 - `DTIAM_CLIENT_SECRET` - OAuth2 client secret
 - `DTIAM_ACCOUNT_UUID` - account UUID
+- `DTIAM_API_URL` - custom IAM API base URL
 
 ## Common Tasks
 

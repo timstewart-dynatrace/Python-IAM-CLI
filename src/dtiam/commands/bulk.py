@@ -51,6 +51,12 @@ def is_plain_mode() -> bool:
     return state.plain
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 def load_input_file(file_path: Path) -> list[dict]:
     """Load data from a file (JSON, YAML, or CSV).
 
@@ -112,7 +118,7 @@ def bulk_add_users_to_group(
         return
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = GroupHandler(client)
 
     try:
@@ -215,7 +221,7 @@ def bulk_remove_users_from_group(
         return
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     group_handler = GroupHandler(client)
     user_handler = UserHandler(client)
 
@@ -335,7 +341,7 @@ def bulk_create_groups(
         return
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = GroupHandler(client)
 
     try:
@@ -458,7 +464,7 @@ def bulk_create_groups_with_policies(
         raise typer.Exit(1)
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     group_handler = GroupHandler(client)
     policy_handler = PolicyHandler(client)
     binding_handler = BindingHandler(client)
@@ -631,7 +637,7 @@ def bulk_create_bindings(
         return
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     binding_handler = BindingHandler(client)
     group_handler = GroupHandler(client)
     policy_handler = PolicyHandler(client, level_type="account", level_id=client.account_uuid)
@@ -732,7 +738,7 @@ def export_group_members(
     from dtiam.resources.groups import GroupHandler
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
     handler = GroupHandler(client)
 
     try:

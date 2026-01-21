@@ -19,18 +19,18 @@ groups:
 cli_commands:
   # Create the service user
   create: |
-    dtiam service-user create --name "ci-pipeline" \
+    dtiam create service-user --name "ci-pipeline" \
       --description "Service user for CI/CD automation pipelines"
 
   # Create and save credentials to file
   create_with_save: |
-    dtiam service-user create --name "ci-pipeline" \
+    dtiam create service-user --name "ci-pipeline" \
       --description "Service user for CI/CD automation pipelines" \
       --save-credentials ci-pipeline-creds.json
 
   # Create with group membership
   create_with_groups: |
-    dtiam service-user create --name "ci-pipeline" \
+    dtiam create service-user --name "ci-pipeline" \
       --description "Service user for CI/CD automation pipelines" \
       --groups "Automation,DevOps"
 

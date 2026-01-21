@@ -52,6 +52,12 @@ def is_plain_mode() -> bool:
     return state.plain
 
 
+def get_api_url() -> str | None:
+    """Get API URL override from CLI state."""
+    from dtiam.cli import state
+    return state.api_url
+
+
 def parse_variables(var_strings: list[str]) -> dict[str, str]:
     """Parse variable strings in key=value format.
 
@@ -289,7 +295,7 @@ def apply_template(
         return
 
     config = load_config()
-    client = create_client_from_config(config, get_context(), is_verbose())
+    client = create_client_from_config(config, get_context(), is_verbose(), get_api_url())
 
     try:
         if kind == "group":

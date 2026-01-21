@@ -22,9 +22,8 @@ Complete reference for all dtiam commands and their options.
 - [group](#group) - Advanced group operations
 - [boundary](#boundary) - Boundary management
 - [cache](#cache) - Cache management
-- [service-user](#service-user) - Service user (OAuth client) management
+- [service-user](#service-user) - Service user (OAuth client) advanced operations
 - [account](#account) - Account limits and subscriptions
-- [platform-token](#platform-token) - Platform token management
 
 ---
 
@@ -204,6 +203,8 @@ dtiam config set-credentials NAME [OPTIONS]
 | `--account-uuid`      | `-a`  | Dynatrace account UUID (prompts if not provided for new) |
 | `--environment-url`   | `-e`  | Dynatrace environment URL                            |
 | `--environment-token` | `-t`  | Environment API token (for management zones)         |
+| `--api-url`           |       | Custom IAM API base URL (e.g., for testing)          |
+| `--scopes`            |       | OAuth2 scopes (space-separated, overrides defaults)  |
 
 **Examples:**
 
@@ -226,9 +227,23 @@ dtiam config set-credentials prod-creds --environment-token dt0c01.XXX
 # Update environment URL only
 dtiam config set-credentials prod-creds --environment-url https://new-env.live.dynatrace.com
 
+# Store credentials with custom API URL (for testing or different regions)
+dtiam config set-credentials test-creds \
+  --client-secret dt0s01.XXX.YYY \
+  --account-uuid abc-123 \
+  --api-url https://custom-api.example.com/iam/v1
+
+# Store credentials with custom scopes (only request specific permissions)
+dtiam config set-credentials readonly-creds \
+  --client-secret dt0s01.XXX.YYY \
+  --account-uuid abc-123 \
+  --scopes "account-idm-read iam:users:read iam:groups:read"
+
 # Interactive prompt for new credentials
 dtiam config set-credentials dev-creds
 ```
+
+**Scope Validation:** When a token is acquired, the CLI compares requested scopes against granted scopes. If the OAuth server doesn't grant all requested scopes (because the client isn't configured for them), a warning is logged. This helps identify permission issues early.
 
 ### config delete-credentials
 
@@ -274,6 +289,7 @@ All `get` commands support **partial text matching** via filter options:
 | `get apps` | `--name` | Case-insensitive substring match |
 | `get schemas` | `--name` | Case-insensitive substring match (on ID or display name) |
 | `get service-users` | `--name` | Case-insensitive substring match |
+| `get platform-tokens` | `--name` | Case-insensitive substring match |
 
 **Example:** `dtiam get groups --name LOB` returns groups named "LOB5", "LOB6", "MyLOBTeam", etc.
 
@@ -545,6 +561,38 @@ dtiam get service-users my-service-user
 
 Aliases: `get service-user`
 
+### get platform-tokens
+
+List or get platform tokens.
+
+Platform tokens provide API access credentials for automation.
+Requires the `platform-token:tokens:manage` scope.
+
+```bash
+dtiam get platform-tokens [IDENTIFIER] [OPTIONS]
+```
+
+| Argument/Option | Short | Description                              |
+| --------------- | ----- | ---------------------------------------- |
+| `IDENTIFIER`    |       | Platform token ID or name (optional)     |
+| `--name`        | `-n`  | Filter by name (partial match)           |
+| `--output`      | `-o`  | Output format                            |
+
+**Examples:**
+
+```bash
+# List all platform tokens
+dtiam get platform-tokens
+
+# Filter platform tokens by name
+dtiam get platform-tokens --name "CI"
+
+# Get specific platform token details
+dtiam get platform-token my-token
+```
+
+Aliases: `get platform-token`
+
 ---
 
 ## describe
@@ -764,6 +812,61 @@ Either `--zones` or `--query` must be provided.
 dtiam create boundary --name "prod-only" --zones "Production,Staging"
 ```
 
+### create service-user
+
+Create a new service user (OAuth client).
+
+**IMPORTANT:** Save the client secret immediately - it cannot be retrieved later!
+
+```bash
+dtiam create service-user [OPTIONS]
+```
+
+| Option               | Short | Description                          |
+| -------------------- | ----- | ------------------------------------ |
+| `--name`             | `-n`  | Service user name (required)         |
+| `--description`      | `-d`  | Description                          |
+| `--groups`           | `-g`  | Comma-separated group UUIDs or names |
+| `--save-credentials` | `-s`  | Save credentials to JSON file        |
+| `--output`           | `-o`  | Output format                        |
+
+**Examples:**
+
+```bash
+dtiam create service-user --name "CI Pipeline"
+dtiam create service-user --name "CI Pipeline" --groups "LOB5,LOB6"
+dtiam create service-user --name "CI Pipeline" --save-credentials creds.json
+```
+
+### create platform-token
+
+Generate a new platform token.
+
+**IMPORTANT:** Save the token value immediately - it cannot be retrieved later!
+
+Requires the `platform-token:tokens:manage` scope.
+
+```bash
+dtiam create platform-token [OPTIONS]
+```
+
+| Option         | Short | Description                                    |
+| -------------- | ----- | ---------------------------------------------- |
+| `--name`       | `-n`  | Token name/description (required)              |
+| `--scopes`     | `-s`  | Comma-separated list of scopes for the token   |
+| `--expires-in` | `-e`  | Token expiration (e.g., '30d', '1y', '365d')   |
+| `--save-token` |       | Save token value to file                       |
+| `--output`     | `-o`  | Output format                                  |
+
+**Examples:**
+
+```bash
+dtiam create platform-token --name "CI Pipeline Token"
+dtiam create platform-token --name "Automation" --expires-in 30d
+dtiam create platform-token --name "CI Token" --save-token token.txt
+dtiam create platform-token --name "Custom" --scopes "account-idm-read,account-env-read"
+```
+
 ---
 
 ## delete
@@ -815,6 +918,53 @@ Delete an IAM policy boundary.
 
 ```bash
 dtiam delete boundary IDENTIFIER [--force]
+```
+
+### delete service-user
+
+Delete a service user (OAuth client).
+
+**Warning:** Deleting a service user will invalidate any OAuth tokens issued to it.
+
+```bash
+dtiam delete service-user IDENTIFIER [--force]
+```
+
+| Argument/Option | Short | Description               |
+| --------------- | ----- | ------------------------- |
+| `IDENTIFIER`    |       | Service user UUID or name |
+| `--force`       | `-f`  | Skip confirmation         |
+
+**Examples:**
+
+```bash
+dtiam delete service-user my-service-user
+dtiam delete service-user my-service-user --force
+```
+
+### delete platform-token
+
+Delete a platform token.
+
+**Warning:** This will immediately revoke the token. Applications using it will lose access.
+
+Requires the `platform-token:tokens:manage` scope.
+
+```bash
+dtiam delete platform-token IDENTIFIER [--force]
+```
+
+| Argument/Option | Short | Description               |
+| --------------- | ----- | ------------------------- |
+| `IDENTIFIER`    |       | Platform token ID or name |
+| `--force`       | `-f`  | Skip confirmation         |
+
+**Examples:**
+
+```bash
+dtiam delete platform-token abc-123-def
+dtiam delete platform-token "CI Pipeline Token"
+dtiam delete platform-token abc-123 --force
 ```
 
 ---
@@ -1954,55 +2104,14 @@ dtiam cache set-ttl 0
 
 ## service-user
 
-Service user (OAuth client) management.
+Service user (OAuth client) advanced operations.
 
-Service users are used for programmatic API access. When you create a service user, you receive OAuth client credentials that can be used to authenticate API requests.
+Service users are used for programmatic API access. For basic operations use:
+- `dtiam get service-users` - List or get service users
+- `dtiam create service-user` - Create a new service user
+- `dtiam delete service-user` - Delete a service user
 
-### service-user list
-
-List all service users in the account.
-
-```bash
-dtiam service-user list [--output FORMAT]
-```
-
-### service-user get
-
-Get details of a service user.
-
-```bash
-dtiam service-user get USER [--output FORMAT]
-```
-
-| Argument | Description               |
-| -------- | ------------------------- |
-| `USER`   | Service user UUID or name |
-
-### service-user create
-
-Create a new service user (OAuth client).
-
-**IMPORTANT:** Save the client secret immediately - it cannot be retrieved later!
-
-```bash
-dtiam service-user create [OPTIONS]
-```
-
-| Option               | Short | Description                          |
-| -------------------- | ----- | ------------------------------------ |
-| `--name`             | `-n`  | Service user name (required)         |
-| `--description`      | `-d`  | Description                          |
-| `--groups`           | `-g`  | Comma-separated group UUIDs or names |
-| `--save-credentials` | `-s`  | Save credentials to JSON file        |
-| `--output`           | `-o`  | Output format                        |
-
-**Examples:**
-
-```bash
-dtiam service-user create --name "CI Pipeline"
-dtiam service-user create --name "CI Pipeline" --groups "LOB5,LOB6"
-dtiam service-user create --name "CI Pipeline" --save-credentials creds.json
-```
+The `service-user` subcommand provides advanced operations like update, group management, etc.
 
 ### service-user update
 
@@ -2024,21 +2133,6 @@ dtiam service-user update USER [OPTIONS]
 ```bash
 dtiam service-user update my-service-user --name "New Name"
 ```
-
-### service-user delete
-
-Delete a service user.
-
-```bash
-dtiam service-user delete USER [--force]
-```
-
-| Argument/Option | Short | Description               |
-| --------------- | ----- | ------------------------- |
-| `USER`          |       | Service user UUID or name |
-| `--force`       | `-f`  | Skip confirmation         |
-
-**Warning:** Deleting a service user will invalidate any OAuth tokens issued to it.
 
 ### service-user add-to-group
 
@@ -2194,127 +2288,6 @@ dtiam account capabilities [SUBSCRIPTION] [--output FORMAT]
 | Argument       | Description                |
 | -------------- | -------------------------- |
 | `SUBSCRIPTION` | Optional subscription UUID |
-
----
-
-## platform-token
-
-Platform token management.
-
-Platform tokens provide API access credentials for automation and programmatic access to Dynatrace APIs. Requires the `platform-token:tokens:manage` scope.
-
-### platform-token list
-
-List all platform tokens in the account.
-
-```bash
-dtiam platform-token list [OPTIONS]
-```
-
-| Option     | Short | Description                     |
-| ---------- | ----- | ------------------------------- |
-| `--name`   | `-n`  | Filter by name (partial match)  |
-| `--output` | `-o`  | Output format                   |
-
-**Examples:**
-
-```bash
-# List all platform tokens
-dtiam platform-token list
-
-# Filter by name
-dtiam platform-token list --name "CI"
-
-# Output as JSON
-dtiam platform-token list -o json
-```
-
-### platform-token get
-
-Get details of a platform token.
-
-```bash
-dtiam platform-token get TOKEN [--output FORMAT]
-```
-
-| Argument | Description                    |
-| -------- | ------------------------------ |
-| `TOKEN`  | Platform token ID or name      |
-
-**Examples:**
-
-```bash
-# Get by name
-dtiam platform-token get "CI Pipeline Token"
-
-# Get by ID
-dtiam platform-token get abc-123-def
-
-# Output as JSON
-dtiam platform-token get "CI Pipeline Token" -o json
-```
-
-### platform-token create
-
-Generate a new platform token.
-
-**IMPORTANT:** Save the token value immediately - it cannot be retrieved later!
-
-```bash
-dtiam platform-token create [OPTIONS]
-```
-
-| Option         | Short | Description                                    |
-| -------------- | ----- | ---------------------------------------------- |
-| `--name`       | `-n`  | Token name/description (required)              |
-| `--scopes`     | `-s`  | Comma-separated list of scopes for the token   |
-| `--expires-in` | `-e`  | Token expiration (e.g., '30d', '1y', '365d')   |
-| `--save-token` |       | Save token value to file                       |
-| `--output`     | `-o`  | Output format                                  |
-
-**Examples:**
-
-```bash
-# Create a token
-dtiam platform-token create --name "CI Pipeline Token"
-
-# Create with expiration
-dtiam platform-token create --name "Automation" --expires-in 30d
-
-# Save token to file
-dtiam platform-token create --name "CI Token" --save-token token.txt
-
-# Create with specific scopes
-dtiam platform-token create --name "Custom" --scopes "account-idm-read,account-env-read"
-```
-
-### platform-token delete
-
-Delete a platform token.
-
-**Warning:** This will immediately revoke the token. Applications using it will lose access.
-
-```bash
-dtiam platform-token delete TOKEN [--force]
-```
-
-| Argument/Option | Short | Description               |
-| --------------- | ----- | ------------------------- |
-| `TOKEN`         |       | Platform token ID or name |
-| `--force`       | `-f`  | Skip confirmation         |
-
-**Examples:**
-
-```bash
-# Delete by ID
-dtiam platform-token delete abc-123-def
-
-# Delete by name
-dtiam platform-token delete "CI Pipeline Token"
-
-# Delete without confirmation
-dtiam platform-token delete abc-123 --force
-```
 
 ---
 

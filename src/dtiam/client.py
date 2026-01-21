@@ -23,8 +23,12 @@ from dtiam.utils.auth import TokenManager, StaticTokenManager, BaseTokenManager,
 
 logger = logging.getLogger(__name__)
 
-# Dynatrace IAM API base URL
-IAM_API_BASE = "https://api.dynatrace.com/iam/v1"
+# Dynatrace IAM API base URL (can be overridden via DTIAM_API_URL env var)
+DEFAULT_IAM_API_BASE = "https://api.dynatrace.com/iam/v1"
+
+def get_api_base_url() -> str:
+    """Get the IAM API base URL, allowing for override via environment variable."""
+    return os.environ.get("DTIAM_API_URL", DEFAULT_IAM_API_BASE)
 
 
 class APIError(Exception):
@@ -65,6 +69,7 @@ class Client:
         retry_config: RetryConfig | None = None,
         verbose: bool = False,
         environment_token: str | None = None,
+        api_url: str | None = None,
     ):
         self.account_uuid = account_uuid
         self.token_manager = token_manager
@@ -73,13 +78,18 @@ class Client:
         self.verbose = verbose
         self.environment_token = environment_token  # Optional environment API token
 
-        self.base_url = f"{IAM_API_BASE}/accounts/{account_uuid}"
+        # Use provided API URL, or fall back to env var / default
+        api_base = api_url or get_api_base_url()
+        self.base_url = f"{api_base}/accounts/{account_uuid}"
+
+        if api_url or os.environ.get("DTIAM_API_URL"):
+            logger.info(f"Using custom API URL: {api_base}")
 
         self._client = httpx.Client(
             timeout=timeout,
             headers={
                 "Content-Type": "application/json",
-                "User-Agent": "dtiam/3.11.0",
+                "User-Agent": "dtiam/3.12.0",
             },
         )
 
@@ -251,6 +261,7 @@ def create_client_from_config(
     config: Config | None = None,
     context_name: str | None = None,
     verbose: bool = False,
+    api_url: str | None = None,
 ) -> Client:
     """Create a client from configuration.
 
@@ -262,10 +273,14 @@ def create_client_from_config(
     Optional Environment Token for Management Zones (legacy):
     - DTIAM_ENVIRONMENT_TOKEN: Environment API token for management zone operations
 
+    Optional API URL Override:
+    - api_url parameter or DTIAM_API_URL environment variable
+
     Args:
         config: Configuration object (loads from file if not provided)
         context_name: Override context name (uses current-context if not provided)
         verbose: Enable verbose logging
+        api_url: Override the API base URL (e.g., for testing or different regions)
 
     Returns:
         Configured Client instance
@@ -294,6 +309,7 @@ def create_client_from_config(
             token_manager=token_manager,
             verbose=verbose,
             environment_token=env_token,
+            api_url=api_url,
         )
 
     # Priority 2: OAuth2 via environment variables (auto-refresh)
@@ -312,6 +328,7 @@ def create_client_from_config(
             token_manager=token_manager,
             verbose=verbose,
             environment_token=env_token,
+            api_url=api_url,
         )
 
     # Priority 3: Config file with OAuth2 credentials
@@ -335,18 +352,27 @@ def create_client_from_config(
         )
 
     logger.info(f"Using OAuth2 authentication via config context '{ctx_name}'")
-    token_manager = TokenManager(
-        client_id=credential.client_id,
-        client_secret=credential.client_secret,
-        account_uuid=context.account_uuid,
-    )
+    # Pass scopes from credential if configured, otherwise TokenManager uses defaults
+    token_manager_kwargs: dict[str, str] = {
+        "client_id": credential.client_id,
+        "client_secret": credential.client_secret,
+        "account_uuid": context.account_uuid,
+    }
+    if credential.scopes:
+        token_manager_kwargs["scope"] = credential.scopes
+        logger.info(f"Using custom scopes: {credential.scopes}")
+    token_manager = TokenManager(**token_manager_kwargs)
 
     # Use environment token from credential if no env override, or use credential's env token if available
     final_env_token = env_token or credential.environment_token
+
+    # Use api_url parameter if provided, otherwise fall back to credential's stored api_url
+    final_api_url = api_url or credential.api_url
 
     return Client(
         account_uuid=context.account_uuid,
         token_manager=token_manager,
         verbose=verbose,
         environment_token=final_env_token,
+        api_url=final_api_url,
     )
