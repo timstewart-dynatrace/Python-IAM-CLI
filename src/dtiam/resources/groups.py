@@ -30,6 +30,33 @@ class GroupHandler(CRUDHandler[Any]):
     def id_field(self) -> str:
         return "uuid"
 
+    def get(self, resource_id: str) -> dict[str, Any]:
+        """Get a group by UUID.
+
+        Note: The Dynatrace IAM API doesn't support GET /groups/{uuid} directly,
+        so we fall back to filtering the list by UUID.
+
+        Args:
+            resource_id: Group UUID
+
+        Returns:
+            Group dictionary or empty dict if not found
+        """
+        # Try direct API call first (in case API adds support)
+        try:
+            response = self.client.get(f"{self.api_path}/{resource_id}")
+            return response.json()
+        except APIError as e:
+            if e.status_code == 404:
+                # Fall back to filtering the list
+                groups = self.list()
+                for group in groups:
+                    if group.get("uuid") == resource_id:
+                        return group
+                return {}
+            self._handle_error("get", e)
+            return {}
+
     def create(
         self,
         name: str,
