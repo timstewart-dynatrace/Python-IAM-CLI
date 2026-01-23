@@ -1,8 +1,8 @@
 # CLAUDE.md
 
-This file provides guidance for AI agents working with the dtiam codebase.
+> **⚠️ DISCLAIMER**: This tool is provided "as-is" without warranty. **Use at your own risk.**  This tool is an independent, community-driven project and **not produced, endorsed, or supported by Dynatrace**. The authors assume no liability for any issues arising from its use.
 
-> **DISCLAIMER:** This tool is provided "as-is" without warranty. Use at your own risk. This is an independent, community-developed tool and is **NOT produced, endorsed, or supported by Dynatrace**.
+This file provides guidance for AI agents working with the dtiam codebase.
 
 ## Rules Reference
 
